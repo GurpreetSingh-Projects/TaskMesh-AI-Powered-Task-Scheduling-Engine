@@ -1,113 +1,115 @@
-import React, { useMemo } from "react";
+import React from "react";
 import {
-  ImageSourcePropType,
-  type ImageStyle,
-  type StyleProp,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
   type ViewProps,
 } from "react-native";
 import type { AnimatedProps } from "react-native-reanimated";
 import Animated from "react-native-reanimated";
 import { Image } from "expo-image";
-import { primaryBorderRadius } from "@/theme";
+import { Bell, Check, Clock, Tag } from "lucide-react-native";
 import { TaskItem } from "@/features/tasks/types";
+import { LinearGradient } from "expo-linear-gradient";
+import { BlurView } from "expo-blur";
 
 interface Props extends AnimatedProps<ViewProps> {
-  style?: StyleProp<ImageStyle>;
   task: TaskItem;
+  onComplete?: (task: TaskItem) => void;
 }
 
-export const HomeSlideItem: React.FC<Props> = (props) => {
-  const { style, ...animatedViewProps } = props;
+export const HomeSlideItem: React.FC<Props> = ({ task, onComplete }) => {
+  const uri = task?.image_url;
+  const due = task?.due_at
+    ? new Date(task.due_at).toLocaleString(undefined, {
+        day: "numeric",
+        month: "short",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : "No due date";
 
   return (
-    <Animated.View style={{ flex: 1 }} {...animatedViewProps}>
+    <Animated.View className="flex-1 overflow-hidden rounded-[50px]">
       <Image
-        style={[
-          style,
-          {
-            height: "100%",
-            width: "100%",
-            borderRadius: primaryBorderRadius?.default,
-            paddingHorizontal: 50,
-          },
-        ]}
-        source={{ uri: props?.task?.image_url }}
+        style={StyleSheet.absoluteFill}
+        source={{ uri }}
         contentFit="cover"
-        allowDownscaling={false}
+        blurRadius={60}
       />
+
+      <View className="flex-1 p-5">
+        <View className="flex-1 overflow-hidden rounded-[50px] bg-ink">
+          {/* <LinearGradient
+            colors={[
+              "rgba(0,0,0,0)",
+              "rgba(0,0,0,0)",
+              "rgba(3,3,3,0.08)",
+              "rgba(7,7,7,0.18)",
+              "rgba(18,18,18,0.32)",
+              "rgba(26,26,26,0.48)",
+              "rgba(36,36,36,0.64)",
+              "rgba(58,58,58,0.82)",
+              "#000000",
+            ]}
+            locations={[0, 0.6, 0.65, 0.71, 0.78, 0.85, 0.91, 0.96, 1]}
+            pointerEvents="none"
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            className="absolute inset-0"
+            style={{ zIndex: -1 }}
+          /> */}
+
+          <Image
+            style={StyleSheet.absoluteFill}
+            source={{ uri }}
+            contentFit="cover"
+          />
+
+          <View className="absolute right-5 top-5 h-12 w-12 items-center justify-center rounded-full bg-canvas/25">
+            <Bell size={20} color="white" />
+          </View>
+          <View className="flex-1 justify-end p-5">
+            <View className="">
+              <BlurView
+                intensity={100}
+                className="absolute inset-0"
+                pointerEvents="none"
+              />
+              <Text numberOfLines={1} className="text-4xl font-bold text-white">
+                {task?.title}
+              </Text>
+              <Text className="mt-1 text-lg capitalize text-white/60">
+                {task?.status}
+              </Text>
+
+              <View className="mt-4 flex-row items-center gap-5">
+                <View className="flex-row items-center gap-2">
+                  <Tag size={18} color="white" />
+                  <Text className="text-base capitalize text-white">
+                    {task?.priority}
+                  </Text>
+                </View>
+                <View className="flex-row items-center gap-2">
+                  <Clock size={18} color="white" />
+                  <Text className="text-base text-white">{due}</Text>
+                </View>
+              </View>
+
+              <Pressable
+                onPress={() => onComplete?.(task)}
+                className="mt-5 h-14 flex-row items-center justify-center gap-2 rounded-full bg-white"
+              >
+                <Check size={18} color="black" />
+                <Text className="text-base font-semibold text-black">
+                  Mark as done
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </View>
     </Animated.View>
   );
 };
-
-// const CustomItem = ({
-//   pressAnim,
-//   index,
-//   animStyle,
-//   carouselImages,
-//   isActive,
-// }) => {
-//   return (
-//     <Animated.View
-//       className="w-[280px] h-[480px] items-center"
-//       style={[animStyle]}
-//     >
-//       {/* Main Card */}
-//       <View className="flex-1 w-full rounded-[36px] overflow-hidden border-[1.5px] border-white bg-black shadow-xl">
-//         <SlideItem source={carouselImages[index]} index={index} />
-
-//         {/* Dark gradient overlay covering bottom 45% */}
-//         <View className="absolute inset-x-0 bottom-0 top-[55%] bg-black/40 backdrop-blur-md" />
-
-//         {/* Content Container */}
-//         <View className="absolute bottom-6 left-5 right-5 items-start">
-//           {/* Title */}
-//           <ThemeText
-//             variant="heading"
-//             className="text-white mb-2"
-//             numberOfLines={1}
-//           >
-//             Submit quarterly report
-//           </ThemeText>
-
-//           {/* Description */}
-//           <ThemeText
-//             variant="body"
-//             className="text-[#A0A0A5] mb-4"
-//             numberOfLines={2}
-//           >
-//             Finalize the numbers and send the report to the finance team for
-//             review.
-//           </ThemeText>
-
-//           {/* Glass Chips Row */}
-//           <View className="flex-row gap-2 mb-5">
-//             <View className="flex-row items-center bg-white/15 px-3 py-1.5 rounded-full border border-white/20">
-//               <ThemeText variant="body" className="text-white text-xs">
-//                 ⏳ Pending
-//               </ThemeText>
-//             </View>
-//             <View className="flex-row items-center bg-white/15 px-3 py-1.5 rounded-full border border-white/20">
-//               <ThemeText variant="body" className="text-white text-xs">
-//                 🚩 Normal
-//               </ThemeText>
-//             </View>
-//           </View>
-
-//           {/* Full-width White Pill Button */}
-//           <View className="w-full bg-white py-3.5 rounded-full items-center justify-center">
-//             <ThemeText variant="button" className="text-[#1C1C1E]">
-//               Mark as done
-//             </ThemeText>
-//           </View>
-//         </View>
-//       </View>
-
-//       {/* Overdue text displayed directly below the main card */}
-//       {isActive && (
-//         <ThemeText variant="body" className="mt-3 text-[#FF3B30] text-center">
-//           Overdue by 5 hours
-//         </ThemeText>
-//       )}
-//     </Animated.View>
-//   );
-// };
