@@ -17,16 +17,6 @@ jobs:
       id-token: write
 
     steps:
-      - name: Check secrets (temporary)
-        env:
-          OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
-          AUDIENCE: ${{ secrets.AUDIENCE }}
-        run: |
-          for v in OAUTH_CLIENT_ID AUDIENCE; do
-            eval "val=\$$v"
-            [ -n "$val" ] && echo "$v len=${#val}" || echo "$v EMPTY"
-          done
-
       - name: Setup TailScale Access
         uses: tailscale/github-action@v4
         with:
