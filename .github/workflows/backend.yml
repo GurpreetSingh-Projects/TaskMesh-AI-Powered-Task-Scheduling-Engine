@@ -1,0 +1,45 @@
+name: Taskmesh Backend Deploy
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "backend/**"
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Setup TailScale Access
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{secrets.OAUTH_CLIENT_ID}}
+          audience: ${{secrets.AUDIENCE}}
+          tags: tag:taskmesh-cli
+
+      - name: Deploy to VM
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.KNOWN_HOSTS }}
+          TARGET: ${{ secrets.SSH_USER }}@${{ secrets.HOST }}
+        run: |
+          echo "${SSH_KEY}" > key
+          chmod 600 key
+
+          echo "${KNOWN_HOSTS}" > known_hosts
+
+          ssh -i key -0 UserKnownHostsFile=known_hosts -0 StrictHostKeyChecking=yes "$TARGET" 'bash -s' << 'EOF'
+            set -e
+            cd ..
+            cd apps/taskmesh/taskmesh-backend
+            git pull --ff-only
+            cp ../.env/.dev.env backend/
+            docker compose up -d --build
+          EOF
