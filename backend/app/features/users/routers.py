@@ -13,11 +13,7 @@ from app.features.users.schemas import (
 )
 from app.features.users.services import UserService
 
-user_router = APIRouter(
-    prefix="/users",
-    tags=["Users"],
-    dependencies=[Depends(require_roles([UserRoles.ADMIN, UserRoles.USER]))],
-)
+user_router = APIRouter(prefix="/users", tags=["Users"])
 
 user_settings_router = APIRouter(prefix="/users/settings", tags=["User Settings"])
 
@@ -85,7 +81,6 @@ async def create_user_settings(
 
 @user_settings_router.get(
     "",
-    status_code=201,
     response_model=UserSettingsReadResponseSchema,
     summary="Get user settings",
 )
