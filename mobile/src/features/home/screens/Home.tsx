@@ -124,7 +124,7 @@ const Home = () => {
   const viewAllStyle = {
     transform: [
       {
-        translateX: isViewAllActive ? 0 : 150,
+        translateX: isViewAllActive ? -75 : 150,
       },
     ],
     transitionProperty: "transform",
