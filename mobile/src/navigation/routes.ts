@@ -2,9 +2,11 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   AuthStackParamList,
   BottomTabsStackParamList,
-  HomeStackParamList,
+  DashboardStackParamList,
   RootStackParamList,
 } from "./types";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { CompositeNavigationProp } from "@react-navigation/native";
 
 export type RootStackNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -12,8 +14,13 @@ export type RootStackNavigationProp =
 export type AuthStackNavigationProp =
   NativeStackNavigationProp<AuthStackParamList>;
 
-export type HomeStackNavigationProp =
-  NativeStackNavigationProp<HomeStackParamList>;
+export type DashboardStackNavigationProp =
+  NativeStackNavigationProp<DashboardStackParamList>;
 
 export type BottomTabsNavigationProp =
-  NativeStackNavigationProp<BottomTabsStackParamList>;
+  BottomTabNavigationProp<BottomTabsStackParamList>;
+
+export type HomeStackNavigationProp = CompositeNavigationProp<
+  DashboardStackNavigationProp,
+  BottomTabsNavigationProp
+>;

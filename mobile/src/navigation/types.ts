@@ -9,12 +9,13 @@ export type AuthStackParamList = {
   Register: undefined;
 };
 
-export type HomeStackParamList = {
+export type DashboardStackParamList = {
   OnboardingQuestionnaire: undefined;
   ProfileDetailsPending: undefined;
-  BottomTabs: undefined;
+  CreateTask: undefined;
   LabelManagement: undefined;
   Settings: undefined;
+  BottomTabs: undefined;
 };
 
 export type BottomTabsStackParamList = {

@@ -16,7 +16,7 @@ import {
   setUserInfo,
 } from "../slice/user";
 import { useNavigation } from "@react-navigation/native";
-import { HomeStackNavigationProp } from "@/navigation/routes";
+import { DashboardStackNavigationProp } from "@/navigation/routes";
 
 const ProfileDetailsPending = () => {
   const { height } = useWindowDimensions();
