@@ -1,6 +1,14 @@
 import { Text, TextProps } from "react-native";
 
-type TextVariant = "button" | "heading" | "subheading" | "title" | "body";
+type TextVariant =
+  | "button"
+  | "heading"
+  | "subheading"
+  | "title"
+  | "body"
+  | "cardTitle"
+  | "cardDescription"
+  | "label";
 
 type ThemeTextProps = TextProps & {
   className?: string;
@@ -13,6 +21,9 @@ const variantClasses: Record<TextVariant, string> = {
   subheading: "font-semibold! text-xl leading-tight",
   title: "font-semibold! text-base leading-normal",
   body: "font-medium text-sm leading-normal",
+  cardTitle: "font-semibold text-xl leading-tight",
+  cardDescription: "font-medium text-sm leading-normal",
+  label: "font-normal text-xs",
 };
 
 const ThemeText = (props: ThemeTextProps) => {
