@@ -20,6 +20,7 @@ import { TaskItem } from "@/features/tasks/types";
 import { useGetSummaryQuery } from "../homeApi";
 import dayjs from "dayjs";
 import { ViewAll } from "../components/ViewAll";
+import { HomeStackNavigationProp } from "@/navigation/routes";
 
 const ranges = ["Daily", "Weekly", "Monthly"] as const;
 
@@ -66,7 +67,7 @@ const loadiingData = [{}, {}] as unknown as TaskItem[];
 const Home = () => {
   const { height, width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<HomeStackNavigationProp>();
   const user = useAppSelector((state) => state.user);
 
   const end_date = dayjs().format("YYYY-MM-DD");
@@ -122,17 +123,44 @@ const Home = () => {
     transitionTimingFunction: "ease-in-out",
   } as const;
 
+  const addTaskHandler = () => {
+    navigation.navigate("CreateTask");
+  };
+
+  const addSubtaskHandler = () => {
+    navigation.navigate("CreateTask");
+  };
+
+  const openLabelsHandler = () => {
+    navigation.navigate("LabelManagement");
+  };
+
+  const openSettingsHandler = () => {
+    navigation.navigate("Settings");
+  };
+
   const quickActions = [
-    { label: "Add task", icon: images?.icons?.addTaskIcon, onPress: null },
+    {
+      label: "Add task",
+      icon: images?.icons?.addTaskIcon,
+      onPress: addTaskHandler,
+    },
     {
       label: "Add subtask",
       icon: images?.icons?.addSubtaskIcon,
-      onPress: null,
+      onPress: addSubtaskHandler,
     },
-    { label: "Labels", icon: images?.icons?.labelsIcon, onPress: null },
-    { label: "Settings", icon: images?.icons?.settingsIcon, onPress: null },
+    {
+      label: "Labels",
+      icon: images?.icons?.labelsIcon,
+      onPress: openLabelsHandler,
+    },
+    {
+      label: "Settings",
+      icon: images?.icons?.settingsIcon,
+      onPress: openSettingsHandler,
+    },
   ];
-
   // console.log("Tasks:", tasksData, start_date, end_date);
 
   useFocusEffect(
@@ -145,7 +173,7 @@ const Home = () => {
     <ThemePage noSafeArea isScrollable backgroundColor={themeColors?.ink}>
       <ImageBackground
         source={images?.backgrounds?.homeBg}
-        style={{ flex: 1, paddingTop: insets?.top, justifyContent: "start" }}
+        style={{ flex: 1, paddingTop: insets?.top }}
       >
         <View className="">
           <View className="flex-row items-center justify-between px-page">
@@ -291,7 +319,7 @@ const Home = () => {
             {quickActions?.map(({ label, icon, onPress }) => (
               <Pressable
                 key={label}
-                // onPress={onPress}
+                onPress={onPress}
                 accessibilityLabel={label}
                 className="w-1/4 items-center gap-2 active:opacity-70"
               >
