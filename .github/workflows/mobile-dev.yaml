@@ -1,4 +1,4 @@
-name: Stage Mobile debug APK flow test
+name: Dev Mobile debug APK
 on:
   push:
     branches: [dev]
@@ -51,10 +51,11 @@ jobs:
 
       - name: Extract App Details
         id: app-version
-        run: CONFIG=$(pnpm dlx expo config --json)
-          echo "name=${echo "$CONFIG" | jq -r '.name'}" >> "$GITHUB_OUTPUT"
-          echo "slug=${echo "$CONFIG" | jq -r '.slug'}" >> "$GITHUB_OUTPUT"
-          echo "version=${echo "$CONFIG" | jq -r '.version'}" >> "$GITHUB_OUTPUT"
+        run: |
+          CONFIG=$(pnpm dlx expo config --json)
+          echo "name=$(echo "$CONFIG" | jq -r '.name')" >> "$GITHUB_OUTPUT"
+          echo "slug=$(echo "$CONFIG" | jq -r '.slug')" >> "$GITHUB_OUTPUT"
+          echo "version=$(echo "$CONFIG" | jq -r '.version')" >> "$GITHUB_OUTPUT"
 
       - name: Build Debug apk
         run: pnpm dlx eas-cli@latest build --profile debug --platform android --local --non-interactive --output taskmesh-dev-debug.apk
