@@ -1,7 +1,6 @@
 import json
 from datetime import datetime, timezone
-
-# from types import SimpleNamespace
+from types import SimpleNamespace
 from uuid import UUID
 
 from fastapi import File, HTTPException, UploadFile
@@ -28,6 +27,7 @@ from app.features.users.schemas import (
     UserReadResponseSchema,
     UserSettingsCreateRequestSchema,
     UserSettingsEditRequestSchema,
+    UserSettingsReadResponseSchema,
 )
 
 
@@ -43,6 +43,7 @@ class UserService:
         user_id: UUID | None = None,
         silent_mode: bool = False,
     ):
+        cache_key = ""
         try:
             if not email and not user_id:
                 raise HTTPException(
@@ -52,16 +53,16 @@ class UserService:
             conditions = []
             if user_id:
                 conditions.append(Users.user_id == user_id)
+                cache_key = f"users:{user_id}:get"
             if email:
                 conditions.append(Users.email == email)
-
-            cache_key = f"users:{user_id}:get"
+                cache_key = f"users:{email}:get"
 
             cached_details = await redis_client.get(cache_key)
 
-            if user_id is not None and cached_details:
-                logger.debug("Cache HIT: Returning user details from Redis")
-                return from_json(cached_details)
+            if cached_details:
+                logger.debug("Redis Cache HIT: Returning user details from Redis")
+                return SimpleNamespace(**from_json(cached_details))
 
             query = (
                 select(
@@ -94,7 +95,7 @@ class UserService:
                 .limit(1)
             )
 
-            logger.debug("Cache MISS: Fetching user details from database")
+            logger.debug("Redis Cache MISS: Fetching user details from database")
 
             user = (await self.db.execute(query)).mappings().one_or_none()
 
@@ -105,23 +106,25 @@ class UserService:
 
             user_settings = await self.get_user_settings(user_id=user.user_id)
 
-            self.db.expunge(user)
+            user = SimpleNamespace(**user)
 
             if user.storage_key:
                 user.profile_img = await self.storage_service.get_signed_asset_url(
                     user.storage_key
                 )
 
-            user.user_settings = user_settings
+            user.user_settings = UserSettingsReadResponseSchema.model_validate(
+                user_settings
+            ).model_dump()
 
             user_data = to_json(vars(user))
 
             try:
                 await redis_client.set(name=cache_key, value=user_data, ex=300)
             except RedisError:
-                logger.exception("Task cache invalidation failed")
+                logger.exception("User details cache write failed")
 
-            return user_data
+            return user
         except HTTPException:
             raise
         except Exception:
