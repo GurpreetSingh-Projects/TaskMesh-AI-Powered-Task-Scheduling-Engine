@@ -35,7 +35,7 @@ jobs:
 
           echo "${KNOWN_HOSTS}" > known_hosts
 
-          ssh -i key -0 UserKnownHostsFile=known_hosts -0 StrictHostKeyChecking=yes "$TARGET" 'bash -s' << 'EOF'
+          ssh -i key -o UserKnownHostsFile=known_hosts -o StrictHostKeyChecking=yes "$TARGET" 'bash -s' << 'EOF'
             set -e
             cd ..
             cd apps/taskmesh/taskmesh-backend
