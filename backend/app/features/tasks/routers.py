@@ -1,14 +1,15 @@
 from fastapi import APIRouter, Depends, Query, UploadFile, Form, File
 from uuid import UUID
+from datetime import date, datetime
 from typing import Annotated
-from app.core.dependencies import get_current_user
+from app.core.dependencies import require_roles
 from app.features.tasks.dependencies import get_tasks_service
 from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateRequestSchema, TaskReadResponseItemSchema, TaskReadResponseSchema, SubtaskReadResponseItemSchema, SubtaskReadResponseSchema, SubtaskCreateRequestSchema, SubtaskUpdateRequestSchema
 from app.features.tasks.services import TaskService
 from app.features.tasks.enums import TaskPriority, TaskStatus
-from datetime import date, datetime
+from app.features.users.enums import UserRoles
 
-router = APIRouter(prefix="/tasks", tags=["Tasks & Subtasks"], dependencies=[Depends(get_current_user)])
+router = APIRouter(prefix="/tasks", tags=["Tasks & Subtasks"])
 
 # Tasks
 @router.post("", response_model=TaskReadResponseItemSchema, status_code=201, summary="Create a new task")
@@ -20,7 +21,7 @@ async def create_task(
     due_at: datetime | None = Form(None),
     completed_at: datetime | None = Form(None),
     task_img: UploadFile | None = File(None),
-    user= Depends(get_current_user), 
+    user=Depends(require_roles([UserRoles.ADMIN])), 
     task_service: TaskService = Depends(get_tasks_service)
 ):
     task_data = TaskCreateRequestSchema(
@@ -39,7 +40,7 @@ async def get_tasks(
     start_date: date= date.today(),
     end_date: date= date.today(),
     limit: int = Query(10, ge=1, le=50),
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     task_service: TaskService = Depends(get_tasks_service),
 ):
     return await task_service.get_tasks_summary(
@@ -54,7 +55,7 @@ async def get_tasks(
     status: TaskStatus | None = None,
     limit: int = Query(15, ge=1, le=500),
     offset: int = Query(0, ge=0),
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     task_service: TaskService = Depends(get_tasks_service),
 ):
     return await task_service.get_tasks(
@@ -73,7 +74,7 @@ async def update_task(
     due_at: datetime | None = Form(None),
     completed_at: datetime | None = Form(None),
     task_img: UploadFile | None = File(None),
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     task_service: TaskService = Depends(get_tasks_service),
 ):
     task_data = TaskUpdateRequestSchema(
@@ -95,7 +96,7 @@ async def update_task(
     return response
 
 @router.patch("/deactivate/{task_id}", status_code= 204, summary= "Deactivate task with its task_id")
-async def deactivate_task(task_id: UUID, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
+async def deactivate_task(task_id: UUID, user=Depends(require_roles([UserRoles.ADMIN])), task_service: TaskService = Depends(get_tasks_service)):
     await task_service.deactivate_task(user= user, task_id= task_id)
 
 # Subtasks
@@ -109,7 +110,7 @@ async def create_subtask(
     due_at: datetime | None = Form(None),
     completed_at: datetime | None = Form(None),
     subtask_img: UploadFile | None = File(None),
-    user= Depends(get_current_user), 
+    user=Depends(require_roles([UserRoles.ADMIN])), 
     task_service: TaskService = Depends(get_tasks_service)):
     subtask_data = SubtaskCreateRequestSchema(
             task_id= task_id,
@@ -124,7 +125,7 @@ async def create_subtask(
     return response
 
 @router.get("/subtasks/", response_model= SubtaskReadResponseSchema, summary="List subtasks for a given task id")
-async def get_subtasks(task_id: UUID, limit: int = Query(15, ge=0, le= 500), offset:int= Query(0, ge= 0), user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
+async def get_subtasks(task_id: UUID, limit: int = Query(15, ge=0, le= 500), offset:int= Query(0, ge= 0), user=Depends(require_roles([UserRoles.ADMIN])), task_service: TaskService = Depends(get_tasks_service)):
     response= await task_service.get_subtasks(user= user, task_id= task_id, limit= limit, offset= offset)
     return response
 
@@ -144,7 +145,7 @@ async def update_subtask(
     due_at: datetime | None = Form(None),
     completed_at: datetime | None = Form(None),
     subtask_img: UploadFile | None = File(None),
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     task_service: TaskService = Depends(get_tasks_service),
 ):
     subtask_data = SubtaskUpdateRequestSchema(
@@ -167,5 +168,9 @@ async def update_subtask(
     return response
 
 @router.patch("/subtask/deactivate/{subtask_id}/", status_code= 204, summary= "Deactivate task with its task_id")
-async def deactivate_subtask(subtask_id: UUID, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
+async def deactivate_subtask(subtask_id: UUID, user=Depends(require_roles([UserRoles.ADMIN])), task_service: TaskService = Depends(get_tasks_service)):
     await task_service.deactivate_subtask(user= user, subtask_id= subtask_id)
+
+@router.post("/autoupdate/tasks-status", status_code= 204, summary= "Refreshes Task statuses")
+async def autoupdate_task_status(task_service: TaskService = Depends(get_tasks_service)):
+    await task_service.autoupdate_task_status()

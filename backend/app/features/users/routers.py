@@ -1,22 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, Form, File
-
 from pydantic import EmailStr
-
 from app.features.users.dependencies import get_user_service
 from app.features.users.schemas import UserEditRequestSchema, UserReadResponseSchema, UserSettingsCreateRequestSchema, UserSettingsReadResponseSchema, UserSettingsEditRequestSchema
 from app.features.users.services import UserService
-from app.core.dependencies import get_current_user
+from app.features.users.enums import UserRoles
+from app.core.dependencies import require_roles
 
 user_router = APIRouter(
     prefix="/users",
     tags=["Users"],
-    dependencies=[Depends(get_current_user)],
+    dependencies=[Depends(require_roles([UserRoles.ADMIN]))],
 )
 
 user_settings_router = APIRouter(
     prefix="/users/settings",
-    tags=["User Settings"],
-    dependencies=[Depends(get_current_user)],
+    tags=["User Settings"]
 )
 
 @user_router.get(
@@ -26,7 +24,7 @@ user_settings_router = APIRouter(
     description="Gets back the current user details",
 )
 async def get_user(
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     user_services: UserService = Depends(get_user_service),
 ):
     user = await user_services.get_user_details(user_id=user.user_id)
@@ -47,7 +45,7 @@ async def edit_user(
     password: str | None = Form(None),
     full_name: str | None = Form(None),
     profile_img: UploadFile | None = File(None),
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     user_services: UserService = Depends(get_user_service),
 ):
     user_data = UserEditRequestSchema(
@@ -69,7 +67,7 @@ async def edit_user(
 )
 async def create_user_settings(
     settings_data: UserSettingsCreateRequestSchema,
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     user_services: UserService = Depends(get_user_service),
 ):
     return await user_services.create_user_settings(
@@ -84,7 +82,7 @@ async def create_user_settings(
     summary="Get user settings",
 )
 async def get_user_settings(
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     user_services: UserService = Depends(get_user_service),
 ):
     return await user_services.get_user_settings(user_id=user.user_id)
@@ -96,7 +94,7 @@ async def get_user_settings(
 )
 async def update_user_settings(
     settings_data: UserSettingsEditRequestSchema,
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     user_services: UserService = Depends(get_user_service),
 ):
     return await user_services.update_user_settings(
@@ -110,7 +108,7 @@ async def update_user_settings(
     summary="Deactivate user settings",
 )
 async def deactivate_user_settings(
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     user_services: UserService = Depends(get_user_service),
 ):
     await user_services.deactivate_user_settings(user=user)
