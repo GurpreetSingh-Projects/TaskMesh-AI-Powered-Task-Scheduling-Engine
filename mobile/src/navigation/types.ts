@@ -13,6 +13,7 @@ export type DashboardStackParamList = {
   OnboardingQuestionnaire: undefined;
   ProfileDetailsPending: undefined;
   CreateTask: undefined;
+  TaskDetails: undefined;
   LabelManagement: undefined;
   Settings: undefined;
   BottomTabs: undefined;
