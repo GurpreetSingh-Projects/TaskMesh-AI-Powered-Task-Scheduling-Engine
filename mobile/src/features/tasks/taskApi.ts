@@ -88,6 +88,9 @@ const taskApi = baseApi.injectEndpoints({
         }
       },
     }),
+    updateTask: builder.mutation({
+      queryFn: {},
+    }),
   }),
   overrideExisting: true,
 });
