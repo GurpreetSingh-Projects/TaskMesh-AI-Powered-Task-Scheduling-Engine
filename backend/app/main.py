@@ -5,7 +5,7 @@ from loguru import logger
 
 from app import features
 from app.core.logging import setup_logging
-from app.core.redis import redis
+from app.core.redis import redis_client
 from app.core.schedulers import end_scheduler, start_scheduler
 from app.database import Base, engine
 from app.features.activity.routers import router as actiivty_router
@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
     start_scheduler()
     yield
     end_scheduler()
-    await redis.aclose()
+    await redis_client.aclose()
 
 
 app = FastAPI(
