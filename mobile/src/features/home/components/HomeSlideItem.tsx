@@ -41,13 +41,13 @@ export const HomeSlideItem: React.FC<Props> = ({ task, onComplete }) => {
           <ThemeText
             variant="cardTitle"
             numberOfLines={1}
-            className="font-bold text-white"
+            className="font-bold text-canvas"
           >
             {task?.title}
           </ThemeText>
           <ThemeText
             variant="cardDescription"
-            className="capitalize text-white/60"
+            className="capitalize text-canvas"
           >
             {task?.status}
           </ThemeText>
