@@ -45,18 +45,33 @@ export const HomeSlideItem: React.FC<Props> = ({
       {isLoading ? (
         <HomePlaceholder />
       ) : (
-        <View className="flex-1 overflow-hidden bg-ink p-5 justify-end rounded-[35px] border-mist border-7 shadow-2xl">
+        <View className="flex-1 overflow-hidden bg-ink justify-end rounded-[35px] border-mist border-6 shadow-xl">
           <Image
             style={StyleSheet.absoluteFill}
             source={{ uri }}
             contentFit="cover"
           />
+          <LinearGradient
+            colors={[
+              "rgba(0,0,0,0)",
+              "rgba(0,0,0,0)",
+              "rgba(18,18,18,0.2)",
+              "rgba(58,58,58,0.4)",
+              "rgba(0,0,0,0.75)",
+            ]}
+            locations={[0, 0.75, 0.85, 0.95, 1]}
+            pointerEvents="none"
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            className="absolute inset-0"
+            style={{ zIndex: 10 }}
+          />
 
           {/* <View className="absolute right-5 top-5 h-10 w-10 items-center justify-center rounded-full bg-canvas/25">
-            <X size={22.5} color="white" />
+            <X size={22.5} color={themeColors?.canvas} />
           </View> */}
 
-          <View className="">
+          <View className="p-5 pt-0 z-20 gap-2">
             <ThemeText
               variant="cardTitle"
               numberOfLines={1}
@@ -64,34 +79,34 @@ export const HomeSlideItem: React.FC<Props> = ({
             >
               {task?.title}
             </ThemeText>
-            <ThemeText variant="cardDescription" className="text-canvas">
+            <ThemeText variant="cardDescription" className="text-cloud">
               {statusLabels[task?.status] ?? task?.status}
             </ThemeText>
 
             <View className="mt-4 flex-row items-center gap-5">
               <View className="flex-row items-center gap-2">
-                <Tag size={18} color="white" />
-                <ThemeText className="text-base capitalize text-white">
+                <Tag size={18} color={themeColors?.mist} />
+                <ThemeText className="text-base capitalize text-mist">
                   {priorityLabels[task?.priority] ?? task?.priority}
                 </ThemeText>
               </View>
               <View className="flex-row items-center gap-2">
-                <Clock size={18} color="white" />
-                <ThemeText className="text-base text-white capitalize">
+                <Clock size={18} color={themeColors?.mist} />
+                <ThemeText className="text-base text-mist capitalize">
                   {due}
                 </ThemeText>
               </View>
             </View>
 
-            <Pressable
+            {/* <Pressable
               onPress={() => onComplete?.(task)}
-              className="mt-5 h-14 flex-row items-center justify-center gap-2 rounded-full bg-white"
+              className="mt-5 h-14 flex-row items-center justify-center gap-2 rounded-full bg-canvas"
             >
               <Check size={18} color="black" />
               <ThemeText className="text-base font-semibold text-black">
                 Mark as done
               </ThemeText>
-            </Pressable>
+            </Pressable> */}
           </View>
         </View>
       )}
