@@ -5,9 +5,9 @@ services:
     build: .
     container_name: taskmesh-api
     ports:
-      - "10000:10000"
+      - "8000:10000"
     env_file:
-      - .env
+      - .env/.dev.env
     restart: unless-stopped
 
   redis:
