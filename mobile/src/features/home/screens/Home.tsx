@@ -14,6 +14,8 @@ import { Carousel, CarouselRef } from "react-native-reanimated-carousel";
 import Animated from "react-native-reanimated";
 import { HomeSlideItem } from "../components/HomeSlideItem";
 import { TaskItem } from "@/features/tasks/types";
+import { useGetSummaryQuery } from "../homeApi";
+import dayjs from "dayjs";
 
 const ranges = ["Daily", "Weekly", "Monthly"] as const;
 
@@ -61,6 +63,9 @@ const Home = () => {
   const navigation = useNavigation();
   const user = useAppSelector((state) => state.user);
 
+  const end_date = dayjs().format("YYYY-MM-DD");
+  const start_date = dayjs().subtract(90, "day").format("YYYY-MM-DD");
+
   const carouselRef = useRef<CarouselRef>(null);
   const [homeRange, setHomeRange] = useState<AnalyticsRange>("Weekly");
   const [isHomeRangeMenuOpen, setIsHomeRangeMenuOpen] = useState(false);
@@ -77,8 +82,13 @@ const Home = () => {
     isLoading: areTasksLoading,
     isError: areTasksError,
     error: tasksError,
-  } = useGetTasksQuery();
-  console.log("Tasks:", tasksData);
+  } = useGetSummaryQuery({
+    start_date,
+    end_date,
+    limit: 10,
+  });
+
+  console.log("Tasks:", tasksData, start_date, end_date);
 
   return (
     <ThemePage
@@ -92,8 +102,8 @@ const Home = () => {
           source={images?.backgrounds?.homeBg}
           style={{ flex: 1, paddingTop: insets?.top }}
         >
-          <View className="py-3 px-page gap-5 h-3/4">
-            <View className="flex-row items-center justify-between">
+          <View className="py-3 gap-5 h-3/4">
+            <View className="flex-row items-center justify-between px-page">
               <Pressable
                 onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
                 className="p-2 rounded-full border"
@@ -170,7 +180,7 @@ const Home = () => {
               </View>
             </View>
 
-            <View className="gap-1">
+            <View className="gap-1 px-page">
               <ThemeText className="text-base font-medium text-cloud">
                 Welcome back,
               </ThemeText>
@@ -187,11 +197,12 @@ const Home = () => {
               <Carousel
                 loop
                 ref={carouselRef}
-                data={tasksData?.items}
+                data={tasksData?.top_tasks}
                 style={{
                   height: height * 0.65,
-                  aspectRatio: 0.5625,
+                  width: width,
                 }}
+                contentContainerStyle={{ width: width }}
                 layout={{
                   type: "parallax",
                   scale: 0.75,
@@ -381,14 +392,7 @@ type ItemProps = {
 
 const CustomItem: React.FC<ItemProps> = ({ task }) => {
   return (
-    <Animated.View
-      style={[
-        {
-          flex: 1,
-          overflow: "hidden",
-        },
-      ]}
-    >
+    <Animated.View className="flex-1 overflow-hidden">
       <HomeSlideItem task={task} />
     </Animated.View>
   );
