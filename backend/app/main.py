@@ -1,5 +1,6 @@
 from fastapi import FastAPI, APIRouter
 from contextlib import asynccontextmanager
+from loguru import logger
 from app.database import engine
 from app.features.auth.routers import router as auth_router
 from app.features.users.routers import user_router, user_settings_router
@@ -12,7 +13,7 @@ from app.database import Base
 from app.core.logging import setup_logging
 from app.core.redis import redis
 from app import features
-from loguru import logger
+from app.core.schedulers import start_scheduler, end_scheduler
 
 setup_logging()
 
@@ -20,8 +21,9 @@ setup_logging()
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    start_scheduler()
     yield
-
+    end_scheduler()
     await redis.aclose()
 
 app = FastAPI(title='TaskMesh Api v2', version='2.0.0', lifespan=lifespan)
