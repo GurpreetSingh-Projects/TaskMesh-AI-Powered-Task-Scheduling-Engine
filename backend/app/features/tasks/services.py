@@ -154,27 +154,28 @@ class TaskService:
                 )
         )
 
-        recently_completed_query=(
-            select(Tasks)
-            .where(
-                Tasks.user_id == user.user_id,
-                Tasks.created_at >= start_date,
-                Tasks.created_at < end_date,
-                Tasks.completed_at < end_date,
-                Tasks.is_deleted.is_(False),
-            )
-            .order_by(
-                Tasks.completed_at.desc()
-            )
-            .limit(limit)
-        )
+        # recently_completed_query=(
+        #     select(Tasks)
+        #     .where(
+        #         Tasks.user_id == user.user_id,
+        #         Tasks.created_at >= start_date,
+        #         Tasks.created_at < end_date,
+        #         Tasks.completed_at < end_date,
+        #         Tasks.is_deleted.is_(False),
+        #     )
+        #     .order_by(
+        #         Tasks.completed_at.desc()
+        #     )
+        #     .limit(limit)
+        # )
 
         top_tasks = (await self.db.execute(top_tasks_query)).scalars().all()
         progress_stats = (await self.db.execute(progress_query)).one()
         weekly_streak = (await self.db.execute(weekly_streak_query)).scalars().all()
-        recently_completed_tasks= (await self.db.execute(recently_completed_query)).scalars().all()
+        # recently_completed_tasks= (await self.db.execute(recently_completed_query)).scalars().all()
 
-        for task in top_tasks and recently_completed_tasks:
+        # for task in top_tasks and recently_completed_tasks:
+        for task in top_tasks:
             if task.file_storage_id:
                 file_details= await self.storage_service.get_file_details(file_storage_id=task.file_storage_id, entity_type=FileStorageEntity.TASK)
                 task.image_url= await self.storage_service.get_signed_asset_url(storage_key= file_details.storage_key)
@@ -185,33 +186,46 @@ class TaskService:
             "top_tasks": top_tasks,
             "progress_stats": progress_stats._asdict(),
             "weekly_streak": weekly_streak,
-            "recently_completed_tasks": recently_completed_tasks
+            # "recently_completed_tasks": recently_completed_tasks
         }
 
-    async def get_tasks(self, status: TaskStatus, start_date: datetime, end_date: datetime | None,  user: Users, limit: int= 1, offset: int= 0):
-        if end_date is None:
-            end_date= datetime.now(timezone.utc)
-
-        if start_date and end_date and start_date >= end_date:
-            raise HTTPException(422, "start_date must be before end_date")
-
-        if status is None:
-            status= TaskStatus.PENDING
-
+    async def get_tasks(self, priority:TaskPriority | None, status: TaskStatus | None, start_date: datetime | None, end_date: datetime | None,  user: Users, limit: int= 1, offset: int= 0):
+        status_priority= case(RankStatus, value= cast(Tasks.status, String), else_=0)
         rank_priority= case(RankPriority, value= cast(Tasks.priority, String), else_=0)
+
+        filters = [
+            Tasks.user_id == user.user_id,
+            Tasks.is_deleted.is_(False),
+        ]
+
+        if start_date is not None:
+            filters.append(Tasks.created_at >= start_date)
+
+        if end_date is not None:
+            filters.append(Tasks.created_at < end_date)
+
+        if status is not None:
+            if status == TaskStatus.COMPLETED:
+                filters.extend([
+                    Tasks.completed_at >= start_date,
+                    Tasks.completed_at <= end_date,
+                ])
+            else:
+                filters.append(Tasks.status == status)
+
+        if priority is not None:
+            filters.append(Tasks.priority == priority)
         
         query= (
             select(Tasks)
             .where(
-                Tasks.user_id == user.user_id,
-                Tasks.is_deleted.is_(False),
-                Tasks.status == status,
-                Tasks.created_at >= start_date,
-                Tasks.created_at < end_date,
+                *filters
             )
             .order_by(
+                status_priority.asc(),
                 rank_priority.desc(),
-                Tasks.created_at.desc()
+                Tasks.created_at.desc(),
+                Tasks.completed_at.desc()
             )
             .offset(offset)
             .limit(limit)
@@ -231,11 +245,7 @@ class TaskService:
         count_query = (
             select(func.count(Tasks.task_id))
                 .where(
-                    Tasks.user_id == user.user_id,
-                    Tasks.is_deleted.is_(False),
-                    Tasks.status == status,
-                    Tasks.created_at >= start_date,
-                    Tasks.created_at < end_date,
+                    *filters
                 )
         )
 
