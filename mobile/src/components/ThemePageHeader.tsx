@@ -26,7 +26,7 @@ const ThemePageHeader = (props: PageHeaderProps) => {
       >
         <View className="relative">
           <View className="absolute left-5 top-5 items-center justify-center">
-            <BackButton goBack />
+            <BackButton variant="dark" goBack />
           </View>
         </View>
         <View className="flex-1 items-center justify-center">
