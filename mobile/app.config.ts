@@ -61,6 +61,16 @@ const config: ExpoConfig = {
     "expo-image",
     "expo-status-bar",
     "react-native-edge-to-edge",
+    [
+      "expo-build-properties",
+      {
+        android: {
+          compileSdkVersion: 26,
+          targetSdkVersion: 26,
+          minSdkVersion: 26,
+        },
+      },
+    ],
   ],
   experiments: {
     reactCompiler: true,
