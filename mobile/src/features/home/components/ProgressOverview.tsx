@@ -2,7 +2,7 @@ import { View } from "react-native";
 import ThemeText from "@/components/ThemeText";
 import { CartesianChart, Bar } from "victory-native";
 import { themeColors } from "@/theme";
-import { useFont } from "react-native-skia";
+import { useFont, Text } from "react-native-skia";
 
 export type ProgressStats = {
   created: number;
@@ -16,6 +16,7 @@ const MAX_H = 105;
 
 export const ProgressOverview = (props: ProgressStats) => {
   const font = useFont(require("@/assets/fonts/Poppins-Regular.ttf"), 10);
+  const labelFont = useFont(require("@/assets/fonts/Poppins-Medium.ttf"), 12);
 
   const bars = [
     { label: "Pending", value: props?.stats?.pending ?? 0 },
@@ -71,24 +72,35 @@ export const ProgressOverview = (props: ProgressStats) => {
           >
             {({ points, chartBounds }) =>
               points.value.map((point, index) => (
-                <Bar
-                  key={bars[index].label}
-                  points={[point]}
-                  chartBounds={chartBounds}
-                  barWidth={65}
-                  color={
-                    bars[index].label === "Pending"
-                      ? themeColors.ash
-                      : bars[index].label === "Active"
-                        ? themeColors.steel
-                        : themeColors.mist
-                  }
-                  roundedCorners={{
-                    topLeft: 17,
-                    topRight: 17,
-                  }}
-                  animate={{ type: "spring" }}
-                />
+                <>
+                  <Bar
+                    key={bars[index].label}
+                    points={[point]}
+                    chartBounds={chartBounds}
+                    barWidth={65}
+                    color={
+                      bars[index].label === "Pending"
+                        ? themeColors.ash
+                        : bars[index].label === "Active"
+                          ? themeColors.steel
+                          : themeColors.mist
+                    }
+                    roundedCorners={{
+                      topLeft: 17,
+                      topRight: 17,
+                    }}
+                    animate={{ type: "spring" }}
+                  />
+                  {labelFont && (
+                    <Text
+                      x={point.x}
+                      y={point.y + 18}
+                      text={String(point.yValue)}
+                      font={labelFont}
+                      color={themeColors?.mist}
+                    />
+                  )}
+                </>
               ))
             }
           </CartesianChart>
