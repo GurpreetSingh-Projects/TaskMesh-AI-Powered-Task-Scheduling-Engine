@@ -2,7 +2,7 @@ from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from uuid import uuid4, UUID
-from sqlalchemy import select, insert, func, update, and_, case, String, cast, Date
+from sqlalchemy import select, insert, func, update, and_, case, String, cast, Date, distinct
 import math
 from datetime import date, datetime, timezone
 from loguru import logger
@@ -127,7 +127,7 @@ class TaskService:
 
                 func.count().filter(
                     Tasks.created_at >= start_date,
-                    cast(Tasks.completed_at, Date) < end_date,
+                    Tasks.completed_at < end_date,
                     Tasks.status == TaskStatus.COMPLETED
                 )
                 .label("completed"),
@@ -144,23 +144,48 @@ class TaskService:
             )
         )
 
+        weekly_streak_query = (
+            select(distinct(Tasks.created_at))
+                .where(
+                    Tasks.user_id == user.user_id,
+                    Tasks.created_at >= start_date,
+                    Tasks.created_at < end_date,
+                    Tasks.is_deleted.is_(False),
+                )
+        )
+
+        recently_completed_query=(
+            select(Tasks)
+            .where(
+                Tasks.user_id == user.user_id,
+                Tasks.created_at >= start_date,
+                Tasks.created_at < end_date,
+                Tasks.completed_at < end_date,
+                Tasks.is_deleted.is_(False),
+            )
+            .order_by(
+                Tasks.completed_at.desc()
+            )
+            .limit(limit)
+        )
+
         top_tasks = (await self.db.execute(top_tasks_query)).scalars().all()
-
         progress_stats = (await self.db.execute(progress_query)).one()
+        weekly_streak = (await self.db.execute(weekly_streak_query)).scalars().all()
+        recently_completed_tasks= (await self.db.execute(recently_completed_query)).scalars().all()
 
-        for task in top_tasks:
+        for task in top_tasks and recently_completed_tasks:
             if task.file_storage_id:
                 file_details= await self.storage_service.get_file_details(file_storage_id=task.file_storage_id, entity_type=FileStorageEntity.TASK)
                 task.image_url= await self.storage_service.get_signed_asset_url(storage_key= file_details.storage_key)
             else:
                 task.image_url= None
 
-            self.db.expunge(task)
-
         return {
             "top_tasks": top_tasks,
             "progress_stats": progress_stats._asdict(),
-            "recently_completed": [],
+            "weekly_streak": weekly_streak,
+            "recently_completed_tasks": recently_completed_tasks
         }
 
     async def get_tasks(self, status: TaskStatus, start_date: datetime, end_date: datetime | None,  user: Users, limit: int= 1, offset: int= 0):
