@@ -15,14 +15,14 @@ export type ProgressStats = {
 
 const MAX_H = 105;
 
-export const ProgressOverview = (props: ProgressStats) => {
+export const ProgressOverview = ({ stats }: ProgressStats) => {
   const font = useFont(require("@/assets/fonts/Poppins-Regular.ttf"), 10);
   const labelFont = useFont(require("@/assets/fonts/Poppins-Medium.ttf"), 12);
 
   const bars = [
-    { label: "Pending", value: props?.stats?.pending ?? 0 },
-    { label: "In Preogress", value: props?.stats?.in_progress ?? 0 },
-    { label: "Completed", value: props?.stats?.completed ?? 0 },
+    { label: "Pending", value: stats?.pending ?? 0 },
+    { label: "In Preogress", value: stats?.in_progress ?? 0 },
+    { label: "Completed", value: stats?.completed ?? 0 },
   ];
   const BAR_COLORS = ["#888888", "#ffffff", "#D0D0D0"];
   return (
@@ -45,10 +45,10 @@ export const ProgressOverview = (props: ProgressStats) => {
             Tasks
           </ThemeText>
           <ThemeText className="text-3xl! font-extrabold text-canvas">
-            {props?.stats?.created}
+            {stats?.created}
           </ThemeText>
           <ThemeText className="text-xs text-ash">
-            {props?.stats?.overdue} overdue
+            {stats?.overdue} overdue
           </ThemeText>
         </View>
 
