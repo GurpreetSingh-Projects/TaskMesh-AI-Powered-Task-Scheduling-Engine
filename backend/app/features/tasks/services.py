@@ -207,8 +207,7 @@ class TaskService:
         if status is not None:
             if status == TaskStatus.COMPLETED:
                 filters.extend([
-                    Tasks.completed_at >= start_date,
-                    Tasks.completed_at <= end_date,
+                    Tasks.status == TaskStatus.COMPLETED,
                 ])
             else:
                 filters.append(Tasks.status == status)
