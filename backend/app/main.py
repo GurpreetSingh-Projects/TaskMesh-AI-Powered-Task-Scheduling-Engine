@@ -29,7 +29,16 @@ async def lifespan(app: FastAPI):
     await redis.aclose()
 
 
-app = FastAPI(title="TaskMesh Api v2", version="2.0.1", lifespan=lifespan)
+app = FastAPI(
+    title="TaskMesh Api v2",
+    version="2.1.1",
+    lifespan=lifespan,
+    description="TaskMesh is an AI-powered task scheduling engine that helps users capture tasks, set priorities and due dates, and automatically plan their day around them. This Swagger based openapi docs provides endpoints for authentication, user profiles, onboarding, task management, scheduling, and file storage.",
+    contact={
+        "name": "Maintained by Gurpreet Singh, checkout my Personal Portfolio here",
+        "url": "https://gurpreet-singh-chadha.vercel.app/",
+    },
+)
 
 health_router = APIRouter(tags=["Health"])
 
@@ -40,7 +49,6 @@ health_router = APIRouter(tags=["Health"])
     methods=["GET", "HEAD"],
 )
 def awake():
-    logger.info("Success!!")
     return {"messsage": "TaskMesh - AI Powered Task Scheduling Engine is online"}
 
 
