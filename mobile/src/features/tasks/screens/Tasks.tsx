@@ -1,11 +1,13 @@
-import { StyleSheet, Text, View } from "react-native";
-import React from "react";
+import { ScrollView, StyleSheet, View } from "react-native";
+import ThemePage from "@/components/ThemePage";
+import ThemePageHeader from "@/components/ThemePageHeader";
 
 const Tasks = () => {
   return (
-    <View>
-      <Text>Tasks</Text>
-    </View>
+    <ThemePage>
+      <ThemePageHeader heading="Tasks" />
+      <ScrollView contentContainerClassName="flex-1"></ScrollView>
+    </ThemePage>
   );
 };
 
