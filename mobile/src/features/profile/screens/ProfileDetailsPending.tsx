@@ -97,7 +97,7 @@ const ProfileDetailsPending = () => {
     >
       <ThemePageHeader heading="Complete Profile" />
 
-      <View className="f lex-1 h-f ull w-full items-center mt-10 gap-10 px-page">
+      <View className="h-full w-full items-center mt-10 gap-10 px-page">
         <View className="gap-3">
           <ThemeText variant="heading" className="w-full text-start">
             Almost there!
