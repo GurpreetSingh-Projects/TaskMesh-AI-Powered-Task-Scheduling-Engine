@@ -7,7 +7,7 @@ services:
     ports:
       - "8000:10000"
     env_file:
-      - .env
+      - .env/.dev.env
     volumes:
       - .:/app
 
