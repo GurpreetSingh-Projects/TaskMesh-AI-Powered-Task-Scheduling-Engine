@@ -13,6 +13,8 @@ export type HomeStackParamList = {
   OnboardingQuestionnaire: undefined;
   ProfileDetailsPending: undefined;
   BottomTabs: undefined;
+  LabelManagement: undefined;
+  Settings: undefined;
 };
 
 export type BottomTabsStackParamList = {

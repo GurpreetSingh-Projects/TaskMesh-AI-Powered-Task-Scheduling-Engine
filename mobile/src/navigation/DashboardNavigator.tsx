@@ -7,6 +7,8 @@ import { useEffect } from "react";
 import { HomeStackParamList } from "./types";
 import { useAppSelector } from "@/app/store";
 import BottomTabs from "./BottomTabs";
+import LabelManagement from "@/features/labels/screens/LabelManagement";
+import Settings from "@/features/home/screens/Settings";
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
@@ -42,6 +44,8 @@ const DashboardNavigator = () => {
         component={ProfileDetailsPending}
       />
       <Stack.Screen name="BottomTabs" component={BottomTabs} />
+      <Stack.Screen name="LabelManagement" component={LabelManagement} />
+      <Stack.Screen name="Settings" component={Settings} />
     </Stack.Navigator>
   );
 };
