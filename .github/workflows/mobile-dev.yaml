@@ -72,7 +72,7 @@ jobs:
       - name: Publish GitHub Release
         run: |
           gh release create "Dev-${{ github.run_number }}" \
-            taskmesh-dev-debug.apk \ 
+            taskmesh-dev-debug.apk \
             taskmesh-dev-preview.apk \
             --title "Dev debug and preview build #${{ github.run_number }}" \
             --notes "Commit: ${{ github.sha }}"
