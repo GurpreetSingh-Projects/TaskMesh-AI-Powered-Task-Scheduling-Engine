@@ -47,7 +47,7 @@ jobs:
 
           ssh -i key -o UserKnownHostsFile=known_hosts -o StrictHostKeyChecking=yes "$TARGET" 'bash -s' << 'EOF'
             set -e
-            cd apps/taskmesh/taskmesh-backend
+            cd apps/taskmesh/taskmesh-backend/backend
             git pull --ff-only
             cp ../.env/.dev.env backend/
             docker compose up -d --build
