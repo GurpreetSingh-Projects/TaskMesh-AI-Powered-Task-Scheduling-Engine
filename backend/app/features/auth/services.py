@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import  HTTPException, UploadFile
+from fastapi import  HTTPException, UploadFile, Depends
 from pydantic import EmailStr
 from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert
@@ -17,6 +17,7 @@ from app.config import settings
 from app.features.activity.enums import UserActivityType, ActivityEntityType
 from app.features.activity.services import ActivityService
 from app.features.activity.schemas import UserActivityCreateRequestSchema
+
 
 class AuthService:
     def __init__(self, db: AsyncSession):
@@ -92,13 +93,32 @@ class AuthService:
             await self.db.rollback()
             raise HTTPException(status_code=500, detail= "Something went wrong while creating the user")
 
-    async def get_current_user(self, token: str):
+    # async def get_current_user(self, token: str = Depends(oauth2_scheme)):
+    #     payload = decode_token(token)
+    #     if not payload or not payload.sub:
+    #         raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+    #     user = await self.user_service.get_user_details(user_id= UUID(payload.sub))
+    #     return user
+
+    async def require_roles(self, allowed_roles: list[UserRoles], token: str):
         payload = decode_token(token)
         if not payload or not payload.sub:
             raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-        user = await self.user_service.get_user_details(user_id= UUID(payload.sub))
-        return user
+        current_user = await self.user_service.get_user_details(user_id= UUID(payload.sub))
+
+        if current_user.role not in allowed_roles:
+            logger.warning(
+                    "403 forbidden: user_id={} role={} allowed={}",
+                    current_user.user_id, current_user.role, [role.value for role in allowed_roles]
+                )
+            raise HTTPException(
+                    status_code=403,
+                    detail="You don't have permission to perform this action.",
+                )
+        
+        return current_user
 
     async def login_user(self, user_details: UserLoginRequestSchema):
         user = await self.user_service.get_user_details(user_details.email)

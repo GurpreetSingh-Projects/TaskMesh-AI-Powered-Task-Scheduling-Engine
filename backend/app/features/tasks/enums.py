@@ -13,7 +13,7 @@ RankStatus = {
     TaskStatus.COMPLETED.value: 3,
 }
 
-if set(RankStatus) != {s.value for s in TaskStatus}:
+if set(RankStatus) != {status.value for status in TaskStatus}:
     raise RuntimeError("STATUS_RANK is out of sync with TaskStatus")
 
 class TaskPriority(str, Enum):
