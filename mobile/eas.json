@@ -11,7 +11,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://taskmesh-ai.onrender.com/"
+        "EXPO_PUBLIC_API_URL": "https://taskmesh-ai.onrender.com"
       }
     },
     "preview": {
@@ -21,7 +21,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://taskmesh-ai.onrender.com/"
+        "EXPO_PUBLIC_API_URL": "https://taskmesh-ai.onrender.com"
       }
     },
     "debug": {
@@ -32,7 +32,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://taskmesh-ai.onrender.com/"
+        "EXPO_PUBLIC_API_URL": "https://taskmesh-ai.onrender.com"
       }
     }
   }
