@@ -238,7 +238,7 @@ const Home = () => {
                 layout={{
                   type: "parallax",
                   scale: 0.85,
-                  adjacentScale: 0.65,
+                  adjacentScale: 0.7,
                   offset: 250,
                 }}
                 renderItem={({ item, index }) => (
