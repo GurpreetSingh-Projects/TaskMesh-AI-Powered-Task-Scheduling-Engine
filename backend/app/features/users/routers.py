@@ -1,21 +1,26 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, Form, File
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from pydantic import EmailStr
-from app.features.users.dependencies import get_user_service
-from app.features.users.schemas import UserEditRequestSchema, UserReadResponseSchema, UserSettingsCreateRequestSchema, UserSettingsReadResponseSchema, UserSettingsEditRequestSchema
-from app.features.users.services import UserService
-from app.features.users.enums import UserRoles
+
 from app.core.dependencies import require_roles
+from app.features.users.dependencies import get_user_service
+from app.features.users.enums import UserRoles
+from app.features.users.schemas import (
+    UserEditRequestSchema,
+    UserReadResponseSchema,
+    UserSettingsCreateRequestSchema,
+    UserSettingsEditRequestSchema,
+    UserSettingsReadResponseSchema,
+)
+from app.features.users.services import UserService
 
 user_router = APIRouter(
     prefix="/users",
     tags=["Users"],
-    dependencies=[Depends(require_roles([UserRoles.ADMIN]))],
+    dependencies=[Depends(require_roles([UserRoles.ADMIN, UserRoles.USER]))],
 )
 
-user_settings_router = APIRouter(
-    prefix="/users/settings",
-    tags=["User Settings"]
-)
+user_settings_router = APIRouter(prefix="/users/settings", tags=["User Settings"])
+
 
 @user_router.get(
     "/get",
@@ -24,7 +29,7 @@ user_settings_router = APIRouter(
     description="Gets back the current user details",
 )
 async def get_user(
-    user=Depends(require_roles([UserRoles.ADMIN])),
+    user=Depends(require_roles([UserRoles.ADMIN, UserRoles.USER])),
     user_services: UserService = Depends(get_user_service),
 ):
     user = await user_services.get_user_details(user_id=user.user_id)
@@ -33,6 +38,7 @@ async def get_user(
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
+
 
 @user_router.patch(
     "/edit",
@@ -45,7 +51,7 @@ async def edit_user(
     password: str | None = Form(None),
     full_name: str | None = Form(None),
     profile_img: UploadFile | None = File(None),
-    user=Depends(require_roles([UserRoles.ADMIN])),
+    user=Depends(require_roles([UserRoles.ADMIN, UserRoles.USER])),
     user_services: UserService = Depends(get_user_service),
 ):
     user_data = UserEditRequestSchema(
@@ -60,6 +66,7 @@ async def edit_user(
         profile_img=profile_img,
     )
 
+
 @user_settings_router.post(
     "",
     response_model=UserSettingsReadResponseSchema,
@@ -67,13 +74,14 @@ async def edit_user(
 )
 async def create_user_settings(
     settings_data: UserSettingsCreateRequestSchema,
-    user=Depends(require_roles([UserRoles.ADMIN])),
+    user=Depends(require_roles([UserRoles.ADMIN, UserRoles.USER])),
     user_services: UserService = Depends(get_user_service),
 ):
     return await user_services.create_user_settings(
         user=user,
         settings_data=settings_data,
     )
+
 
 @user_settings_router.get(
     "",
@@ -82,10 +90,11 @@ async def create_user_settings(
     summary="Get user settings",
 )
 async def get_user_settings(
-    user=Depends(require_roles([UserRoles.ADMIN])),
+    user=Depends(require_roles([UserRoles.ADMIN, UserRoles.USER])),
     user_services: UserService = Depends(get_user_service),
 ):
     return await user_services.get_user_settings(user_id=user.user_id)
+
 
 @user_settings_router.patch(
     "",
@@ -94,7 +103,7 @@ async def get_user_settings(
 )
 async def update_user_settings(
     settings_data: UserSettingsEditRequestSchema,
-    user=Depends(require_roles([UserRoles.ADMIN])),
+    user=Depends(require_roles([UserRoles.ADMIN, UserRoles.USER])),
     user_services: UserService = Depends(get_user_service),
 ):
     return await user_services.update_user_settings(
@@ -102,10 +111,12 @@ async def update_user_settings(
         settings_data=settings_data,
     )
 
+
 @user_settings_router.patch(
     "/deactivate",
     status_code=204,
     summary="Deactivate user settings",
+    description="Admin-only endpoint. Regular users are not authorized to access this endpoint.",
 )
 async def deactivate_user_settings(
     user=Depends(require_roles([UserRoles.ADMIN])),
