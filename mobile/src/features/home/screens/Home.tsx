@@ -91,311 +91,287 @@ const Home = () => {
   console.log("Tasks:", tasksData, start_date, end_date);
 
   return (
-    <ThemePage
-      noSafeArea
-      isScrollable={false}
-      backgroundColor={themeColors?.ink}
-    >
-      <View className="flex-1 bg-ink gap-5">
-        {/* Fixed hero — does not scroll */}
-        <ImageBackground
-          source={images?.backgrounds?.homeBg}
-          style={{ flex: 1, paddingTop: insets?.top }}
-        >
-          <View className="py-3 gap-5 h-3/4">
-            <View className="flex-row items-center justify-between px-page">
+    <ThemePage noSafeArea isScrollable backgroundColor={themeColors?.ink}>
+      <ImageBackground
+        source={images?.backgrounds?.homeBg}
+        style={{ flex: 1, paddingTop: insets?.top, justifyContent: "start" }}
+      >
+        <View className="">
+          <View className="flex-row items-center justify-between px-page">
+            <Pressable
+              onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+              className="p-2 rounded-full border"
+            >
+              <Menu
+                height={25}
+                width={25}
+                stroke={themeColors?.canvas}
+                strokeWidth={1.5}
+              />
+            </Pressable>
+
+            <View className="relative z-30">
               <Pressable
-                onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-                className="p-2 rounded-full border"
+                onPress={() => setIsHomeRangeMenuOpen((previous) => !previous)}
+                className="flex-row items-center justify-center gap-2 rounded-full border border-steel bg-carbon p-2 px-4 active:opacity-70"
               >
-                <Menu
-                  height={25}
-                  width={25}
-                  stroke={themeColors?.canvas}
+                <ThemeText className="text-xs font-semibold text-mist">
+                  {homeRange}
+                </ThemeText>
+                <ChevronDown
+                  width={15}
+                  height={15}
+                  stroke={themeColors.canvas}
                   strokeWidth={1.5}
                 />
               </Pressable>
 
-              <View className="relative z-30">
-                <Pressable
-                  onPress={() =>
-                    setIsHomeRangeMenuOpen((previous) => !previous)
-                  }
-                  className="flex-row items-center justify-center gap-2 rounded-full border border-steel bg-carbon p-2 px-4 active:opacity-70"
+              {isHomeRangeMenuOpen && (
+                <View
+                  className="absolute right-0 overflow-hidden rounded-default border border-ash bg-slate"
+                  style={{
+                    top: 40,
+                    width: width * 0.35,
+                  }}
                 >
-                  <ThemeText className="text-xs font-semibold text-mist">
-                    {homeRange}
-                  </ThemeText>
-                  <ChevronDown
-                    width={15}
-                    height={15}
-                    stroke={themeColors.canvas}
-                    strokeWidth={1.5}
-                  />
-                </Pressable>
-
-                {isHomeRangeMenuOpen && (
-                  <View
-                    className="absolute right-0 overflow-hidden rounded-default border border-ash bg-slate"
-                    style={{
-                      top: 40,
-                      width: width * 0.35,
-                    }}
-                  >
-                    {ranges.map((range) => {
-                      const isSelected = homeRange === range;
-                      return (
-                        <Pressable
-                          key={range}
-                          onPress={() => {
-                            setHomeRange(range);
-                            setIsHomeRangeMenuOpen(false);
-                          }}
-                          className={`min-h-[42px] flex-row items-center justify-between rounded-[13px] px-3 ${
-                            isSelected ? "bg-ash" : ""
+                  {ranges.map((range) => {
+                    const isSelected = homeRange === range;
+                    return (
+                      <Pressable
+                        key={range}
+                        onPress={() => {
+                          setHomeRange(range);
+                          setIsHomeRangeMenuOpen(false);
+                        }}
+                        className={`min-h-[42px] flex-row items-center justify-between rounded-[13px] px-3 ${
+                          isSelected ? "bg-ash" : ""
+                        }`}
+                      >
+                        <ThemeText
+                          className={`text-sm ${
+                            isSelected
+                              ? "font-semibold text-canvas"
+                              : "font-medium text-cloud"
                           }`}
                         >
-                          <ThemeText
-                            className={`text-sm ${
-                              isSelected
-                                ? "font-semibold text-canvas"
-                                : "font-medium text-cloud"
-                            }`}
-                          >
-                            {range}
-                          </ThemeText>
-                          {isSelected && (
-                            <Check
-                              width={17.5}
-                              height={17.5}
-                              stroke={themeColors.canvas}
-                              strokeWidth={1.5}
-                            />
-                          )}
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-                )}
-              </View>
-            </View>
-
-            <View className="gap-1 px-page">
-              <ThemeText className="text-base font-medium text-cloud">
-                Welcome back,
-              </ThemeText>
-              <ThemeText
-                variant="heading"
-                numberOfLines={1}
-                className="mt-1 font-bold tracking-tight text-canvas capitalize"
-              >
-                {displayName}
-              </ThemeText>
-            </View>
-
-            <View className="flex-1 items-center justify-center">
-              <Carousel
-                loop
-                ref={carouselRef}
-                data={tasksData?.top_tasks}
-                style={{
-                  height: height * 0.65,
-                  width: width,
-                }}
-                contentContainerStyle={{ width: width }}
-                layout={{
-                  type: "parallax",
-                  scale: 0.75,
-                  offset: 150,
-                }}
-                renderItem={({ item, index }) => {
-                  return <CustomItem key={index} task={item} />;
-                }}
-              />
+                          {range}
+                        </ThemeText>
+                        {isSelected && (
+                          <Check
+                            width={17.5}
+                            height={17.5}
+                            stroke={themeColors.canvas}
+                            strokeWidth={1.5}
+                          />
+                        )}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              )}
             </View>
           </View>
 
-          <View className="mt-4 flex-1 rounded-t-[36px] bg-canvas pt-5 px-page">
-            <View className="mb-5 flex-row items-center justify-between">
-              <View>
-                <ThemeText
-                  variant="subheading"
-                  className="font-bold tracking-tight text-ink"
-                >
-                  Quick actions
-                </ThemeText>
-                <ThemeText className="mt-1 text-steel">
-                  Stay on top of your work.
-                </ThemeText>
-              </View>
-              <View className="h-11 w-11 items-center justify-center rounded-full bg-mist">
-                <ThemeText className="text-lg text-charcoal">✦</ThemeText>
-              </View>
-            </View>
+          <View className="gap-1 px-page mt-default-half">
+            <ThemeText className="text-base font-medium text-cloud">
+              Welcome back,
+            </ThemeText>
+            <ThemeText
+              variant="heading"
+              numberOfLines={1}
+              className="mt-1 font-bold tracking-tight text-canvas capitalize"
+            >
+              {displayName}
+            </ThemeText>
+          </View>
 
-            <View className="flex-row gap-3">
-              <Pressable
-                onPress={() => {}}
-                className="min-h-[174px] flex-1 overflow-hidden rounded-[24px] bg-charcoal p-4 active:opacity-80"
+          <Carousel
+            loop
+            ref={carouselRef}
+            data={tasksData?.top_tasks}
+            style={{
+              height: height * 0.5,
+              width: width,
+            }}
+            contentContainerStyle={{}}
+            layout={{
+              type: "parallax",
+              scale: 0.85,
+              adjacentScale: 0.55,
+              offset: 250,
+            }}
+            renderItem={({ item, index }) => {
+              return <HomeSlideItem key={index} task={item} />;
+            }}
+          />
+        </View>
+
+        <View className="rounded-t-[36px] bg-canvas p-page">
+          <View className="mb-5 flex-row items-center justify-between">
+            <View>
+              <ThemeText
+                variant="subheading"
+                className="font-bold tracking-tight text-ink"
               >
-                <View className="mb-7 h-10 w-10 items-center justify-center rounded-full bg-slate">
-                  <ThemeText className="text-xl font-light text-canvas">
-                    ＋
-                  </ThemeText>
-                </View>
-                <ThemeText className="text-[15px] font-bold text-canvas">
-                  New task
+                Quick actions
+              </ThemeText>
+              <ThemeText className="mt-1 text-steel">
+                Stay on top of your work.
+              </ThemeText>
+            </View>
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-mist">
+              <ThemeText className="text-lg text-charcoal">✦</ThemeText>
+            </View>
+          </View>
+
+          <View className="flex-row gap-3">
+            <Pressable
+              onPress={() => {}}
+              className="min-h-[174px] flex-1 overflow-hidden rounded-[24px] bg-charcoal p-4 active:opacity-80"
+            >
+              <View className="mb-7 h-10 w-10 items-center justify-center rounded-full bg-slate">
+                <ThemeText className="text-xl font-light text-canvas">
+                  ＋
                 </ThemeText>
-                <ThemeText className="mt-1 text-[11px] text-cloud">
-                  Create something new
+              </View>
+              <ThemeText className="text-[15px] font-bold text-canvas">
+                New task
+              </ThemeText>
+              <ThemeText className="mt-1 text-[11px] text-cloud">
+                Create something new
+              </ThemeText>
+              <ThemeText className="absolute bottom-4 right-4 text-lg text-steel">
+                ↗
+              </ThemeText>
+            </Pressable>
+
+            <Pressable
+              onPress={() => {}}
+              className="min-h-[174px] flex-1 overflow-hidden rounded-[24px] border border-mist bg-canvas p-4 active:opacity-70"
+            >
+              <View className="mb-7 h-10 w-10 items-center justify-center rounded-full bg-mist">
+                <ThemeText className="text-base font-bold text-charcoal">
+                  ✓
                 </ThemeText>
-                <ThemeText className="absolute bottom-4 right-4 text-lg text-steel">
-                  ↗
+              </View>
+              <ThemeText className="text-[15px] font-bold text-ink">
+                My tasks
+              </ThemeText>
+              <ThemeText className="mt-1 text-[11px] text-steel">
+                View your schedule
+              </ThemeText>
+              <ThemeText className="absolute bottom-4 right-4 text-lg text-steel">
+                ↗
+              </ThemeText>
+            </Pressable>
+          </View>
+
+          <View className="mt-8">
+            <View className="mb-3.5 flex-row items-center justify-between">
+              <ThemeText className="text-[21px] font-bold tracking-tight text-ink">
+                Recent activity
+              </ThemeText>
+              <Pressable onPress={() => {}}>
+                <ThemeText className="text-[13px] font-semibold text-steel">
+                  View all
                 </ThemeText>
               </Pressable>
+            </View>
 
-              <Pressable
-                onPress={() => {}}
-                className="min-h-[174px] flex-1 overflow-hidden rounded-[24px] border border-mist bg-canvas p-4 active:opacity-70"
-              >
-                <View className="mb-7 h-10 w-10 items-center justify-center rounded-full bg-mist">
-                  <ThemeText className="text-base font-bold text-charcoal">
-                    ✓
-                  </ThemeText>
-                </View>
-                <ThemeText className="text-[15px] font-bold text-ink">
-                  My tasks
+            <View className="min-h-[78px] flex-row items-center rounded-[22px] border border-mist bg-canvas p-3.5">
+              <View className="h-11 w-11 items-center justify-center rounded-full bg-mist">
+                <ThemeText className="text-lg font-bold text-charcoal">
+                  ✓
+                </ThemeText>
+              </View>
+              <View className="ml-3 flex-1">
+                <ThemeText className="text-[13px] font-semibold text-ink">
+                  Your schedule is up to date
                 </ThemeText>
                 <ThemeText className="mt-1 text-[11px] text-steel">
-                  View your schedule
+                  Everything looks organized.
                 </ThemeText>
-                <ThemeText className="absolute bottom-4 right-4 text-lg text-steel">
-                  ↗
-                </ThemeText>
-              </Pressable>
+              </View>
+              <ThemeText className="ml-2 text-2xl text-steel">›</ThemeText>
             </View>
+          </View>
 
-            <View className="mt-8">
-              <View className="mb-3.5 flex-row items-center justify-between">
-                <ThemeText className="text-[21px] font-bold tracking-tight text-ink">
-                  Recent activity
+          <View className="h-[200px] overflow-hidden rounded-lg border border-ash bg-charcoal px-5 pb-[18px] pt-5 gap-10">
+            <View className="flex-row items-start justify-between">
+              <View>
+                <ThemeText
+                  variant="title"
+                  className="font-bold tracking-tight text-canvas"
+                >
+                  Tasks Summary
                 </ThemeText>
-                <Pressable onPress={() => {}}>
-                  <ThemeText className="text-[13px] font-semibold text-steel">
-                    View all
-                  </ThemeText>
-                </Pressable>
+                <ThemeText className="mt-1 text-xs text-steel">
+                  {analytics.subtitle}
+                </ThemeText>
               </View>
 
-              <View className="min-h-[78px] flex-row items-center rounded-[22px] border border-mist bg-canvas p-3.5">
-                <View className="h-11 w-11 items-center justify-center rounded-full bg-mist">
-                  <ThemeText className="text-lg font-bold text-charcoal">
-                    ✓
-                  </ThemeText>
-                </View>
-                <View className="ml-3 flex-1">
-                  <ThemeText className="text-[13px] font-semibold text-ink">
-                    Your schedule is up to date
-                  </ThemeText>
-                  <ThemeText className="mt-1 text-[11px] text-steel">
-                    Everything looks organized.
-                  </ThemeText>
-                </View>
-                <ThemeText className="ml-2 text-2xl text-steel">›</ThemeText>
+              <View className="flex-row items-center gap-1.5 rounded-2xl bg-slate px-3 py-2">
+                <ThemeText className="text-[11px] font-semibold text-cloud">
+                  {homeRange}
+                </ThemeText>
+                <ChevronDown
+                  width={24}
+                  height={24}
+                  stroke={themeColors.ink}
+                  strokeWidth={1.5}
+                />
               </View>
             </View>
 
-            <View className="h-[200px] overflow-hidden rounded-lg border border-ash bg-charcoal px-5 pb-[18px] pt-5 gap-10">
-              <View className="flex-row items-start justify-between">
-                <View>
-                  <ThemeText
-                    variant="title"
-                    className="font-bold tracking-tight text-canvas"
-                  >
-                    Tasks Summary
-                  </ThemeText>
-                  <ThemeText className="mt-1 text-xs text-steel">
-                    {analytics.subtitle}
-                  </ThemeText>
-                </View>
-
-                <View className="flex-row items-center gap-1.5 rounded-2xl bg-slate px-3 py-2">
-                  <ThemeText className="text-[11px] font-semibold text-cloud">
-                    {homeRange}
-                  </ThemeText>
-                  <ChevronDown
-                    width={24}
-                    height={24}
-                    stroke={themeColors.ink}
-                    strokeWidth={1.5}
-                  />
-                </View>
+            <View className="flex-1 flex-row items-end">
+              <View className="w-[39%] justify-end pb-1">
+                <ThemeText className="text-[13px] font-medium text-cloud">
+                  {analytics.metricLabel}
+                </ThemeText>
+                <ThemeText className="mt-1 text-[31px] font-bold tracking-tight text-canvas">
+                  {analytics.metricValue}
+                </ThemeText>
+                <ThemeText className="mt-1 text-[10px] text-smoke">
+                  13 Sept - 19 Sept
+                </ThemeText>
               </View>
 
-              <View className="flex-1 flex-row items-end">
-                <View className="w-[39%] justify-end pb-1">
-                  <ThemeText className="text-[13px] font-medium text-cloud">
-                    {analytics.metricLabel}
-                  </ThemeText>
-                  <ThemeText className="mt-1 text-[31px] font-bold tracking-tight text-canvas">
-                    {analytics.metricValue}
-                  </ThemeText>
-                  <ThemeText className="mt-1 text-[10px] text-smoke">
-                    13 Sept - 19 Sept
-                  </ThemeText>
-                </View>
-
-                <View className="flex-1 pl-2">
-                  <View className="h-[112px] flex-row items-end justify-around gap-3">
-                    {analytics.bars.map((bar, index) => (
+              <View className="flex-1 pl-2">
+                <View className="h-[112px] flex-row items-end justify-around gap-3">
+                  {analytics.bars.map((bar, index) => (
+                    <View
+                      key={index}
+                      className="relative h-full flex-1 justify-end"
+                    >
                       <View
-                        key={index}
-                        className="relative h-full flex-1 justify-end"
-                      >
-                        <View
-                          className="w-full rounded-t-[17px] bg-smoke"
-                          style={{ height: Math.min(bar.primary, 112) }}
-                        />
-                        <View
-                          className="absolute bottom-0 left-0 right-0 rounded-t-[17px] bg-mist"
-                          style={{ height: Math.min(bar.secondary, 112) }}
-                        />
-                      </View>
-                    ))}
-                  </View>
+                        className="w-full rounded-t-[17px] bg-smoke"
+                        style={{ height: Math.min(bar.primary, 112) }}
+                      />
+                      <View
+                        className="absolute bottom-0 left-0 right-0 rounded-t-[17px] bg-mist"
+                        style={{ height: Math.min(bar.secondary, 112) }}
+                      />
+                    </View>
+                  ))}
+                </View>
 
-                  <View className="mt-2 flex-row justify-around">
-                    {analytics.labels.map((label) => (
-                      <ThemeText
-                        key={label}
-                        className="flex-1 text-center text-[10px] text-steel"
-                      >
-                        {label}
-                      </ThemeText>
-                    ))}
-                  </View>
+                <View className="mt-2 flex-row justify-around">
+                  {analytics.labels.map((label) => (
+                    <ThemeText
+                      key={label}
+                      className="flex-1 text-center text-[10px] text-steel"
+                    >
+                      {label}
+                    </ThemeText>
+                  ))}
                 </View>
               </View>
             </View>
           </View>
-        </ImageBackground>
-      </View>
+        </View>
+      </ImageBackground>
     </ThemePage>
   );
 };
 
 export default Home;
-
-type ItemProps = {
-  task: TaskItem;
-};
-
-const CustomItem: React.FC<ItemProps> = ({ task }) => {
-  return (
-    <Animated.View className="flex-1 overflow-hidden">
-      <HomeSlideItem task={task} />
-    </Animated.View>
-  );
-};
-
-//
