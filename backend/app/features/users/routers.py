@@ -30,9 +30,9 @@ user_settings_router = APIRouter(prefix="/users/settings", tags=["User Settings"
 )
 async def get_user(
     user=Depends(require_roles([UserRoles.ADMIN, UserRoles.USER])),
-    user_services: UserService = Depends(get_user_service),
+    user_service: UserService = Depends(get_user_service),
 ):
-    user = await user_services.get_user_details(user_id=user.user_id)
+    user = await user_service.get_user_details(user_id=user.user_id)
 
     if user.is_deleted and user.deleted_at is not None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -52,7 +52,7 @@ async def edit_user(
     full_name: str | None = Form(None),
     profile_img: UploadFile | None = File(None),
     user=Depends(require_roles([UserRoles.ADMIN, UserRoles.USER])),
-    user_services: UserService = Depends(get_user_service),
+    user_service: UserService = Depends(get_user_service),
 ):
     user_data = UserEditRequestSchema(
         email=email,
@@ -60,7 +60,7 @@ async def edit_user(
         full_name=full_name,
     )
 
-    return await user_services.edit_user(
+    return await user_service.edit_user(
         user=user,
         user_data=user_data,
         profile_img=profile_img,
@@ -75,9 +75,9 @@ async def edit_user(
 async def create_user_settings(
     settings_data: UserSettingsCreateRequestSchema,
     user=Depends(require_roles([UserRoles.ADMIN, UserRoles.USER])),
-    user_services: UserService = Depends(get_user_service),
+    user_service: UserService = Depends(get_user_service),
 ):
-    return await user_services.create_user_settings(
+    return await user_service.create_user_settings(
         user=user,
         settings_data=settings_data,
     )
@@ -91,9 +91,9 @@ async def create_user_settings(
 )
 async def get_user_settings(
     user=Depends(require_roles([UserRoles.ADMIN, UserRoles.USER])),
-    user_services: UserService = Depends(get_user_service),
+    user_service: UserService = Depends(get_user_service),
 ):
-    return await user_services.get_user_settings(user_id=user.user_id)
+    return await user_service.get_user_settings(user_id=user.user_id)
 
 
 @user_settings_router.patch(
@@ -104,9 +104,9 @@ async def get_user_settings(
 async def update_user_settings(
     settings_data: UserSettingsEditRequestSchema,
     user=Depends(require_roles([UserRoles.ADMIN, UserRoles.USER])),
-    user_services: UserService = Depends(get_user_service),
+    user_service: UserService = Depends(get_user_service),
 ):
-    return await user_services.update_user_settings(
+    return await user_service.update_user_settings(
         user=user,
         settings_data=settings_data,
     )
@@ -120,6 +120,6 @@ async def update_user_settings(
 )
 async def deactivate_user_settings(
     user=Depends(require_roles([UserRoles.ADMIN])),
-    user_services: UserService = Depends(get_user_service),
+    user_service: UserService = Depends(get_user_service),
 ):
-    await user_services.deactivate_user_settings(user=user)
+    await user_service.deactivate_user_settings(user=user)

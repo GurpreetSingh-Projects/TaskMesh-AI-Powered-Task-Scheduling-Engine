@@ -1,12 +1,14 @@
-from pydantic import BaseModel
-from pydantic import EmailStr, ConfigDict
-from uuid import UUID
 from datetime import datetime
-from fastapi import UploadFile, Form
+from uuid import UUID
+
+from fastapi import Form, UploadFile
+from pydantic import BaseModel, ConfigDict, EmailStr
+
 
 class UserLoginRequestSchema(BaseModel):
     email: EmailStr
     password: str
+
 
 class UserSettingsReadResponseSchema(BaseModel):
     user_settings_id: UUID
@@ -28,6 +30,7 @@ class UserSettingsReadResponseSchema(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class UserReadResponseSchema(BaseModel):
     user_id: UUID
     full_name: str | None = None
@@ -44,6 +47,7 @@ class UserReadResponseSchema(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class UserLoginResponseSchema(BaseModel):
     access_token: str
     access_token_expires_at: datetime
@@ -54,13 +58,16 @@ class UserLoginResponseSchema(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class UserRegisterResponseSchema(UserLoginResponseSchema):
     pass
+
 
 class UserEditRequestSchema(BaseModel):
     email: EmailStr | None = None
     password: str | None = None
     full_name: str | None = None
+
 
 class UserSettingsCreateRequestSchema(BaseModel):
     needs_reminders: bool | None = None
@@ -68,6 +75,7 @@ class UserSettingsCreateRequestSchema(BaseModel):
     notification_enabled: bool | None = None
     preferred_lang: list[str] | None = None
     theme: str | None = None
+
 
 class UserSettingsEditRequestSchema(UserSettingsCreateRequestSchema):
     pass
