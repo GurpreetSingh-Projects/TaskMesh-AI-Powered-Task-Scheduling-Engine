@@ -1,6 +1,10 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, useWindowDimensions, View } from "react-native";
-import { DrawerActions, useNavigation } from "@react-navigation/native";
+import {
+  DrawerActions,
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native";
 import { useAppSelector } from "@/app/store";
 import { themeColors } from "@/theme";
 import ThemePage from "@/components/ThemePage";
@@ -9,13 +13,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Check, ChevronDown, Menu } from "lucide-react-native";
 import { ImageBackground } from "expo-image";
 import { images } from "@/assets";
-import { useGetTasksQuery } from "@/features/tasks/taskApi";
 import { Carousel, CarouselRef } from "react-native-reanimated-carousel";
 import Animated from "react-native-reanimated";
 import { HomeSlideItem } from "../components/HomeSlideItem";
 import { TaskItem } from "@/features/tasks/types";
 import { useGetSummaryQuery } from "../homeApi";
 import dayjs from "dayjs";
+import { ViewAll } from "../components/ViewAll";
 
 const ranges = ["Daily", "Weekly", "Monthly"] as const;
 
@@ -57,6 +61,8 @@ const analyticsData = {
   },
 };
 
+const loadiingData = [{}, {}] as unknown as TaskItem[];
+
 const Home = () => {
   const { height, width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -69,6 +75,7 @@ const Home = () => {
   const carouselRef = useRef<CarouselRef>(null);
   const [homeRange, setHomeRange] = useState<AnalyticsRange>("Weekly");
   const [isHomeRangeMenuOpen, setIsHomeRangeMenuOpen] = useState(false);
+  const [currSummaryTaskSlide, setCurrSummaryTaskSlide] = useState(0);
 
   const displayName =
     user.full_name.trim().length > 0
@@ -78,6 +85,8 @@ const Home = () => {
   const analytics = analyticsData[homeRange];
 
   const {
+    getTasksSummary,
+    refetch: refetchTasksSummary,
     data: tasksData,
     isLoading: areTasksLoading,
     isError: areTasksError,
@@ -88,7 +97,38 @@ const Home = () => {
     limit: 10,
   });
 
-  console.log("Tasks:", tasksData, start_date, end_date);
+  const isViewAllActive =
+    (tasksData?.top_tasks.length ?? 0) == currSummaryTaskSlide + 1;
+
+  const carouselStyle = {
+    transform: [
+      {
+        translateX: isViewAllActive ? -25 : 0,
+      },
+    ],
+    transitionProperty: "transform",
+    transitionDuration: 250,
+    transitionTimingFunction: "ease-in-out",
+  } as const;
+
+  const viewAllStyle = {
+    transform: [
+      {
+        translateX: isViewAllActive ? 0 : 150,
+      },
+    ],
+    transitionProperty: "transform",
+    transitionDuration: 250,
+    transitionTimingFunction: "ease-in-out",
+  } as const;
+
+  // console.log("Tasks:", tasksData, start_date, end_date);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchTasksSummary();
+    }, [refetchTasksSummary]),
+  );
 
   return (
     <ThemePage noSafeArea isScrollable backgroundColor={themeColors?.ink}>
@@ -185,25 +225,37 @@ const Home = () => {
             </ThemeText>
           </View>
 
-          <Carousel
-            loop
-            ref={carouselRef}
-            data={tasksData?.top_tasks}
-            style={{
-              height: height * 0.5,
-              width: width,
-            }}
-            contentContainerStyle={{}}
-            layout={{
-              type: "parallax",
-              scale: 0.85,
-              adjacentScale: 0.55,
-              offset: 250,
-            }}
-            renderItem={({ item, index }) => {
-              return <HomeSlideItem key={index} task={item} />;
-            }}
-          />
+          <View className="flex-row w-full gap-5">
+            <Animated.View className="flex-1" style={carouselStyle}>
+              <Carousel
+                ref={carouselRef}
+                data={areTasksLoading ? loadiingData : tasksData?.top_tasks}
+                style={{
+                  height: height * 0.5,
+                  width: width,
+                }}
+                contentContainerStyle={{}}
+                layout={{
+                  type: "parallax",
+                  scale: 0.85,
+                  adjacentScale: 0.65,
+                  offset: 250,
+                }}
+                renderItem={({ item, index }) => (
+                  <HomeSlideItem
+                    key={index}
+                    task={item}
+                    isLoading={areTasksLoading}
+                  />
+                )}
+                onSnapToItem={setCurrSummaryTaskSlide}
+              />
+            </Animated.View>
+
+            <Animated.View style={viewAllStyle}>
+              <ViewAll />
+            </Animated.View>
+          </View>
         </View>
 
         <View className="rounded-t-[36px] bg-canvas p-page">
