@@ -3,6 +3,7 @@ import ThemeText from "@/components/ThemeText";
 import { CartesianChart, Bar } from "victory-native";
 import { themeColors } from "@/theme";
 import { useFont, Text } from "react-native-skia";
+import React from "react";
 
 export type ProgressStats = {
   created: number;
@@ -71,10 +72,9 @@ export const ProgressOverview = (props: ProgressStats) => {
             }}
           >
             {({ points, chartBounds }) =>
-              points.value.map((point, index) => (
-                <>
+              points?.value?.map((point, index) => (
+                <React.Fragment key={`labels-${bars[index].label}`}>
                   <Bar
-                    key={bars[index].label}
                     points={[point]}
                     chartBounds={chartBounds}
                     barWidth={65}
@@ -94,13 +94,13 @@ export const ProgressOverview = (props: ProgressStats) => {
                   {labelFont && (
                     <Text
                       x={point.x}
-                      y={point.y + 18}
+                      y={chartBounds.bottom - 15}
                       text={String(point.yValue)}
                       font={labelFont}
-                      color={themeColors?.mist}
+                      color={themeColors?.steel}
                     />
                   )}
-                </>
+                </React.Fragment>
               ))
             }
           </CartesianChart>
