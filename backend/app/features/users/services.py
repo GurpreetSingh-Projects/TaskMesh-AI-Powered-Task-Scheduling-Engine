@@ -328,22 +328,23 @@ class UserService:
         return user_settings
 
     async def get_user_settings(self, user_id: UUID):
-        # cache_key = f"users:settings:{user_id}:get"
-        # cached_data = await get_cache(cache_key=cache_key)
+        cache_key = f"users:settings:{user_id}:get"
+        cached_data = await get_cache(cache_key=cache_key)
 
-        # if cached_data:
-        #     return cached_data
+        if cached_data:
+            return cached_data
 
         query = (
-            select(UserSettings).where(
+            select(UserSettings)
+            .where(
                 UserSettings.is_deleted.is_(False),
                 or_(
                     UserSettings.user_id == user_id,
                     UserSettings.user_id.is_(None),
                 ),
             )
-            # .order_by(UserSettings.user_id.is_(None))
-            # .limit(1)
+            .order_by(UserSettings.user_id.is_(None))
+            .limit(1)
         )
 
         try:
@@ -360,6 +361,7 @@ class UserService:
                 status_code=500, detail="An error occurred while getting user settings"
             )
 
+        await set_cache(cache_key=cache_key, data=user_settings)
         return user_settings
 
     async def update_user_settings(
