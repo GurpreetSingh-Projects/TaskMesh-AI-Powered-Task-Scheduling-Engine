@@ -65,9 +65,9 @@ const config: ExpoConfig = {
       "expo-build-properties",
       {
         android: {
-          compileSdkVersion: 31,
-          targetSdkVersion: 31,
-          minSdkVersion: 31,
+          compileSdkVersion: 36,
+          targetSdkVersion: 36,
+          minSdkVersion: 30,
         },
       },
     ],
