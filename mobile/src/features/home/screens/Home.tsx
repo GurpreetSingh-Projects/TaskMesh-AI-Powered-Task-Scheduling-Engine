@@ -12,9 +12,13 @@ import ThemeText from "@/components/ThemeText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Check, ChevronDown, Menu, Plus } from "lucide-react-native";
 import { Image, ImageBackground } from "expo-image";
-import { images } from "@/assets";
+import { animations, images } from "@/assets";
 import { Carousel, CarouselRef } from "react-native-reanimated-carousel";
-import Animated from "react-native-reanimated";
+import Animated, {
+  FadeInDown,
+  FadeInUp,
+  FadeOutDown,
+} from "react-native-reanimated";
 import { HomeSlideItem } from "../components/HomeSlideItem";
 import { TaskItem } from "@/features/tasks/types";
 import { useGetSummaryQuery } from "../homeApi";
@@ -22,6 +26,7 @@ import dayjs from "dayjs";
 import { ViewAll } from "../components/ViewAll";
 import { HomeStackNavigationProp } from "@/navigation/routes";
 import { ProgressOverview } from "../components/ProgressOverview";
+import LottieView from "lottie-react-native";
 
 const ranges = ["Daily", "Weekly", "Monthly"] as const;
 
@@ -71,7 +76,7 @@ const Home = () => {
   const navigation = useNavigation<HomeStackNavigationProp>();
   const user = useAppSelector((state) => state.user);
 
-  const end_date = dayjs().format("YYYY-MM-DD");
+  const end_date = dayjs().add(1, "day").format("YYYY-MM-DD");
   const start_date = dayjs().subtract(90, "day").format("YYYY-MM-DD");
 
   const carouselRef = useRef<CarouselRef>(null);
@@ -100,7 +105,10 @@ const Home = () => {
   });
 
   const isViewAllActive =
-    (tasksData?.top_tasks.length ?? 0) == currSummaryTaskSlide + 1;
+    (tasksData?.top_tasks.length ?? 0) == currSummaryTaskSlide + 1 ||
+    tasksData?.top_tasks.length == 1;
+
+  console.log(isViewAllActive);
 
   const carouselStyle = {
     transform: [
@@ -162,7 +170,7 @@ const Home = () => {
       onPress: openSettingsHandler,
     },
   ];
-  // console.log("Tasks:", tasksData, start_date, end_date);
+  console.log("Tasks:", tasksData, start_date, end_date);
 
   useFocusEffect(
     useCallback(() => {
@@ -266,35 +274,57 @@ const Home = () => {
           </View>
 
           <View className="flex-row w-full gap-5">
-            <Animated.View className="flex-1" style={carouselStyle}>
-              <Carousel
-                ref={carouselRef}
-                data={areTasksLoading ? loadiingData : tasksData?.top_tasks}
-                style={{
-                  height: height * 0.5,
-                  width: width,
-                }}
-                contentContainerStyle={{}}
-                layout={{
-                  type: "parallax",
-                  scale: 0.85,
-                  adjacentScale: 0.7,
-                  offset: 250,
-                }}
-                renderItem={({ item, index }) => (
-                  <HomeSlideItem
-                    key={index}
-                    task={item}
-                    isLoading={areTasksLoading}
-                  />
-                )}
-                onSnapToItem={setCurrSummaryTaskSlide}
-              />
-            </Animated.View>
-
-            <Animated.View style={viewAllStyle}>
-              <ViewAll />
-            </Animated.View>
+            {areTasksLoading ? (
+              <Animated.View
+                entering={FadeInUp}
+                exiting={FadeOutDown}
+                className="items-center justify-center py-5 w-full"
+              >
+                <LottieView
+                  source={animations?.loadingIcon}
+                  autoPlay
+                  loop
+                  style={{ width: 50, height: 50 }}
+                />
+              </Animated.View>
+            ) : tasksData?.top_tasks?.length ? (
+              <Animated.View
+                className="flex- 1 flex-row w-full"
+                entering={FadeInUp.duration(500)}
+                exiting={FadeInDown.duration(500)}
+                style={carouselStyle}
+              >
+                <Carousel
+                  ref={carouselRef}
+                  data={areTasksLoading ? loadiingData : tasksData?.top_tasks}
+                  style={{
+                    height: height * 0.5,
+                    width: width,
+                  }}
+                  contentContainerStyle={{}}
+                  layout={{
+                    type: "parallax",
+                    scale: 0.85,
+                    adjacentScale: 0.7,
+                    offset: 250,
+                  }}
+                  renderItem={({ item, index }) => (
+                    <HomeSlideItem
+                      key={index}
+                      task={item}
+                      isLoading={areTasksLoading}
+                    />
+                  )}
+                  keyExtractor={(item) => item?.task_id}
+                  onSnapToItem={setCurrSummaryTaskSlide}
+                />
+                <Animated.View style={viewAllStyle}>
+                  <ViewAll />
+                </Animated.View>
+              </Animated.View>
+            ) : (
+              <View className="w-full h-5" />
+            )}
           </View>
         </View>
 
