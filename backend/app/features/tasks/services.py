@@ -155,13 +155,13 @@ class TaskService:
                 .where(
                     UserActivity.user_id == user.user_id,
                     UserActivity.activity_type.in_([
-                    UserActivityType.TASK_CREATED,
-                    UserActivityType.TASK_UPDATED,
-                    UserActivityType.TASK_DELETED,
-                    UserActivityType.TASK_STATUS_UPDATED,
-                    UserActivityType.SUBTASK_CREATED,
-                    UserActivityType.SUBTASK_UPDATED,
-                    UserActivityType.SUBTASK_DELETED,
+                        UserActivityType.TASK_CREATED,
+                        UserActivityType.TASK_UPDATED,
+                        UserActivityType.TASK_DELETED,
+                        UserActivityType.TASK_STATUS_UPDATED,
+                        UserActivityType.SUBTASK_CREATED,
+                        UserActivityType.SUBTASK_UPDATED,
+                        UserActivityType.SUBTASK_DELETED,
                     ]),
                     UserActivity.created_at >= recent_week_start,
                 )
