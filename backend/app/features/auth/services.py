@@ -22,7 +22,7 @@ from app.features.activity.services import ActivityService
 from app.features.storage.services import StorageService
 from app.features.users.enums import UserRoles
 from app.features.users.models import Users
-from app.features.users.schemas import UserLoginRequestSchema
+from app.features.users.schemas import UserLoginRequestSchema, UserReadResponseSchema
 from app.features.users.services import UserService
 
 
@@ -163,9 +163,11 @@ class AuthService:
         ):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
+        user_data = UserReadResponseSchema.model_validate(user)
+
         return {
             "message": "User logged in successfully",
-            "user": user,
+            "user": user_data,
             "access_token": create_access_token(user.user_id),
             "access_token_expires_at": datetime.now(timezone.utc)
             + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
