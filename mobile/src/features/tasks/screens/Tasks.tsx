@@ -4,6 +4,36 @@ import ThemePage from "@/components/ThemePage";
 import ThemePageHeader from "@/components/ThemePageHeader";
 import ThemeText from "@/components/ThemeText";
 import { themeColors } from "@/theme";
+import Category from "../components/Category";
+import { TaskCategory } from "../types";
+import { statusLabels } from "../utils";
+
+export const TASK_CATEGORIES: TaskCategory[] = [
+  {
+    status: statusLabels.OVERDUE,
+    title: "Overdue",
+    description: "Past their due date. Tackle these first.",
+    view_more: "/tasks/overdue",
+  },
+  {
+    status: statusLabels.IN_PROGRESS,
+    title: "In Progress",
+    description: "Already started. Keep the momentum going.",
+    view_more: "/tasks/in_progress",
+  },
+  {
+    status: statusLabels.PENDING,
+    title: "Pending",
+    description: "Waiting for you to get started.",
+    view_more: "/tasks/pending",
+  },
+  {
+    status: statusLabels.COMPLETED,
+    title: "Completed",
+    description: "Done and dusted. Nice work.",
+    view_more: "/tasks/completed",
+  },
+];
 
 const Tasks = () => {
   return (
@@ -13,70 +43,11 @@ const Tasks = () => {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerClassName="p-page gap-section pb-8"
+        className="gap-5"
       >
-        {/* Overdue Tasks */}
-        <View className="gap-subsection">
-          <Pressable className="flex-row items-center justify-between">
-            <View className="gap-1">
-              <ThemeText variant="sectionTitle">Overdue Tasks</ThemeText>
-              <ThemeText variant="sectionSubtitle">
-                Tasks that passed their due date.
-              </ThemeText>
-            </View>
-
-            <Pressable className="h-11 w-11 items-center justify-center rounded-full bg-mist">
-              <ChevronRight size={25} color={themeColors?.smoke} />
-            </Pressable>
-          </Pressable>
-        </View>
-
-        {/* Pending Tasks */}
-        <View className="gap-subsection">
-          <Pressable className="flex-row items-center justify-between">
-            <View className="gap-1">
-              <ThemeText variant="sectionTitle">Pending Tasks</ThemeText>
-              <ThemeText variant="sectionSubtitle">
-                Tasks waiting to be started.
-              </ThemeText>
-            </View>
-
-            <Pressable className="h-11 w-11 items-center justify-center rounded-full bg-mist">
-              <ChevronRight size={25} color={themeColors?.smoke} />
-            </Pressable>
-          </Pressable>
-        </View>
-
-        {/* In Progress */}
-        <View className="gap-subsection">
-          <Pressable className="flex-row items-center justify-between">
-            <View className="gap-1">
-              <ThemeText variant="sectionTitle">In Progress</ThemeText>
-              <ThemeText variant="sectionSubtitle">
-                Tasks currently being worked on.
-              </ThemeText>
-            </View>
-
-            <Pressable className="h-11 w-11 items-center justify-center rounded-full bg-mist">
-              <ChevronRight size={25} color={themeColors?.smoke} />
-            </Pressable>
-          </Pressable>
-        </View>
-
-        {/* Recently Completed */}
-        <View className="gap-subsection">
-          <Pressable className="flex-row items-center justify-between">
-            <View className="gap-1">
-              <ThemeText variant="sectionTitle">Recently Completed</ThemeText>
-              <ThemeText variant="sectionSubtitle">
-                Tasks you have finished recently.
-              </ThemeText>
-            </View>
-
-            <Pressable className="h-11 w-11 items-center justify-center rounded-full bg-mist">
-              <ChevronRight size={25} color={themeColors?.smoke} />
-            </Pressable>
-          </Pressable>
-        </View>
+        {TASK_CATEGORIES?.map((item, index) => (
+          <Category key={index} category={item} />
+        ))}
       </ScrollView>
     </ThemePage>
   );
