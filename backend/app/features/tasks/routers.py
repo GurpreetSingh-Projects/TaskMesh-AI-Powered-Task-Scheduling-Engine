@@ -48,8 +48,9 @@ async def get_tasks(
 
 @router.get("", response_model=TaskReadResponseSchema, summary="List your tasks")
 async def get_tasks(
-    start_date: datetime= Query(default= datetime.now()),
-    end_date: datetime | None = Query(default= datetime.now()),
+    start_date: datetime | None= None,
+    end_date: datetime | None = None,
+    priority: TaskPriority | None = None,
     status: TaskStatus | None = None,
     limit: int = Query(15, ge=1, le=500),
     offset: int = Query(0, ge=0),
@@ -57,7 +58,7 @@ async def get_tasks(
     task_service: TaskService = Depends(get_tasks_service),
 ):
     return await task_service.get_tasks(
-        status=status, start_date=start_date, end_date=end_date,
+        status=status, start_date=start_date, priority= priority, end_date=end_date,
         user=user, limit=limit, offset=offset,
     )
 
