@@ -239,7 +239,7 @@ class TaskService:
             raise HTTPException(status_code = 409, detail="An error occurred while updating user")
         except Exception as e:
             await self.db.rollback()
-            logger.warning("Exception on task update | task_id={}, user_id={}, error={}", task_id, user.user_id, e.orig)
+            logger.warning("Exception on task update | task_id={}, user_id={}, error={}", task_id, user.user_id, e)
             raise HTTPException(status_code=500, detail="An error occurred while updating task")
 
         await self.db.commit()
@@ -444,8 +444,10 @@ class TaskService:
         update_query = (
             update(SubTasks)
             .where(
-                SubTasks.subtask_id == subtask_id,
                 SubTasks.task_id == task_id,
+                SubTasks.subtask_id == subtask_id,
+                Tasks.user_id == user.user_id,
+                Tasks.is_deleted.is_(False),
                 SubTasks.is_deleted.is_(False),
             )
             .values(**subtask_data)
@@ -453,7 +455,7 @@ class TaskService:
         )
 
         try:
-            response = (await self.db.execute(update_query)).scalar_one()
+            response = (await self.db.execute(update_query)).scalar_one_or_none()
 
             if response is None:
                 raise HTTPException(status_code= 404, detail= "No subtask found with the given id")
@@ -474,6 +476,8 @@ class TaskService:
             logger.warning("Integrity error on subtask update | task_id={}, user_id={}, error={}", subtask_id, user.user_id, e.orig)
             raise HTTPException(status_code = 409, detail="An error occurred while updating subtask")
         except Exception as e:
+            await self.db.rollback()
+            logger.exception("Exception on subtask update | task_id={}, user_id={}, error={}", task_id, user.user_id, e)
             raise HTTPException(status_code=500, detail="An error occurred while updating subtask")
 
         await self.db.commit()
