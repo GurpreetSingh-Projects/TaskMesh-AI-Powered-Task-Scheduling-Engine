@@ -39,7 +39,7 @@ class TaskService:
                 user=user,
                 file=task_img,
                 entity_type=FileStorageEntity.TASK,
-                entity_id=str(user.user_id),
+                entity_id=str(task_id),
             )
             task_data["file_storage_id"]=str(file_record["item"].file_storage_id)
         
@@ -199,7 +199,7 @@ class TaskService:
                 user=user,
                 file=task_img,
                 entity_type=FileStorageEntity.TASK,
-                entity_id=str(user.user_id),
+                entity_id=str(task_id),
             )
             task_data["file_storage_id"]=str(file_record["item"].file_storage_id)
 
@@ -304,7 +304,7 @@ class TaskService:
                 user=user,
                 file=subtask_img,
                 entity_type=FileStorageEntity.SUBTASK,
-                entity_id=str(user.user_id),
+                entity_id=str(subtask_id),
             )
             subtask_data["file_storage_id"]=str(file_record["item"].file_storage_id)
 
@@ -435,7 +435,7 @@ class TaskService:
                 user=user,
                 file=subtask_img,
                 entity_type=FileStorageEntity.SUBTASK,
-                entity_id=str(user.user_id),
+                entity_id=str(subtask_id),
             )
             subtask_data["file_storage_id"]=str(file_record["item"].file_storage_id)
 
@@ -446,6 +446,7 @@ class TaskService:
             .where(
                 SubTasks.task_id == task_id,
                 SubTasks.subtask_id == subtask_id,
+                Tasks.task_id == SubTasks.task_id,
                 Tasks.user_id == user.user_id,
                 Tasks.is_deleted.is_(False),
                 SubTasks.is_deleted.is_(False),
@@ -473,11 +474,11 @@ class TaskService:
             raise
         except IntegrityError as e:
             await self.db.rollback()
-            logger.warning("Integrity error on subtask update | task_id={}, user_id={}, error={}", subtask_id, user.user_id, e.orig)
+            logger.warning("Integrity error on subtask update | subtask_id={}, user_id={}, error={}", subtask_id, user.user_id, e.orig)
             raise HTTPException(status_code = 409, detail="An error occurred while updating subtask")
         except Exception as e:
             await self.db.rollback()
-            logger.exception("Exception on subtask update | task_id={}, user_id={}, error={}", task_id, user.user_id, e)
+            logger.exception("Exception on subtask update | task_id= {}, subtask_id={}, user_id={}, error={}", task_id, subtask_id user.user_id, e)
             raise HTTPException(status_code=500, detail="An error occurred while updating subtask")
 
         await self.db.commit()
