@@ -52,7 +52,7 @@ jobs:
       - name: Extract App Details
         id: app-version
         run: |
-          CONFIG=$(pnpm dlx expo config --json)
+          CONFIG=$(pnpm exec expo config --json)
           echo "name=$(echo "$CONFIG" | jq -r '.name')" >> "$GITHUB_OUTPUT"
           echo "slug=$(echo "$CONFIG" | jq -r '.slug')" >> "$GITHUB_OUTPUT"
           echo "version=$(echo "$CONFIG" | jq -r '.version')" >> "$GITHUB_OUTPUT"
