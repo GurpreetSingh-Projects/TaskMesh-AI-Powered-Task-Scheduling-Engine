@@ -23,7 +23,7 @@ jobs:
           oauth-client-id: ${{secrets.OAUTH_CLIENT_ID}}
           audience: ${{secrets.AUDIENCE}}
           tags: tag:taskmesh-cli
-        runs: |
+        run: |
           for v in OAUTH_CLIENT_ID AUDIENCE; do
             eval "val=\$$v"
             [ -n "$val" ] && echo "$v len=${#val}" || echo "$v EMPTY"
