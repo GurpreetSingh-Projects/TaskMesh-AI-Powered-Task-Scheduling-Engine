@@ -1,14 +1,15 @@
 from fastapi import APIRouter, Depends, Query, UploadFile, Form, File
 from uuid import UUID
 from datetime import datetime
-from app.core.dependencies import get_current_user
+from app.core.dependencies import require_roles
 from app.features.tasks.services import TaskService
 from app.features.tasks.enums import TaskPriority, TaskStatus
 from app.features.labels.services import LabelsService
 from app.features.labels.dependencies import get_labels_service
 from app.features.labels.schemas import LabelCreateSchema, LabelResponseSchema, GetLabelsSchema
+from app.features.users.enums import UserRoles
 
-router = APIRouter(prefix="/labels", tags=["Labels"], dependencies=[Depends(get_current_user)])
+router = APIRouter(prefix="/labels", tags=["Labels"])
 
 @router.post("", response_model= LabelResponseSchema, summary="Create a new label")
 async def create_label(
@@ -17,7 +18,7 @@ async def create_label(
     entity_type: str | None = Form(None),
     entity_id: UUID | None = Form(None),
     label_img: UploadFile | None = File(None),
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     label_service: LabelsService = Depends(get_labels_service),
 ):
     label_data = LabelCreateSchema(
@@ -38,7 +39,7 @@ async def create_label(
 @router.get("", response_model= GetLabelsSchema, summary="Get all labels")
 async def get_labels(
     limit: int = 20,
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     label_service: LabelsService = Depends(get_labels_service),
 ):
     response = await label_service.get_labels(
@@ -52,7 +53,7 @@ async def get_labels(
 async def update_label(
     label_id,
     label_data,
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     label_service: LabelsService = Depends(get_labels_service),
 ):
     response = await label_service.update_label(
@@ -66,7 +67,7 @@ async def update_label(
 @router.get("/{label_id}", response_model= LabelResponseSchema, summary="Get a label")
 async def get_label(
     label_id,
-    user=Depends(get_current_user),
+    user=Depends(require_roles([UserRoles.ADMIN])),
     label_service: LabelsService = Depends(get_labels_service),
 ):
     response = await label_service.get_label(
