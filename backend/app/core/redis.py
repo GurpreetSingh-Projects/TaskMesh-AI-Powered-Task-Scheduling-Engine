@@ -31,13 +31,21 @@ async def get_cache(cache_key: str) -> None:
     try:
         cached_data = await redis_client.get(name=cache_key)
         return from_json(cached_data)
-    except RedisError:
+    except Exception as e:
         logger.opt(exception=True, depth=1).error(
-            "Redis cache read failed | cache_key={}",
+            "Redis cache read failed: err={} cache_key={}",
+            type(e).__name__,
             cache_key,
         )
     return None
 
 
 async def delete_cache(*cache_keys: str):
-    await redis_client.unlink(cache_keys)
+    try:
+        await redis_client.unlink(*cache_keys)
+    except Exception as e:
+        logger.opt(exception=True, depth=1).error(
+            "Redis cache unlinking failed: err={} cache_key={}",
+            type(e).__name__,
+            cache_keys,
+        )

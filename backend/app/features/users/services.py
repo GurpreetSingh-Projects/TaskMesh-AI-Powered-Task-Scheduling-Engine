@@ -1,9 +1,8 @@
-import json
 from datetime import datetime, timezone
 from types import SimpleNamespace
 from uuid import UUID
 
-from fastapi import File, HTTPException, UploadFile
+from fastapi import HTTPException, UploadFile
 from loguru import logger
 from pydantic import EmailStr
 from pydantic_core import from_json, to_json
@@ -13,6 +12,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core.redis import redis_client
 from app.core.utils import hash_password
 from app.features.activity.enums import ActivityEntityType, UserActivityType
@@ -24,7 +24,6 @@ from app.features.storage.services import StorageService
 from app.features.users.models import Users, UserSettings
 from app.features.users.schemas import (
     UserEditRequestSchema,
-    UserReadResponseSchema,
     UserSettingsCreateRequestSchema,
     UserSettingsEditRequestSchema,
     UserSettingsReadResponseSchema,
@@ -56,11 +55,10 @@ class UserService:
                 cache_key = f"users:{user_id}:get"
             if email:
                 conditions.append(Users.email == email)
-                cache_key = f"users:{email}:get"
 
             cached_details = await redis_client.get(cache_key)
 
-            if cached_details:
+            if user_id is not None and cached_details:
                 logger.debug("Redis Cache HIT: Returning user details from Redis")
                 return SimpleNamespace(**from_json(cached_details))
 
@@ -120,7 +118,9 @@ class UserService:
             user_data = to_json(vars(user))
 
             try:
-                await redis_client.set(name=cache_key, value=user_data, ex=300)
+                await redis_client.set(
+                    name=cache_key, value=user_data, ex=settings.CACHE_TTL
+                )
             except RedisError:
                 logger.exception("User details cache write failed")
 
@@ -138,6 +138,7 @@ class UserService:
         profile_img: UploadFile | None = None,
     ):
         file_record = None
+        cache_key = f"users:{user.user_id}:get"
 
         if user_data is not None:
             user_data = user_data.model_dump(exclude_unset=True, exclude_none=True)
@@ -224,6 +225,20 @@ class UserService:
             )
         else:
             updated_user.profile_img = ""
+
+        # try:
+        #     await redis_client.set(
+        #         name=cache_key, value=user_data, ex=settings.CACHE_TTL
+        #     )
+        # except RedisError:
+        #     logger.exception(
+        #         "Redis cache write failed for edit user: user_id=%s ttl=%s",
+        #         "edit_user",
+        #         cache_key,
+        #         user.user_id,
+        #         settings.CACHE_TTL,
+        #     )
+
         await self.db.commit()
         return updated_user
 
@@ -317,6 +332,7 @@ class UserService:
         return user_settings
 
     async def get_user_settings(self, user_id: UUID):
+
         query = (
             select(UserSettings)
             .where(
