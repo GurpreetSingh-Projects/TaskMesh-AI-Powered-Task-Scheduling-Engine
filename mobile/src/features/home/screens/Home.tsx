@@ -21,6 +21,7 @@ import { useGetSummaryQuery } from "../homeApi";
 import dayjs from "dayjs";
 import { ViewAll } from "../components/ViewAll";
 import { HomeStackNavigationProp } from "@/navigation/routes";
+import { ProgressOverview } from "../components/ProgressOverview";
 
 const ranges = ["Daily", "Weekly", "Monthly"] as const;
 
@@ -79,7 +80,7 @@ const Home = () => {
   const [currSummaryTaskSlide, setCurrSummaryTaskSlide] = useState(0);
 
   const displayName =
-    user.full_name.trim().length > 0
+    user?.full_name?.trim()?.length > 0
       ? user?.full_name?.trim()
       : "Taskmesh User";
 
@@ -297,49 +298,50 @@ const Home = () => {
           </View>
         </View>
 
-        <View className="rounded-t-[36px] bg-canvas p-page">
-          <View className="mb-5 flex-row items-center justify-between">
-            <View>
-              <ThemeText
-                variant="subheading"
-                className="font-bold tracking-tight text-ink"
-              >
-                Quick actions
-              </ThemeText>
-              <ThemeText className="mt-1 text-steel">
-                Stay on top of your work.
-              </ThemeText>
+        <View className="rounded-t-[36px] bg-canvas px-3 py-8 gap-section">
+          <View className="gap-subsection">
+            <View className="flex-row items-center justify-between">
+              <View className="">
+                <ThemeText variant="sectionTitle">Quick actions</ThemeText>
+                <ThemeText variant="sectionSubtitle">
+                  Stay on top of your work.
+                </ThemeText>
+              </View>
+              <View className="h-11 w-11 items-center justify-center rounded-full bg-mist">
+                <ThemeText className="text-lg text-charcoal">✦</ThemeText>
+              </View>
             </View>
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-mist">
-              <ThemeText className="text-lg text-charcoal">✦</ThemeText>
+
+            <View className="flex-row">
+              {quickActions?.map(({ label, icon, onPress }) => (
+                <Pressable
+                  key={label}
+                  onPress={onPress}
+                  accessibilityLabel={label}
+                  className="w-1/4 items-center gap-2 active:opacity-70"
+                >
+                  <Image
+                    source={icon}
+                    style={{
+                      width: 55,
+                      height: 55,
+                      shadowColor: themeColors?.ash,
+                    }}
+                    contentFit="contain"
+                  />
+                  <ThemeText
+                    className="text-center font-bold text-ink"
+                    numberOfLines={1}
+                  >
+                    {label}
+                  </ThemeText>
+                </Pressable>
+              ))}
             </View>
           </View>
 
-          <View className="flex-row">
-            {quickActions?.map(({ label, icon, onPress }) => (
-              <Pressable
-                key={label}
-                onPress={onPress}
-                accessibilityLabel={label}
-                className="w-1/4 items-center gap-2 active:opacity-70"
-              >
-                <Image
-                  source={icon}
-                  style={{
-                    width: 55,
-                    height: 55,
-                    shadowColor: themeColors?.ash,
-                  }}
-                  contentFit="contain"
-                />
-                <ThemeText
-                  className="text-center font-bold text-ink"
-                  numberOfLines={1}
-                >
-                  {label}
-                </ThemeText>
-              </Pressable>
-            ))}
+          <View className="gap-subsection">
+            <ProgressOverview stats={tasksData?.progress_stats} />
           </View>
 
           <View className="mt-8">
@@ -380,7 +382,7 @@ const Home = () => {
                 >
                   Tasks Summary
                 </ThemeText>
-                <ThemeText className="mt-1 text-xs text-steel">
+                <ThemeText className="text-xs text-steel">
                   {analytics.subtitle}
                 </ThemeText>
               </View>
