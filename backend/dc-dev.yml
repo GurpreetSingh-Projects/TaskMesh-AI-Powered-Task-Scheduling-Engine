@@ -1,0 +1,24 @@
+name: taskmesh-ai
+
+services:
+  api:
+    build: .
+    container_name: taskmesh-api
+    ports:
+      - "8000:10000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
