@@ -18,8 +18,12 @@ export const images = {
   },
 
   icons: {
+    addSubtaskIcon: require("@/assets/images/icons/add-subtask-icon.webp"),
+    addTaskIcon: require("@/assets/images/icons/add-task-icon.webp"),
     cameraIcon: require("@/assets/images/icons/camera-icon.webp"),
     galleryIcon: require("@/assets/images/icons/gallery-icon.webp"),
+    labelsIcon: require("@/assets/images/icons/labels-icon.webp"),
+    settingsIcon: require("@/assets/images/icons/settings-icon.webp"),
   },
 
   illustrations: {
