@@ -8,7 +8,9 @@ type TextVariant =
   | "body"
   | "cardTitle"
   | "cardDescription"
-  | "label";
+  | "label"
+  | "sectionTitle"
+  | "sectionSubtitle";
 
 type ThemeTextProps = TextProps & {
   className?: string;
@@ -24,6 +26,8 @@ const variantClasses: Record<TextVariant, string> = {
   cardTitle: "font-semibold text-2xl leading-tight",
   cardDescription: "font-medium leading-normal",
   label: "font-normal text-xs",
+  sectionTitle: "text-lg font-bold tracking-tight text-ink",
+  sectionSubtitle: "text-xs text-steel",
 };
 
 const ThemeText = (props: ThemeTextProps) => {
