@@ -37,7 +37,6 @@ export const HomeSlideItem: React.FC<Props> = ({
   onComplete,
   isLoading,
 }) => {
-  const uri = task?.image_url;
   const due = timeLeft(task?.due_at);
 
   return (
@@ -48,7 +47,7 @@ export const HomeSlideItem: React.FC<Props> = ({
         <View className="flex-1 overflow-hidden bg-ink justify-end rounded-[35px] border-mist border-6 shadow-xl">
           <Image
             style={StyleSheet.absoluteFill}
-            source={{ uri }}
+            source={{ uri: task?.image_url }}
             contentFit="cover"
           />
           <LinearGradient
