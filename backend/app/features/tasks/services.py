@@ -4,10 +4,11 @@ from sqlalchemy.exc import IntegrityError
 from uuid import uuid4, UUID
 from sqlalchemy import select, insert, func, update, and_, case, String, cast, Date, distinct
 import math
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from loguru import logger
 from app.features.users.models import Users
 from app.features.tasks.models import Tasks, SubTasks
+from app.features.activity.models import UserActivity
 from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateRequestSchema, TaskReadResponseItemSchema, TaskReadResponseSchema, SubtaskReadResponseItemSchema, SubtaskReadResponseSchema, SubtaskCreateRequestSchema, SubtaskUpdateRequestSchema
 from app.features.storage.models import FileStorage
 from app.features.storage.enums import FileStorageEntity
@@ -144,37 +145,43 @@ class TaskService:
             )
         )
 
-        weekly_streak_query = (
-            select(distinct(Tasks.created_at))
+
+        curr_weekdays = []
+        today = date.today()
+        recent_week_start = today - timedelta(days=((today.weekday() + 1) % 7))
+        
+        weekly_activity_query = (
+            select((func.date(UserActivity.created_at)))
                 .where(
-                    Tasks.user_id == user.user_id,
-                    Tasks.created_at >= start_date,
-                    Tasks.created_at < end_date,
-                    Tasks.is_deleted.is_(False),
+                    UserActivity.user_id == user.user_id,
+                    UserActivity.activity_type.in_([
+                    UserActivityType.TASK_CREATED,
+                    UserActivityType.TASK_UPDATED,
+                    UserActivityType.TASK_DELETED,
+                    UserActivityType.TASK_STATUS_UPDATED,
+                    UserActivityType.SUBTASK_CREATED,
+                    UserActivityType.SUBTASK_UPDATED,
+                    UserActivityType.SUBTASK_DELETED,
+                    ]),
+                    UserActivity.created_at >= recent_week_start,
                 )
+                .distinct()
         )
-
-        # recently_completed_query=(
-        #     select(Tasks)
-        #     .where(
-        #         Tasks.user_id == user.user_id,
-        #         Tasks.created_at >= start_date,
-        #         Tasks.created_at < end_date,
-        #         Tasks.completed_at < end_date,
-        #         Tasks.is_deleted.is_(False),
-        #     )
-        #     .order_by(
-        #         Tasks.completed_at.desc()
-        #     )
-        #     .limit(limit)
-        # )
-
+    
         top_tasks = (await self.db.execute(top_tasks_query)).scalars().all()
         progress_stats = (await self.db.execute(progress_query)).one()
-        weekly_streak = (await self.db.execute(weekly_streak_query)).scalars().all()
-        # recently_completed_tasks= (await self.db.execute(recently_completed_query)).scalars().all()
+        weekly_streak = (await self.db.execute(weekly_activity_query)).scalars().all()
 
-        # for task in top_tasks and recently_completed_tasks:
+        for d in range(7):
+            active_date= recent_week_start + timedelta(days= d)
+            is_active = active_date in weekly_streak
+
+            curr_weekdays.append({
+                "date": active_date,
+                "day": active_date.strftime("%A"),
+                "is_active": is_active
+            })
+
         for task in top_tasks:
             if task.file_storage_id:
                 file_details= await self.storage_service.get_file_details(file_storage_id=task.file_storage_id, entity_type=FileStorageEntity.TASK)
@@ -185,8 +192,7 @@ class TaskService:
         return {
             "top_tasks": top_tasks,
             "progress_stats": progress_stats._asdict(),
-            "weekly_streak": weekly_streak,
-            # "recently_completed_tasks": recently_completed_tasks
+            "weekly_streak": curr_weekdays,
         }
 
     async def get_tasks(self, priority:TaskPriority | None, status: TaskStatus | None, start_date: datetime | None, end_date: datetime | None,  user: Users, limit: int= 1, offset: int= 0):
