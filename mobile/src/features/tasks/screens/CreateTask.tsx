@@ -2,7 +2,7 @@ import ThemePage from "@/components/ThemePage";
 import { themeColors } from "@/theme";
 import { images } from "@/assets";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Linking, Platform, Pressable, View } from "react-native";
 import { Image } from "expo-image";
 import { Circle, SwitchCamera } from "lucide-react-native";
 import {
@@ -17,6 +17,7 @@ import { formatImgTypes, useMediaPicker } from "@/hooks/useMediaPicker";
 import ImageClickedView from "../components/ImageClickedView";
 import { FileType } from "@/features/auth/types";
 import ReactNativeBlobUtil from "react-native-blob-util";
+import ThemeText from "@/components/ThemeText";
 
 const CreateTask = () => {
   const { processImage } = useMediaPicker();
@@ -87,64 +88,80 @@ const CreateTask = () => {
       <View className="flex-1 relative" collapsable={true}>
         {!media ? (
           <>
-            <Camera
-              ref={camera}
-              style={{
-                position: "absolute",
-                inset: 0,
-              }}
-              enableNativeZoomGesture
-              enableNativeTapToFocusGesture
-              device={device}
-              isActive={true}
-              outputs={[photoOutput]}
-            />
-            <View className="absolute bottom-10 left-0 right-0">
-              <View className="relative flex-row items-center px-page">
-                <Pressable
-                  className="absolute left-page"
-                  onPress={handlePicker}
-                  hitSlop={15}
-                >
-                  <Image
-                    source={images?.icons?.galleryIcon}
-                    style={{
-                      width: 37.5,
-                      height: 37.5,
-                    }}
-                    contentFit="contain"
-                  />
-                </Pressable>
+            {hasPermission ? (
+              <>
+                <Camera
+                  ref={camera}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                  }}
+                  enableNativeZoomGesture
+                  enableNativeTapToFocusGesture
+                  device={device}
+                  isActive={true}
+                  outputs={[photoOutput]}
+                />
 
-                <View className="flex-1 items-center">
-                  <Pressable
-                    onPress={capturePhoto}
-                    className="rounded-full border-2 border-canvas!"
-                    hitSlop={15}
-                  >
-                    <Circle
-                      size={65}
-                      fill={themeColors?.canvas}
-                      stroke="none"
-                    />
-                  </Pressable>
-                </View>
+                <View className="absolute bottom-10 left-0 right-0">
+                  <View className="relative flex-row items-center px-page">
+                    <Pressable
+                      className="absolute left-page"
+                      onPress={handlePicker}
+                      hitSlop={15}
+                    >
+                      <Image
+                        source={images?.icons?.galleryIcon}
+                        style={{
+                          width: 37.5,
+                          height: 37.5,
+                        }}
+                        contentFit="contain"
+                      />
+                    </Pressable>
 
-                <View className="absolute right-page">
-                  <Pressable
-                    onPress={flipCamera}
-                    className="h-15 w-15 items-center justify-center"
-                    hitSlop={15}
-                  >
-                    <SwitchCamera
-                      size={35}
-                      color={themeColors?.canvas}
-                      strokeWidth={1.25}
-                    />
-                  </Pressable>
+                    <View className="flex-1 items-center">
+                      <Pressable
+                        onPress={capturePhoto}
+                        className="rounded-full border-2 border-canvas!"
+                        hitSlop={15}
+                      >
+                        <Circle
+                          size={65}
+                          fill={themeColors?.canvas}
+                          stroke="none"
+                        />
+                      </Pressable>
+                    </View>
+
+                    <View className="absolute right-page">
+                      <Pressable
+                        onPress={flipCamera}
+                        className="h-15 w-15 items-center justify-center"
+                        hitSlop={15}
+                      >
+                        <SwitchCamera
+                          size={35}
+                          color={themeColors?.canvas}
+                          strokeWidth={1.25}
+                        />
+                      </Pressable>
+                    </View>
+                  </View>
                 </View>
-              </View>
-            </View>
+              </>
+            ) : (
+              <>
+                <View className="flex-1 items-center justify-center bg-black px-8 gap-4">
+                  <ThemeText className="text-xl font-bold text-canvas text-center">
+                    Camera access is off
+                  </ThemeText>
+                  <ThemeText className="text-base text-mist text-center">
+                    Please enable camera permission from Settings
+                  </ThemeText>
+                </View>
+              </>
+            )}
           </>
         ) : (
           <ImageClickedView media={media} />

@@ -15,8 +15,6 @@ import {
   setIsProfileCompletionSkipped,
   setUserInfo,
 } from "../slice/user";
-import { useNavigation } from "@react-navigation/native";
-import { DashboardStackNavigationProp } from "@/navigation/routes";
 
 const ProfileDetailsPending = () => {
   const { height } = useWindowDimensions();
