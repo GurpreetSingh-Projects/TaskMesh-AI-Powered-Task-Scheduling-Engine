@@ -32,7 +32,7 @@ jobs:
         with:
           oauth-client-id: ${{secrets.OAUTH_CLIENT_ID}}
           audience: ${{secrets.AUDIENCE}}
-          tags: tag:taskmesh-cli
+          tags: tag:taskmesh-ci
 
       - name: Deploy to VM
         env:
