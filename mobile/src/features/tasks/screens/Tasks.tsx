@@ -6,30 +6,30 @@ import ThemeText from "@/components/ThemeText";
 import { themeColors } from "@/theme";
 import Category from "../components/Category";
 import { TaskCategory } from "../types";
-import { statusLabels } from "../utils";
+import { statusLabels, TASK_STATUS } from "../utils";
 
 export const TASK_CATEGORIES: TaskCategory[] = [
   {
-    status: statusLabels.OVERDUE,
+    status: TASK_STATUS[0],
     title: "Overdue",
     description: "Past their due date. Tackle these first.",
     view_more: "/tasks/overdue",
   },
   {
-    status: statusLabels.IN_PROGRESS,
+    status: TASK_STATUS[1],
     title: "In Progress",
     description: "Already started. Keep the momentum going.",
     view_more: "/tasks/in_progress",
   },
   {
-    status: statusLabels.PENDING,
+    status: TASK_STATUS[2],
     title: "Pending",
     description: "Waiting for you to get started.",
     view_more: "/tasks/pending",
   },
   {
-    status: statusLabels.COMPLETED,
-    title: "Completed",
+    status: TASK_STATUS[3],
+    title: "Recently Completed",
     description: "Done and dusted. Nice work.",
     view_more: "/tasks/completed",
   },
@@ -38,11 +38,10 @@ export const TASK_CATEGORIES: TaskCategory[] = [
 const Tasks = () => {
   return (
     <ThemePage>
-      <ThemePageHeader heading="Tasks" />
-
+      <ThemePageHeader heading="Tasks" backMode />
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerClassName="p-page gap-section pb-8"
+        contentContainerClassName="py-page gap-section pb-8"
         className="gap-5"
       >
         {TASK_CATEGORIES?.map((item, index) => (
