@@ -21,8 +21,8 @@ const variantClasses: Record<TextVariant, string> = {
   subheading: "font-semibold! text-xl leading-tight",
   title: "font-semibold! text-base leading-normal",
   body: "font-medium text-sm leading-normal",
-  cardTitle: "font-semibold text-xl leading-tight",
-  cardDescription: "font-medium text-sm leading-normal",
+  cardTitle: "font-semibold text-2xl leading-tight",
+  cardDescription: "font-medium leading-normal",
   label: "font-normal text-xs",
 };
 
