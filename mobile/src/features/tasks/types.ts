@@ -24,3 +24,10 @@ export type TasksGetResponse = {
   page: number;
   total_pages: number;
 };
+
+export type TaskCategory = {
+  status: string;
+  title: string;
+  description: string;
+  view_more: string;
+};
