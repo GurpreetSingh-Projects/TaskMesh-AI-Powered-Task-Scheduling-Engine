@@ -60,6 +60,9 @@ jobs:
       - name: Build Debug apk
         run: pnpm dlx eas-cli@latest build --profile debug --platform android --local --non-interactive --output taskmesh-dev-debug.apk
 
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
       - name: Build Preview apk
         run: pnpm dlx eas-cli@latest build --profile preview --platform android --local --non-interactive --output taskmesh-dev-preview.apk
 
