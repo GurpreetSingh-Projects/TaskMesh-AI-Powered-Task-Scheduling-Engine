@@ -284,12 +284,13 @@ class TaskService:
                 raise HTTPException(status_code= 400, detail= "No task found with the given id")
         except HTTPException:
             await self.db.rollback()
+            logger.exception("Task deactivation failed | task_id={}, user_id={}", task_id, user.user_id)
             raise
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
+            raise HTTPException(status_code=500, detail="An error occurred while updating task")
         
         await self.db.commit()
-        logger.info("Task Deactivated | task_id={} user_id={}", response.task_id, user.user_id)
+        logger.info("Task Deactivated | task_id={}, user_id={}", response.task_id, user.user_id)
         return
 
     async def create_subtask(self, user: Users, subtask_data: SubtaskCreateRequestSchema, subtask_img: UploadFile | None):
@@ -478,7 +479,7 @@ class TaskService:
             raise HTTPException(status_code = 409, detail="An error occurred while updating subtask")
         except Exception as e:
             await self.db.rollback()
-            logger.exception("Exception on subtask update | task_id= {}, subtask_id={}, user_id={}, error={}", task_id, subtask_id user.user_id, e)
+            logger.exception("Exception on subtask update | task_id= {}, subtask_id={}, user_id={}, error={}", task_id, subtask_id, user.user_id, e)
             raise HTTPException(status_code=500, detail="An error occurred while updating subtask")
 
         await self.db.commit()
@@ -518,11 +519,23 @@ class TaskService:
             response = (await self.db.execute(deactivate_query)).scalar_one_or_none()
             if response is None:
                 raise HTTPException(status_code= 400, detail= "No task found with the given id")
+
+            await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.SUBTASK_DELETED,
+                    entity_type= ActivityEntityType.SUBTASKS,
+                    entity_id= subtask_id,
+                ),
+                user= user
+            )
         except HTTPException:
             await self.db.rollback()
             raise
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
+            await self.db.rollback()
+            logger.exception("Subtask deactivation failed | subtask_id={}, user_id={}", subtask_id, user.user_id)
+            raise HTTPException(status_code=500, detail="An error occurred while updating task")
         
         await self.db.commit()
+        logger.info("Subtask Deactivated | task_id={}, user_id={}", response.subtask_id, user.user_id)
         return
