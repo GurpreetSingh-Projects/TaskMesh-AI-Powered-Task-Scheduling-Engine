@@ -10,8 +10,8 @@ import { themeColors } from "@/theme";
 import ThemePage from "@/components/ThemePage";
 import ThemeText from "@/components/ThemeText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Check, ChevronDown, Menu } from "lucide-react-native";
-import { ImageBackground } from "expo-image";
+import { Check, ChevronDown, Menu, Plus } from "lucide-react-native";
+import { Image, ImageBackground } from "expo-image";
 import { images } from "@/assets";
 import { Carousel, CarouselRef } from "react-native-reanimated-carousel";
 import Animated from "react-native-reanimated";
@@ -121,6 +121,17 @@ const Home = () => {
     transitionDuration: 250,
     transitionTimingFunction: "ease-in-out",
   } as const;
+
+  const quickActions = [
+    { label: "Add task", icon: images?.icons?.addTaskIcon, onPress: null },
+    {
+      label: "Add subtask",
+      icon: images?.icons?.addSubtaskIcon,
+      onPress: null,
+    },
+    { label: "Labels", icon: images?.icons?.labelsIcon, onPress: null },
+    { label: "Settings", icon: images?.icons?.settingsIcon, onPress: null },
+  ];
 
   // console.log("Tasks:", tasksData, start_date, end_date);
 
@@ -276,46 +287,31 @@ const Home = () => {
             </View>
           </View>
 
-          <View className="flex-row gap-3">
-            <Pressable
-              onPress={() => {}}
-              className="min-h-[174px] flex-1 overflow-hidden rounded-[24px] bg-charcoal p-4 active:opacity-80"
-            >
-              <View className="mb-7 h-10 w-10 items-center justify-center rounded-full bg-slate">
-                <ThemeText className="text-xl font-light text-canvas">
-                  ＋
+          <View className="flex-row">
+            {quickActions?.map(({ label, icon, onPress }) => (
+              <Pressable
+                key={label}
+                // onPress={onPress}
+                accessibilityLabel={label}
+                className="w-1/4 items-center gap-2 active:opacity-70"
+              >
+                <Image
+                  source={icon}
+                  style={{
+                    width: 55,
+                    height: 55,
+                    shadowColor: themeColors?.ash,
+                  }}
+                  contentFit="contain"
+                />
+                <ThemeText
+                  className="text-center font-bold text-ink"
+                  numberOfLines={1}
+                >
+                  {label}
                 </ThemeText>
-              </View>
-              <ThemeText className="text-[15px] font-bold text-canvas">
-                New task
-              </ThemeText>
-              <ThemeText className="mt-1 text-[11px] text-cloud">
-                Create something new
-              </ThemeText>
-              <ThemeText className="absolute bottom-4 right-4 text-lg text-steel">
-                ↗
-              </ThemeText>
-            </Pressable>
-
-            <Pressable
-              onPress={() => {}}
-              className="min-h-[174px] flex-1 overflow-hidden rounded-[24px] border border-mist bg-canvas p-4 active:opacity-70"
-            >
-              <View className="mb-7 h-10 w-10 items-center justify-center rounded-full bg-mist">
-                <ThemeText className="text-base font-bold text-charcoal">
-                  ✓
-                </ThemeText>
-              </View>
-              <ThemeText className="text-[15px] font-bold text-ink">
-                My tasks
-              </ThemeText>
-              <ThemeText className="mt-1 text-[11px] text-steel">
-                View your schedule
-              </ThemeText>
-              <ThemeText className="absolute bottom-4 right-4 text-lg text-steel">
-                ↗
-              </ThemeText>
-            </Pressable>
+              </Pressable>
+            ))}
           </View>
 
           <View className="mt-8">
@@ -347,7 +343,6 @@ const Home = () => {
               <ThemeText className="ml-2 text-2xl text-steel">›</ThemeText>
             </View>
           </View>
-
           <View className="h-[200px] overflow-hidden rounded-lg border border-ash bg-charcoal px-5 pb-[18px] pt-5 gap-10">
             <View className="flex-row items-start justify-between">
               <View>
