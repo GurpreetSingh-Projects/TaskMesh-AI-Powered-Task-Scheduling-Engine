@@ -49,17 +49,21 @@ jobs:
       - name: Write .env
         run: echo "${{secrets.ENV_FILE}}" > .env
 
+      - name: Extract App Details
+        id: app-version
+        run: CONFIG=$(pnpm dlx expo config --json)
+          echo "name=${echo "$CONFIG" | jq -r '.name'}" >> "$GITHUB_OUTPUT"
+          echo "slug=${echo "$CONFIG" | jq -r '.slug'}" >> "$GITHUB_OUTPUT"
+          echo "version=${echo "$CONFIG" | jq -r '.version'}" >> "$GITHUB_OUTPUT"
+
       - name: Build Debug apk
-        run: pnpm exec eas-cli@latest build --profile debug --platform android --local --non-interactive --output taskmesh-debug.apk
+        run: pnpm dlx eas-cli@latest build --profile debug --platform android --local --non-interactive --output taskmesh-dev-debug.apk
 
       - name: Build Preview apk
-        run: pnpm exec eas-cli@latest build --profile preview --platform android --local --non-interactive --output taskmesh-preview.apk
+        run: pnpm dlx eas-cli@latest build --profile preview --platform android --local --non-interactive --output taskmesh-dev-preview.apk
 
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      # - name: Extract App version
-      #   run:
 
       - name: Publish GitHub Release
         run: |
