@@ -1,15 +1,26 @@
-from fastapi import APIRouter, Depends, UploadFile, Form, HTTPException, File
 from uuid import UUID
+
+from fastapi import APIRouter, Depends, File, Form, UploadFile
+
 from app.core.dependencies import require_roles
 from app.features.storage.dependencies import get_storage_service
-from app.features.storage.schemas import FileReadResponseSchema, FileReadResponseItemSchema
-from app.features.storage.services import StorageService
 from app.features.storage.enums import FileStorageEntity
+from app.features.storage.schemas import (
+    FileReadResponseItemSchema,
+    FileReadResponseSchema,
+)
+from app.features.storage.services import StorageService
 from app.features.users.enums import UserRoles
 
 router = APIRouter(prefix="/storage", tags=["storage"])
 
-@router.post("/upload", response_model=FileReadResponseSchema, summary="Upload a file", description="Uploads a file and associates it with an entity (task, subtask, onboarding_answer, user_avatar)")
+
+@router.post(
+    "/upload",
+    response_model=FileReadResponseSchema,
+    summary="Upload a file",
+    description="Uploads a file and associates it with an entity (task, subtask, onboarding_answer, user_avatar)",
+)
 async def upload_file(
     file: UploadFile = File(...),
     entity_type: FileStorageEntity = Form(...),
@@ -17,15 +28,39 @@ async def upload_file(
     user=Depends(require_roles([UserRoles.ADMIN])),
     storage_service: StorageService = Depends(get_storage_service),
 ):
-    file_record = await storage_service.upload_file(user=user, file=file, entity_type=entity_type, entity_id=entity_id)
+    file_record = await storage_service.upload_file(
+        user=user, file=file, entity_type=entity_type, entity_id=entity_id
+    )
     return file_record
 
-@router.get("/get/{file_storage_id}", response_model=FileReadResponseItemSchema, summary="Get file details", description="Gets file metadata and a temporary download URL")
-async def get_file(file_storage_id: str, storage_service: StorageService = Depends(get_storage_service)):
-    file_record = await storage_service.get_file_details(file_storage_id=file_storage_id)
+
+@router.get(
+    "/get/{file_storage_id}",
+    response_model=FileReadResponseItemSchema,
+    summary="Get file details",
+    description="Gets file metadata and a temporary download URL",
+)
+async def get_file(
+    file_storage_id: str,
+    user=Depends(require_roles([UserRoles.ADMIN])),
+    storage_service: StorageService = Depends(get_storage_service),
+):
+    file_record = await storage_service.get_file_details(
+        file_storage_id=file_storage_id
+    )
     return file_record
 
-@router.patch("/deactivate/{file_storage_id}", status_code=204, summary="Deactivate a file with its file storage id", description="Deactivates file record without permanently deleting it")
-async def delete_file(file_storage_id: str, user=Depends(require_roles([UserRoles.ADMIN])), storage_service: StorageService = Depends(get_storage_service)):
+
+@router.patch(
+    "/deactivate/{file_storage_id}",
+    status_code=204,
+    summary="Deactivate a file with its file storage id",
+    description="Deactivates file record without permanently deleting it",
+)
+async def delete_file(
+    file_storage_id: str,
+    user=Depends(require_roles([UserRoles.ADMIN])),
+    storage_service: StorageService = Depends(get_storage_service),
+):
     await storage_service.deactivate_file(file_storage_id=file_storage_id, user=user)
     return
