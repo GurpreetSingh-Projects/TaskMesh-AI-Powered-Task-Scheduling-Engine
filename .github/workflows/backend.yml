@@ -47,7 +47,6 @@ jobs:
 
           ssh -i key -o UserKnownHostsFile=known_hosts -o StrictHostKeyChecking=yes "$TARGET" 'bash -s' << 'EOF'
             set -e
-            cd ..
             cd apps/taskmesh/taskmesh-backend
             git pull --ff-only
             cp ../.env/.dev.env backend/
