@@ -2,9 +2,9 @@ from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from uuid import uuid4, UUID
-from sqlalchemy import select, insert, func, update, and_, case, String, cast
+from sqlalchemy import select, insert, func, update, and_, case, String, cast, Date
 import math
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from loguru import logger
 from app.features.users.models import Users
 from app.features.tasks.models import Tasks, SubTasks
@@ -84,14 +84,15 @@ class TaskService:
         logger.info("Task created | task_id={} user_id={}", response.task_id, user.user_id)
         return response
 
-    async def get_tasks_summary(self, user: Users, limit: int= 5):
+    async def get_tasks_summary(self, start_date: date, end_date: date, user: Users,limit: int= 5):
         status_priority= case(RankStatus, value= cast(Tasks.status, String), else_=0)
         rank_priority= case(RankPriority, value= cast(Tasks.priority, String), else_=0)
-        
-        query= (
+        top_tasks_query= (
             select(Tasks)
             .where(
                 Tasks.user_id == user.user_id,
+                Tasks.created_at >= start_date,
+                Tasks.created_at < end_date,
                 Tasks.is_deleted.is_(False),
             )
             .order_by(
@@ -102,9 +103,52 @@ class TaskService:
             .limit(limit)
         )
 
-        tasks = (await self.db.execute(query)).scalars().all()
+        progress_query= (
+            select(
+                func.count().filter(
+                    Tasks.created_at >= start_date,
+                    Tasks.created_at < end_date,
+                )
+                .label("created"),
 
-        for task in tasks:
+                func.count().filter(
+                    Tasks.created_at >= start_date,
+                    Tasks.created_at < end_date,
+                    Tasks.status == TaskStatus.PENDING
+                )
+                .label("pending"),
+
+                func.count().filter(
+                    Tasks.created_at >= start_date,
+                    Tasks.created_at < end_date,
+                    Tasks.status == TaskStatus.IN_PROGRESS
+                )
+                .label("in_progress"),
+
+                func.count().filter(
+                    Tasks.created_at >= start_date,
+                    cast(Tasks.completed_at, Date) < end_date,
+                    Tasks.status == TaskStatus.COMPLETED
+                )
+                .label("completed"),
+
+                func.count().filter(
+                    Tasks.status == TaskStatus.OVERDUE,
+                    Tasks.completed_at.is_(None)
+                )
+                .label("overdue")
+            )      
+            .where(
+                Tasks.user_id == user.user_id,
+                Tasks.is_deleted.is_(False),
+            )
+        )
+
+        top_tasks = (await self.db.execute(top_tasks_query)).scalars().all()
+
+        progress_stats = (await self.db.execute(progress_query)).one()
+
+        for task in top_tasks:
             if task.file_storage_id:
                 file_details= await self.storage_service.get_file_details(file_storage_id=task.file_storage_id, entity_type=FileStorageEntity.TASK)
                 task.image_url= await self.storage_service.get_signed_asset_url(storage_key= file_details.storage_key)
@@ -114,8 +158,8 @@ class TaskService:
             self.db.expunge(task)
 
         return {
-            "top_tasks": tasks,
-            "today_progress": [],
+            "top_tasks": top_tasks,
+            "progress_stats": progress_stats._asdict(),
             "recently_completed": [],
         }
 
