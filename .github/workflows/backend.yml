@@ -49,6 +49,6 @@ jobs:
             set -e
             cd apps/taskmesh/taskmesh-backend/backend
             git pull --ff-only
-            cp ../../.env/.dev.env backend/
+            cp ../../.env/.dev.env .
             docker compose up -d --build
           EOF
