@@ -1,89 +1,67 @@
-import { Image, Pressable, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Image, Text, View } from "react-native";
+import { Clock, Flag, CheckCircle2, Tag } from "lucide-react-native";
+import type { TaskItem } from "@/features/tasks/types";
+import { themeColors } from "@/theme";
+import ThemeText from "@/components/ThemeText";
+import { priorityLabels, statusLabels } from "../utils";
+import { timeLeft } from "@/utils";
 
-type Props = {
-  title: string;
-  status: string; // "Pending"
-  priority: string; // "Normal"
-  timeAgo: string; // "18 Minutes Ago"
-  imageUri?: string;
-  onDone: () => void;
-  onSecondary?: () => void;
-};
+export default function TaskCard(task: TaskItem) {
+  const due = timeLeft(task?.due_at);
 
-export function TaskCard({
-  title,
-  status,
-  priority,
-  timeAgo,
-  imageUri,
-  onDone,
-  onSecondary,
-}: Props) {
   return (
-    <View
-      className="w-[300px] rounded-[36px] bg-white p-2.5"
-      style={{
-        shadowColor: "#000",
-        shadowOpacity: 0.12,
-        shadowRadius: 24,
-        shadowOffset: { width: 0, height: 12 },
-        elevation: 10,
-      }}
-    >
-      {/* image */}
-      <View className="h-[340px] overflow-hidden rounded-[30px] bg-neutral-200">
-        {imageUri ? (
+    <View className="w-65 h-100 my-3 overflow-hidden rounded-[35px] border border-neutral-200 bg-white shadow-lg">
+      <View className="p-3 h-[65%]">
+        {task.image_url ? (
           <Image
-            source={{ uri: imageUri }}
-            className="h-full w-full"
+            source={{ uri: task.image_url }}
+            className="flex-1 rounded-[35px]"
             resizeMode="cover"
           />
-        ) : null}
+        ) : (
+          <View className="w-full items-center justify-center bg-neutral-100">
+            <Text className="text-sm text-neutral-400">No image available</Text>
+          </View>
+        )}
       </View>
 
-      {/* text */}
-      <View className="px-3 pt-4">
-        <Text
+      <View className="px-5 pt-2 z-20 gap-0.5">
+        <ThemeText
+          variant="cardTitle"
           numberOfLines={1}
-          className="text-[28px] font-semibold tracking-tight text-black"
+          className="text-lg font-bold text-obsidian capitalize"
         >
-          {title}
-        </Text>
-        <Text className="mt-0.5 text-base text-neutral-400">{status}</Text>
+          {task?.title}
+        </ThemeText>
+        <ThemeText variant="cardDescription" className="text-sm text-ash">
+          {statusLabels[task?.status] ?? task?.status}
+        </ThemeText>
 
-        <View className="mt-4 flex-row items-center">
-          <Ionicons name="pricetag-outline" size={18} color="#9ca3af" />
-          <Text className="ml-2 text-base font-semibold text-black">
-            {priority}
-          </Text>
-          <Ionicons
-            name="time-outline"
-            size={18}
-            color="#9ca3af"
-            style={{ marginLeft: 20 }}
-          />
-          <Text className="ml-2 text-base font-semibold text-black">
-            {timeAgo}
-          </Text>
+        <View className="pt-2">
+          <ThemeText
+            variant="cardDescription"
+            numberOfLines={2}
+            className={`text-xs font-bold capitalize ${
+              task?.description ? "text-ash" : "text-steel"
+            }`}
+          >
+            {task?.description ?? "No description found"}
+          </ThemeText>
         </View>
 
-        {/* actions */}
-        <View className="mb-2 mt-5 flex-row items-center">
-          <Pressable
-            onPress={onDone}
-            className="h-[52px] flex-1 items-center justify-center rounded-full bg-black active:opacity-80"
-          >
-            <Text className="text-base font-semibold text-white">
-              Mark as done
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={onSecondary}
-            className="ml-3 h-[52px] w-[52px] items-center justify-center rounded-full border border-neutral-200 bg-white active:opacity-70"
-          >
-            <Ionicons name="heart-outline" size={22} color="#ef4444" />
-          </Pressable>
+        <View className="mt-4 flex-row items-center gap-5">
+          <View className="flex-row items-center gap-2">
+            <Tag size={18} color={themeColors?.steel} />
+            <ThemeText className="text-xs capitalize text-steel">
+              {priorityLabels[task?.priority] ?? task?.priority}
+            </ThemeText>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <Clock size={18} color={themeColors?.steel} />
+            <ThemeText className="text-xs text-steel capitalize">
+              {due}
+            </ThemeText>
+          </View>
         </View>
       </View>
     </View>
