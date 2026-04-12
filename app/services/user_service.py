@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from fastapi import HTTPException
 from ..schemas.user import *
 from ..models.users import *
 
@@ -14,9 +15,40 @@ async def createUser(user_data: UserCreate, db: AsyncSession)-> User:
     return new_user
 
 async def getUser(user_id: int, db:AsyncSession):
-    result= await db.execute(select(User).where(User.user_id==user_id))
-    return result.scalar_one_or_none()
+    user= (await db.execute(select(User).where(User.user_id==user_id))).scalar_one_or_none()
+    
+    if not user: 
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 async def getAllUsers(db:AsyncSession):
     result= await db.execute(select(User))
     return result.scalars().all()
+
+async def editUser(user_id: int, email: EmailStr | None, password: str| None, db: AsyncSession):
+    user = (await db.execute(select(User).where(User.user_id == user_id))).scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if email:
+        user.email=email
+        
+    if password:
+        user.hashed_pswd = password
+        
+    await db.commit()
+    await db.refresh(user)
+    return user
+
+async def deleteUser(user_id: int, db: AsyncSession):
+    user = (await db.execute(select(User).where(User.user_id == user_id))).scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    await db.delete(user)
+    await db.commit()
+    return
+    
+    
