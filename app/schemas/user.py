@@ -1,9 +1,10 @@
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict,  model_validator
+from typing import Optional
 
 class UserCreate(BaseModel):
     email: EmailStr
     password: str= Field(min_length=8, max_length=25)
-
+    
     model_config=ConfigDict(extra="forbid")
     
 class UserLogin(BaseModel):
