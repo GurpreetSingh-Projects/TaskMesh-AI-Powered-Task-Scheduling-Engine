@@ -6,6 +6,8 @@ from .models import *
 from .schemas import *
 from .services import *
 from .core.database import engine
+from typing import Optional
+from pydantic import EmailStr
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -35,10 +37,12 @@ async def create_user(user_details: UserCreate, db: AsyncSession= Depends(get_db
         new_user = await createUser(user_details, db)
         return new_user
 
-# @app.post("users/edit/{user_id}", response_model=UserRead, tags=["user"])
-# async def create_user(user: UserCreate, db: AsyncSession= Depends(get_db)):
-#         new_user = await createUser(db, user_data=user)
-#         return {
-#             "user_id": new_user.user_id,
-#             "email": new_user.email,
-#         }
+@app.patch("/users/edit/{user_id}", response_model=UserRead, tags=["user"])
+async def edit_user(user_id:int, email: Optional[EmailStr]= None, password: Optional[str]= None, db: AsyncSession= Depends(get_db)):
+        edit_user = await editUser(user_id, email, password, db)
+        return edit_user
+
+@app.delete("/users/delete/{user_id}", tags=["user"])
+async def delete(user_id:int, db: AsyncSession= Depends(get_db)):
+        delete_user = await deleteUser(user_id, db)
+        return {"detail": "User deleted successfully"}
