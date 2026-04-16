@@ -51,3 +51,13 @@ async def delete_user(user_id:int, db: AsyncSession= Depends(get_db)):
 async def create_task(task_details: TaskCreate, db: AsyncSession= Depends(get_db)):
     task = await createTask(task_details, db)
     return task
+
+@app.get("/tasks/{task_id}", response_model=TaskRead, tags=["tasks"])
+async def get_task(task_id: int, db: AsyncSession= Depends(get_db)):
+    task = await getTask(task_id, db)
+    return task
+
+@app.patch("/tasks/{task_id}", response_model=TaskRead, tags=["tasks"])
+async def edit_task(task_id: int, task_details: TaskUpdate, db: AsyncSession= Depends(get_db)):
+    task = await editTask(task_id, task_details, db)
+    return task
