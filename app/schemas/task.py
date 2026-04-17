@@ -1,17 +1,17 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
-class TaskCreate(BaseModel):
-    task_name: str= Field(min_length=5, max_length=100)
+class TaskBase(BaseModel):
+    task_name: str= Field(min_length=2, max_length=100)
     task_description: str | None = Field(default= None, max_length= 500 )
+    task_status: str | None = Field(default= None, max_length= 50 )
     
-class TaskUpdate(TaskCreate):
-    task_status: str| None = Field(default=None)
+class TaskCreate(TaskBase):
+    user_id: int = Field()
     
-class TaskRead(BaseModel):
+class TaskUpdate(TaskBase):
+    pass
+    
+class TaskRead(TaskCreate):
     task_id: int
-    owner_id: int
-    task_name: str
-    task_description: str| None
-    task_status: str
     
     model_config=  ConfigDict(from_attributes= True)
