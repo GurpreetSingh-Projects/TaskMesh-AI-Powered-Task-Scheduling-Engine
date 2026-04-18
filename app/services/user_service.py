@@ -26,11 +26,8 @@ async def getAllUsers(db:AsyncSession):
     return result.scalars().all()
 
 async def editUser(user_id: int, email: EmailStr | None, password: str| None, db: AsyncSession):
-    user = await db.get(User, user_id)
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
+    user = await getUser(user_id, db)
+      
     if email:
         user.email=email
         
@@ -42,10 +39,7 @@ async def editUser(user_id: int, email: EmailStr | None, password: str| None, db
     return user
 
 async def deleteUser(user_id: int, db: AsyncSession):
-    user = await db.get(User, user_id)
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    user = await getUser(user_id, db)
     
     await db.delete(user)
     await db.commit()
