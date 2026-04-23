@@ -27,7 +27,35 @@ async def getTask(task_id: int, db: AsyncSession):
     
     return task
 
+async def getAllTasksByUser(user_id: int, db: AsyncSession):
+    user = await getUser(user_id, db)
+    
+    tasks= (await db.execute(select(Task).where(Task.user_id == user_id))).scalars().all()
+    return tasks
+
 async def editTask(task_id, task_details: TaskUpdate, db: AsyncSession):
     task = await getTask(task_id, db)
     
+    if task_details.task_name:
+        task.task_name= task_details.task_name
     
+    if task_details.task_description:
+        task.task_description= task_details.task_description
+    
+    if task_details.task_status:
+        task.task_status= task_details.task_status
+        
+    await db.commit()
+    await db.refresh(task)
+    return task
+    
+async def deleteTask(task_id: int, db: AsyncSession):
+    task = await getTask(task_id, db)
+    
+    await db.delete(task)
+    await db.commit()
+    return
+
+async def getAllTasks(db: AsyncSession):
+    tasks= await db.execute(select(Task))
+    return tasks.scalars().all()
