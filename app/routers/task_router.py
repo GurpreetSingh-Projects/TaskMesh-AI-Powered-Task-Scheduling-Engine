@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import Optional
+from pydantic import EmailStr
 from ..models import *
 from ..schemas import *
 from ..services import *
@@ -13,14 +14,9 @@ async def create_task(task_details: TaskCreate, db: AsyncSession= Depends(get_db
     task = await createTask(task_details, db)
     return task
 
-@router.get("", response_model=List[TaskRead])
+@router.get("/all")
 async def get_tasks(db: AsyncSession = Depends(get_db)):
     tasks = await getAllTasks(db)
-    return tasks
-
-@router.get("/{user_id}", response_model=List[TaskRead])
-async def get_tasks_by_user(user_id: int, db: AsyncSession = Depends(get_db)):
-    tasks = await getAllTasksByUser(user_id, db)
     return tasks
 
 @router.get("/{task_id}", response_model=TaskRead)
