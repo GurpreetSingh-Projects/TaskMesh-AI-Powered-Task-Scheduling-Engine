@@ -7,7 +7,6 @@ from .schemas import *
 from .services import *
 from .core.database import engine
 from .routers import *
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
