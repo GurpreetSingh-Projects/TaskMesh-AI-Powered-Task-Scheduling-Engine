@@ -19,7 +19,7 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
     users = await getUser(user_id, db)
     return users
 
-@router.get("/get/all", response_model=list[UserRead])
+@router.get("/get/all/{user_id}", response_model=list[UserRead])
 async def get_users(db: AsyncSession = Depends(get_db)):
     users = await getAllUsers(db)
     return users
