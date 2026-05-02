@@ -13,3 +13,22 @@ def hashPassword(password: str)-> str:
 
 def verifyPassowrd(passowrd: str, hashed_password: str)-> bool:
     return pwd_context.verify(passowrd, hashed_password)
+
+def createAccessToken(data: dict):
+    toEncode = data
+    expire= datetime.utcnow() +timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    
+    toEncode.update({"exp": expire})
+    
+    encodedJwt = jwt.encode( toEncode, settings.SECRET_KEY, algorithm=settings.ALGORITHM )
+    return encodedJwt
+
+def decodeAccessToken(token: str):
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms= settings.ALGORITHM)
+        return payload
+    except JWTError:
+        print("Decoding ran into an error")
+    
+    return None 
+        
