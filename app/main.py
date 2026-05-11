@@ -22,5 +22,6 @@ app = FastAPI(title="TODO API", version="1.0.1", lifespan=lifespan)
 def read_root():
     return {"hello":"world"}
 
+app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(task_router)
