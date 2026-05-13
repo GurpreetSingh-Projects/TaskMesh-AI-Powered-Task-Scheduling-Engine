@@ -11,7 +11,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/create")
 def hashPassword(password: str)-> str:
     return pwd_context.hash(password)
 
-def verifyPassowrd(passowrd: str, hashed_password: str)-> bool:
+def verifyPassword(passowrd: str, hashed_password: str)-> bool:
     return pwd_context.verify(passowrd, hashed_password)
 
 def createAccessToken(data: dict):
