@@ -15,13 +15,14 @@ async def createUser(user_data: UserCreate, db: AsyncSession)-> User:
     await db.refresh(new_user)
     return new_user
 
-async def getUser(user_id: Optional[int], email: Optional[EmailStr], db: AsyncSession):
-    if not email and not user_id:
-        raise HTTPException(status_code=400, detail="Please Enter valid details")
+async def getUserByEmail(email: EmailStr | None, db: AsyncSession,):
+    user= (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
     
-    if not user_id:
-        user_id= (await db.execute(select(User.user_id).where(User.email == email))).scalar_one_or_none()
-    
+    if not user: 
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
+async def getUserById(user_id: int, db: AsyncSession):
     user = await db.get(User, user_id)
     
     if not user: 
@@ -29,15 +30,15 @@ async def getUser(user_id: Optional[int], email: Optional[EmailStr], db: AsyncSe
     return user
 
 async def verifyUser(user_data: UserCreate, db:AsyncSession):
-    user = await getUser(None, user_data.email, db)
+    user = await getUserByEmail(user_data.email, db)
     
     if not user: 
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=401, detail="Invalid Credentials!!")
     
-    password_matched = verifyPassowrd(user_data.password,user.hashed_pswd )
+    password_matched = verifyPassword(user_data.password, user.hashed_pswd )
     
     if not password_matched:
-        raise HTTPException(status_code=404, detail="Invalid Credentials!!")
+        raise HTTPException(status_code=401, detail="Invalid Credentials!!")
         
     return user
 
@@ -47,7 +48,7 @@ async def getAllUsers(db:AsyncSession):
     return result.scalars().all()
 
 async def editUser(user_id: int, email: EmailStr | None, password: str| None, db: AsyncSession):
-    user = await getUser(user_id, db)
+    user = await getUserById(user_id, db)
       
     if email:
         user.email=email
@@ -60,7 +61,7 @@ async def editUser(user_id: int, email: EmailStr | None, password: str| None, db
     return user
 
 async def deleteUser(user_id: int, db: AsyncSession):
-    user = await getUser(user_id, db)
+    user = await getUserById(user_id, db)
     
     await db.delete(user)
     await db.commit()
