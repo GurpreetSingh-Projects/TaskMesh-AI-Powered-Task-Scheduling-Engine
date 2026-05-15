@@ -1,9 +1,10 @@
-from .user_service import createUser, getUser, getAllUsers, editUser, deleteUser
+from .user_service import createUser, getUserById, getUserByEmail, getAllUsers, editUser, deleteUser
 from .task_service import createTask, getTask, getAllTasks, getAllTasksByUser, editTask, deleteTask
 
 __all__ = [
     "createUser",
-    "getUser",
+    "getUserById", 
+    "getUserByEmail",
     "getAllUsers",
     "editUser",
     "deleteUser",
