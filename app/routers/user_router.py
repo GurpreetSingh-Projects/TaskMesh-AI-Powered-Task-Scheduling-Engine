@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 from pydantic import EmailStr
@@ -16,10 +16,17 @@ async def create_user(user_details: UserCreate, db: AsyncSession= Depends(get_db
 
 @router.get("/get/", response_model=UserRead, summary="Get any user", description="Gets back you the user, can be done with user_id or email")
 async def get_user(user_id: Optional[int]= None, email: Optional[EmailStr]= None, db: AsyncSession = Depends(get_db)):
-    users = await getUser(user_id, email, db)
-    return users
+    if not email and not user_id:
+        raise HTTPException(status_code=400, detail="Please Enter valid details")
 
-@router.get("/get/all/{user_id}", response_model=list[UserRead], summary="Get all users", description="Gets back you the list of all users")
+    if user_id:
+        user = await getUserById(user_id, db)
+    else: 
+        user = await getUserByEmail(email, db)
+        
+    return user
+
+@router.get("/get/all/", response_model=list[UserRead], summary="Get all users", description="Gets back you the list of all users")
 async def get_users(db: AsyncSession = Depends(get_db)):
     users = await getAllUsers(db)
     return users
