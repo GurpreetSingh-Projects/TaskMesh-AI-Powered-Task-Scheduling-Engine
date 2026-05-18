@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from .models import *
 from .schemas import *
 from .services import *
-from .core.database import engine
+from .dependencies.database import engine
 from .routers import *
 
 @asynccontextmanager
