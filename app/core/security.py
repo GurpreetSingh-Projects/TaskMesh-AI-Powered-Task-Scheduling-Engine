@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
@@ -16,11 +16,9 @@ def verifyPassword(passowrd: str, hashed_password: str)-> bool:
 
 def createAccessToken(data: dict):
     toEncode = data
-    expire= datetime.utcnow() +timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    
-    toEncode.update({"exp": expire})
-    
-    encodedJwt = jwt.encode( toEncode, settings.SECRET_KEY, algorithm=settings.ALGORITHM )
+    tokenExpiry = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    toEncode.update({"exp": tokenExpiry})
+    encodedJwt = jwt.encode(toEncode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encodedJwt
 
 def decodeAccessToken(token: str):
