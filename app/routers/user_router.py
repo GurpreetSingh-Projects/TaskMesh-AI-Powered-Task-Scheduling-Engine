@@ -5,7 +5,7 @@ from pydantic import EmailStr
 from ..models import *
 from ..schemas import *
 from ..services import *
-from ..core.database import get_db
+from ..dependencies.database import get_db
 
 router = APIRouter(prefix="/users", tags=["users"])
 
