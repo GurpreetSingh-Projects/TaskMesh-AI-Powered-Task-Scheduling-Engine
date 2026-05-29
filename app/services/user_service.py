@@ -1,11 +1,16 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException
-from ..schemas.user import *
+from ..schemas.user_schemas import *
 from ..models.users import *
 from ..core.security import *
 
 async def createUser(user_data: UserCreate, db: AsyncSession)-> User:
+    existing_user = (await db.execute(select(User).where(User.email == user_data.email))).scalar_one_or_none()
+    
+    if existing_user :
+        raise HTTPException(status_code=409, detail="User already exists!! please try with different email")
+    
     new_user=User(
             email= user_data.email,
             hashed_pswd= hashPassword(user_data.password)
@@ -29,13 +34,13 @@ async def getUserById(user_id: int, db: AsyncSession):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-async def verifyUser(user_data: UserCreate, db:AsyncSession):
-    user = await getUserByEmail(user_data.email, db)
+async def verifyUser(email: EmailStr, password: str, db:AsyncSession):
+    user = await getUserByEmail(email, db)
     
     if not user: 
         raise HTTPException(status_code=401, detail="Invalid Credentials!!")
     
-    password_matched = verifyPassword(user_data.password, user.hashed_pswd )
+    password_matched = verifyPassword(password, user.hashed_pswd )
     
     if not password_matched:
         raise HTTPException(status_code=401, detail="Invalid Credentials!!")
