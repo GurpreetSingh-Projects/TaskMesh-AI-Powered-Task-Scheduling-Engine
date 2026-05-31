@@ -1,22 +1,36 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response, Request
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import EmailStr
-from ..dependencies.database import get_db
+from ..dependencies import *
 from ..services.user_service import *
-from ..models.users import *
+from ..models.users import *    
+from ..core.security import *
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login", response_model=UserLoginResponse)
-async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
-    verified_user = await verifyUser(user_data, db)
+async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends() , db: AsyncSession = Depends(get_db)):
+    email = form_data.username
+    password = form_data.password
     
-    if not verified_user:
-        raise HTTPException(status_code=404, detail="Verification failed")
+    return await loginUser(response, email, password, db )
     
-    token = createAccessToken({"sub": str(verified_user.user_id)})
+@router.post("/me", response_model=UserRead)
+async def who_am_I(current_user = Depends(getCurrentUser)):
+    return current_user
+
+@router.post("/verify-token")
+async def verify_token(current_user: User = Depends(getCurrentUser)):
     return {
-        "access_token": token,  
-        "type": "bearer",
-        "user": verified_user
-    }
+            "token": "valid",
+             "user_id": current_user.user_id
+        }
+        
+@router.post("/refresh-token")
+async def refresh_token(request: Request):
+    return await refreshUserToken(request)
+
+@router.get("/logout", dependencies=[Depends(getCurrentUser)])
+async def logout(response: Response):
+    return await logoutUser(response)

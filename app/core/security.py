@@ -21,12 +21,18 @@ def createAccessToken(data: dict):
     encodedJwt = jwt.encode(toEncode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encodedJwt
 
-def decodeAccessToken(token: str):
+def createRefreshToken(data: dict):
+    toEncode = data
+    tokenExpiry = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    toEncode.update({"exp": tokenExpiry})
+    encodedJwt = jwt.encode(toEncode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encodedJwt
+
+def decodeToken(token: str):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms= settings.ALGORITHM)
         return payload
     except JWTError:
-        print("Decoding ran into an error")
+        print("Invalid or expired token!!")
     
     return None 
-        
