@@ -1,17 +1,22 @@
-from pydantic import BaseModel, EmailStr, Field, ConfigDict,  model_validator
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from ..models.user_roles import UserRoles
 
 class UserCreate(BaseModel):
     email: EmailStr
     password: str= Field(min_length=8, max_length=25)
-    
+        
     model_config=ConfigDict(extra="forbid")
     
 class UserPublic(BaseModel):
     email: EmailStr
     user_id: int
-
-class UserLogin(UserCreate):
-    pass
+    role: UserRoles
+    
+    model_config = ConfigDict(from_attributes= True)
+    
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str= Field(min_length=8, max_length=256)
     
 class UserLoginResponse(BaseModel):
     access_token: str
@@ -21,6 +26,7 @@ class UserLoginResponse(BaseModel):
 class UserRead(BaseModel):
     user_id: int
     email: EmailStr
-    
+    role: UserRoles
+        
     model_config= ConfigDict(from_attributes= True)
     
