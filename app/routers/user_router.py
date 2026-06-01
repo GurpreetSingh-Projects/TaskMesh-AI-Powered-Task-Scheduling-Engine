@@ -5,9 +5,9 @@ from pydantic import EmailStr
 from ..models import *
 from ..schemas import *
 from ..services import *
-from ..dependencies.database import get_db
+from ..dependencies import *
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(prefix="/users", tags=["users"], dependencies=[Depends(getCurrentUser)])
 
 @router.post("/create", response_model=UserRead, summary="Create a new user", description="Creates a new user")
 async def create_user(user_details: UserCreate, db: AsyncSession= Depends(get_db)):
@@ -15,7 +15,7 @@ async def create_user(user_details: UserCreate, db: AsyncSession= Depends(get_db
         return new_user
 
 @router.get("/get/", response_model=UserRead, summary="Get any user", description="Gets back you the user, can be done with user_id or email")
-async def get_user(user_id: Optional[int]= None, email: Optional[EmailStr]= None, db: AsyncSession = Depends(get_db)):
+async def get_user(user_id: Optional[int]= None, email: Optional[EmailStr]= None, db: AsyncSession = Depends(require_roles(UserRoles.ADMIN))):
     if not email and not user_id:
         raise HTTPException(status_code=400, detail="Please Enter valid details")
 
