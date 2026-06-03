@@ -44,9 +44,8 @@ async def verifyUser(email: EmailStr, password: str, db:AsyncSession):
     
     if not password_matched:
         raise HTTPException(status_code=401, detail="Invalid Credentials!!")
-        
-    return user
 
+    return user
 
 async def getAllUsers(db:AsyncSession):
     result= await db.execute(select(User))
@@ -59,7 +58,7 @@ async def editUser(user_id: int, email: EmailStr | None, password: str| None, db
         user.email=email
         
     if password:
-        user.hashed_pswd = password
+        user.hashed_pswd = hashPassword(password)
         
     await db.commit()
     await db.refresh(user)
@@ -71,5 +70,3 @@ async def deleteUser(user_id: int, db: AsyncSession):
     await db.delete(user)
     await db.commit()
     return
-    
-    
