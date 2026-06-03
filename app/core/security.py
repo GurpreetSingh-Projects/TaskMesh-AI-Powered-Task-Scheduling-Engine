@@ -2,7 +2,10 @@ from datetime import datetime, timezone, timedelta
 from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.ext.asyncio import AsyncSession
 from .config import settings
+from ..models.users import *
+from ..services.user_service import *
 
 pwd_context= CryptContext( schemes=["argon2"], deprecated="auto")
 
@@ -35,4 +38,9 @@ def decodeToken(token: str):
     except JWTError:
         print("Invalid or expired token!!")
     
-    return None 
+    return None
+
+async def changePassword(db: AsyncSession, user_data: User):
+    user = await getUserById(user_data.user_id, db)
+    print (user)
+    return
