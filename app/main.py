@@ -14,7 +14,7 @@ async def lifespan(app: FastAPI):
 
     yield
     
-app = FastAPI(title="TODO API", version="1.0.1", lifespan=lifespan)
+app = FastAPI(title="TODO API", version="1.0.2", lifespan=lifespan)
 
 @app.get("/")
 def read_root():
