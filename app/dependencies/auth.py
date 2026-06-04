@@ -56,7 +56,6 @@ async def refreshUserToken(request: Request):
     if payload is None:
         raise HTTPException(status_code=401, detail="Invalid cookie found!!")
     
-    print("payload",payload)
     access_token = createAccessToken({"sub": str(payload["sub"]) })
     
     return {

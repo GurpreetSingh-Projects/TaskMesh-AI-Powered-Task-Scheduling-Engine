@@ -1,0 +1,12 @@
+Logoout api not working
+users/edit is asking for password too ( done, needed to update documentation just )
+Add change password endpoint in auth routes, which 
+
+Add capabilities for uuid in user_id
+ownership like - created_by, updated_by, created_at, updated_at
+image upload
+filtering
+sorting 
+pagination
+
+Need something for admin to change roles of user
