@@ -6,19 +6,19 @@ from ..schemas import *
 from ..services import *
 from ..dependencies import *
 
-router = APIRouter(prefix="/tasks", tags=["tasks"], dependencies=[Depends(getCurrentUser)])
+router = APIRouter(prefix="/tasks", tags=["tasks"])
 
-@router.post("/create", response_model=TaskRead, summary="Create new task", description="Create new task by adding details like task_name, task_description, task_status, user_id")
+@router.post("/create", response_model=TaskRead, summary="Create new task", description="Create new task by adding details like task_name, task_description, task_status, user_id", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
 async def create_task(task_details: TaskCreate, db: AsyncSession= Depends(get_db), user = Depends(getCurrentUser)):
     task = await createTask(task_details, db, user)
     return task
 
-@router.get("", response_model=List[TaskRead], summary="Get all tasks", description="Gets all tasks from tasks table")
+@router.get("", response_model=List[TaskRead], summary="Get all tasks", description="Gets all tasks from tasks table", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
 async def get_tasks( db: AsyncSession = Depends(get_db), user = Depends(getCurrentUser)):
     tasks = await getAllTasks(db, user)
     return tasks
 
-@router.get("/{user_id}", response_model=List[TaskRead], summary="Gets tasks by user_id", description="Gets all tasks from tasks table linked with user_id")
+@router.get("/{user_id}", response_model=List[TaskRead], summary="Gets tasks by user_id", description="Gets all tasks from tasks table linked with user_id", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
 async def get_tasks_by_user(user_id: int, db: AsyncSession = Depends(get_db)):
     tasks = await getAllTasksByUser(user_id, db)
     return tasks
