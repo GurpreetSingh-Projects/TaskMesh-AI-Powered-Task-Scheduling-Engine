@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from pydantic import EmailStr
 from ..dependencies import *
 from ..services.user_service import *
 from ..models.users import *    
@@ -30,6 +29,10 @@ async def verify_token(current_user: User = Depends(getCurrentUser)):
 @router.post("/refresh-token")
 async def refresh_token(request: Request):
     return await refreshUserToken(request)
+
+@router.post("/change-password")
+async def change_password(db: AsyncSession= Depends(get_db), user = Depends(getCurrentUser)):
+    return await changePassword(db, user)
 
 @router.get("/logout", dependencies=[Depends(getCurrentUser)])
 async def logout(response: Response):
