@@ -31,8 +31,8 @@ async def refresh_token(request: Request):
     return await refreshUserToken(request)
 
 @router.post("/change-password")
-async def change_password(db: AsyncSession= Depends(get_db), user = Depends(getCurrentUser)):
-    return await changePassword(db, user)
+async def change_password(old_password: str,new_password: str, db: AsyncSession= Depends(get_db), user = Depends(getCurrentUser)):
+    return await changePassword(old_password, new_password, db, user)
 
 @router.get("/logout", dependencies=[Depends(getCurrentUser)])
 async def logout(response: Response):
