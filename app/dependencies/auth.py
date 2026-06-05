@@ -68,3 +68,20 @@ async def logoutUser(response: Response):
     return {
         "detail": "Logged out successfully!!"
     }
+    
+async def changePassword(old_password: str, new_password:str, db: AsyncSession, user_data: User):
+    user = await getUserById(user_data.user_id, db)
+    response = verifyPassword(old_password, user.hashed_pswd)
+        
+    if not response:
+       raise HTTPException(status_code=400, detail="Unauthorized Access!!")
+    
+    if verifyPassword(new_password, user.hashed_pswd):
+       raise HTTPException(status_code=403, detail="Old and new passwords cannot be same")
+        
+    user.hashed_pswd = hashPassword(new_password)
+    await db.commit()
+        
+    return {
+        "detail": "Your password was updated successfully!!"
+    }

@@ -39,8 +39,3 @@ def decodeToken(token: str):
         print("Invalid or expired token!!")
     
     return None
-
-async def changePassword(db: AsyncSession, user_data: User):
-    user = await getUserById(user_data.user_id, db)
-    print (user)
-    return
