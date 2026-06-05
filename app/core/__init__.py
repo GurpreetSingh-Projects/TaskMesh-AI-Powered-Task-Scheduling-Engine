@@ -1,9 +1,8 @@
-from .security import hashPassword, verifyPassword, createAccessToken, decodeToken, changePassword
+from .security import hashPassword, verifyPassword, createAccessToken, decodeToken
 
 __all__ = [
     "hashPassword",
     "verifyPassword",
     "createAccessToken",
-    "decodeToken",
-    "changePassword"
+    "decodeToken"
 ]
