@@ -3,7 +3,7 @@ from sqlalchemy import select
 from fastapi import HTTPException
 from ..schemas.user_schemas import *
 from ..models.users import *
-from ..core.security import *
+from ..core.security import hashPassword, verifyPassword
 
 async def createUser(user_data: UserCreate, db: AsyncSession)-> User:
     existing_user = (await db.execute(select(User).where(User.email == user_data.email))).scalar_one_or_none()
