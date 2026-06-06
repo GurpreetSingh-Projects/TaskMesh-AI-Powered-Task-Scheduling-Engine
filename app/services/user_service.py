@@ -27,7 +27,7 @@ async def getUserByEmail(email: EmailStr | None, db: AsyncSession,):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-async def getUserById(user_id: int, db: AsyncSession):
+async def getUserById(user_id: int | None, db: AsyncSession):
     user = await db.get(User, user_id)
     
     if not user: 
