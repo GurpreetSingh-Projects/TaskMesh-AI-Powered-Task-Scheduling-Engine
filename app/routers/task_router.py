@@ -9,8 +9,8 @@ from ..dependencies import *
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 @router.post("/create", response_model=TaskRead, summary="Create new task", description="Create new task by adding details like task_name, task_description, task_status, user_id ( user_id can only be used by system admin, for users it will result in error being thrown )", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
-async def create_task(task_name: str, task_description: str, task_status: TaskStatus, db: AsyncSession= Depends(get_db), current_user = Depends(getCurrentUser), user_id: Optional[int]= None):
-    task = await createTask(task_name, task_description, task_status, db, current_user, user_id)
+async def create_task(task_name: str, task_status: TaskStatus, db: AsyncSession= Depends(get_db), current_user = Depends(getCurrentUser), user_id: Optional[int]= None, task_description: Optional[str]= None,):
+    task = await createTask(task_name, task_status, db, current_user, user_id, task_description)
     return task
 
 @router.get("", response_model=List[TaskRead], summary="Get all tasks", description="Gets all tasks from tasks table", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
