@@ -5,7 +5,7 @@ from ..models import *
 from ..schemas import *
 from .user_service import *
 
-async def createTask(task_name: str, task_description: str, task_status: TaskStatus, db: AsyncSession, current_user: User, user_id: Optional[int]= None):
+async def createTask(task_name: str, task_status: TaskStatus, db: AsyncSession, current_user: User, user_id: Optional[int]= None, task_description: Optional[str] = None):
     if current_user.role != UserRoles.ADMIN and user_id is not None:
         raise HTTPException(status_code=403, detail="Forbidden Action!!")
     
