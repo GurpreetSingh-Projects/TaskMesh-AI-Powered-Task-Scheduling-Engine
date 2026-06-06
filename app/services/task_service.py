@@ -1,16 +1,30 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from ..models.tasks import *
+from typing import Optional
+from ..models import *
 from ..schemas import *
 from .user_service import *
 
-async def createTask(task_details: TaskCreate, db: AsyncSession, user: User):
-    new_task = Task(
-        user_id= user.user_id,
-        task_name= task_details.task_name,
-        task_description= task_details.task_description,
-        task_status= task_details.task_status,
-    )
+async def createTask(task_name: str, task_description: str, task_status: TaskStatus, db: AsyncSession, current_user: User, user_id: Optional[int]= None):
+    if current_user.role != UserRoles.ADMIN and user_id is not None:
+        raise HTTPException(status_code=403, detail="Forbidden Action!!")
+    
+    if current_user.role == UserRoles.ADMIN and user_id is not None:
+        await getUserById(user_id, db)
+        
+        new_task = Task(
+            user_id= user_id,
+            task_name= task_name,
+            task_description= task_description,
+            task_status= task_status,
+        )
+    else:
+        new_task = Task(
+            user_id= current_user.user_id,
+            task_name= task_name,
+            task_description= task_description,
+            task_status= task_status,
+        )
     
     db.add(new_task)
     await db.commit()
