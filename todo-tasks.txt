@@ -1,6 +1,8 @@
-Logoout api not working
 users/edit is asking for password too ( done, needed to update documentation just )
-Add change password endpoint in auth routes, which 
+
+Add change password endpoint in auth routes for current user only
+add for user in tasks to not need user_id for making any task changes, just read from token and then good to go for normal users, admin can send id and perform operations on it
+Logoout api not working, need to implement token version implementation
 
 Add capabilities for uuid in user_id
 ownership like - created_by, updated_by, created_at, updated_at
@@ -8,5 +10,4 @@ image upload
 filtering
 sorting 
 pagination
-
-Need something for admin to change roles of user
+Need api for admin to change roles of user
