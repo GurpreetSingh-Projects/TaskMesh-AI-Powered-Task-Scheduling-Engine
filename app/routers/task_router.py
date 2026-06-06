@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Optional
 from ..models import *
 from ..schemas import *
 from ..services import *
@@ -8,9 +8,9 @@ from ..dependencies import *
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
-@router.post("/create", response_model=TaskRead, summary="Create new task", description="Create new task by adding details like task_name, task_description, task_status, user_id", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
-async def create_task(task_details: TaskCreate, db: AsyncSession= Depends(get_db), user = Depends(getCurrentUser)):
-    task = await createTask(task_details, db, user)
+@router.post("/create", response_model=TaskRead, summary="Create new task", description="Create new task by adding details like task_name, task_description, task_status, user_id ( user_id can only be used by system admin, for users it will result in error being thrown )", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
+async def create_task(task_name: str, task_description: str, task_status: TaskStatus, db: AsyncSession= Depends(get_db), current_user = Depends(getCurrentUser), user_id: Optional[int]= None):
+    task = await createTask(task_name, task_description, task_status, db, current_user, user_id)
     return task
 
 @router.get("", response_model=List[TaskRead], summary="Get all tasks", description="Gets all tasks from tasks table", dependencies=[Depends(require_roles(UserRoles.ADMIN))])

@@ -7,7 +7,7 @@ class TaskBase(BaseModel):
     task_status: TaskStatus | None = None
     
 class TaskCreate(TaskBase):
-    pass
+    user_id: int | None = None
     
 class TaskUpdate(TaskBase):
     pass
