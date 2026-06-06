@@ -9,8 +9,10 @@ class TaskBase(BaseModel):
 class TaskCreate(TaskBase):
     user_id: int | None = None
     
-class TaskUpdate(TaskBase):
-    pass
+class TaskUpdate(BaseModel):
+    task_name: str | None = Field(default = None, min_length=2, max_length=100)
+    task_description: str | None = Field(default= None, max_length= 500 )
+    task_status: TaskStatus | None = None
     
 class TaskRead(TaskCreate):
     task_id: int
