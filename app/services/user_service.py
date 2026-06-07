@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import HTTPException
+from datetime import datetime, timezone
 from ..schemas.user_schemas import *
 from ..models.users import *
 from ..core.security import hashPassword, verifyPassword
@@ -13,8 +14,11 @@ async def createUser(user_data: UserCreate, db: AsyncSession)-> User:
     
     new_user=User(
             email= user_data.email,
-            hashed_pswd= hashPassword(user_data.password)
-            )
+            hashed_pswd= hashPassword(user_data.password),
+            role = UserRoles.USER,
+        )
+    
+    
     db.add(new_user)
     await db.commit()
     await db.refresh(new_user)
@@ -56,9 +60,10 @@ async def editUser(user_id: int, email: EmailStr | None, password: str| None, db
       
     if email:
         user.email=email
-        
     if password:
         user.hashed_pswd = hashPassword(password)
+    
+    user.updated_by = user.user_id
         
     await db.commit()
     await db.refresh(user)
