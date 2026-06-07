@@ -1,14 +1,15 @@
-users/edit is asking for password too ( done, needed to update documentation just )
-Add change password endpoint in auth routes for current user only, admin can already do it
+just use this login in backend - 
+email: todo@project.com
+password: todo@project.com
 
-add for user in tasks to not need user_id for making any task changes, just read from token and then good to go for normal users, admin can send id and perform operations on it, throw error if user role attempts to pass id to attempt to edit other users tasks
+GET /tasks/{user_id} is not working, says forbidden action always - 40
+GET /tasks Get all tasks is reserved for admin only, make it such that user role can see their own tasks too
+Logoout api not working, need to implement token version implementation - 41
 
-Logoout api not working, need to implement token version implementation
-
-Add capabilities for uuid in user_id
-ownership like - created_by, updated_by, created_at, updated_at
-image upload
-filtering
-sorting 
-pagination
-Need api for admin to change roles of user
+Add capabilities for uuid in user_id - 42
+ownership like - created_by, updated_by, created_at, updated_at -43
+image upload -44
+filtering - 45
+sorting -46
+pagination -47
+Need api for admin to change roles of user -48
