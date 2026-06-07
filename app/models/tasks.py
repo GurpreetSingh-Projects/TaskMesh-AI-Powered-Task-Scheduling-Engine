@@ -15,10 +15,10 @@ class Task(Base):
     task_description: Mapped[str| None]= mapped_column(String(500), nullable=True)
     task_status: Mapped[TaskStatus] = mapped_column(SAEnum(TaskStatus, name="task_status_enum", native_enum= True), nullable=False, default=TaskStatus.pending.value, server_default=TaskStatus.pending.value)
     
-    updated_by: Mapped[int] = mapped_column(ForeignKey("users.user_id"), nullable=True)
-    created_by: Mapped[int] = mapped_column(ForeignKey("users.user_id"), nullable=True)
+    updated_by: Mapped[int] = mapped_column(ForeignKey("users.user_id"), default="null", nullable=True)
+    created_by: Mapped[int] = mapped_column(ForeignKey("users.user_id"), default="null", nullable=True)
     
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=True, onupdate=func.now())
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=True, onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=True)
     
     owner:Mapped["User"] = relationship("User", back_populates="tasks")
