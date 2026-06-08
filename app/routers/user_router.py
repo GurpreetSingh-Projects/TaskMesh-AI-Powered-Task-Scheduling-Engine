@@ -14,7 +14,7 @@ async def create_user(user_details: UserCreate, db: AsyncSession= Depends(get_db
         new_user = await createUser(user_details, db)
         return new_user
 
-@router.get("/get/", response_model=UserRead, summary="Get any user", description="Gets back you the user, can be done with user_id or email", dependencies=[Depends(require_roles(UserRoles.ADMIN))],)
+@router.get("/get", response_model=UserRead, summary="Get any user", description="Gets back you the user, can be done with user_id or email", dependencies=[Depends(require_roles(UserRoles.ADMIN))],)
 async def get_user(user_id: Optional[int]= None, email: Optional[EmailStr]= None, db: AsyncSession = Depends(get_db)):
     if not email and not user_id:
         raise HTTPException(status_code=400, detail="Please Enter valid details")
@@ -25,7 +25,7 @@ async def get_user(user_id: Optional[int]= None, email: Optional[EmailStr]= None
         user = await getUserByEmail(email, db)      
     return user
 
-@router.get("/get/all/", response_model=list[UserRead], summary="Get all users", description="Gets back you the list of all users", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
+@router.get("/get/all", response_model=list[UserRead], summary="Get all users", description="Gets back you the list of all users", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
 async def get_users(db: AsyncSession = Depends(get_db)):
     users = await getAllUsers(db)
     return users
