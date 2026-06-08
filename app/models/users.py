@@ -20,4 +20,4 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), onupdate=func.now(), nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False)
     
-    tasks: Mapped[List["Task"]] = relationship( "Task", back_populates="owner", cascade="all, delete-orphan")
+    tasks: Mapped[List["Task"]] = relationship("Task", back_populates="owner", foreign_keys="Task.user_id", cascade="all, delete-orphan")
