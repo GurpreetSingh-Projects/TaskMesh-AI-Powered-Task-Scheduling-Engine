@@ -17,6 +17,8 @@ async def createTask(task_name: str, task_status: TaskStatus, db: AsyncSession, 
             task_name= task_name,
             task_description= task_description,
             task_status= task_status,
+            created_by = user_id,
+            updated_by = user_id
         )
     else:
         new_task = Task(
@@ -24,6 +26,8 @@ async def createTask(task_name: str, task_status: TaskStatus, db: AsyncSession, 
             task_name= task_name,
             task_description= task_description,
             task_status= task_status,
+            created_by = current_user.user_id,
+            updated_by = current_user.user_id
         )
     
     db.add(new_task)
@@ -56,7 +60,9 @@ async def editTask(task_id: int, task_details: TaskUpdate, db: AsyncSession, use
     
     if task_details.task_status:
         task.task_status= task_details.task_status
-        
+    
+    task.updated_by = user.user_id
+    
     await db.commit()
     await db.refresh(task)
     return task
