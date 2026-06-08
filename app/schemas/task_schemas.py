@@ -1,5 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from ..models import TaskStatus
+from datetime import datetime
+from uuid import UUID
 
 class TaskBase(BaseModel):
     task_name: str= Field(min_length=2, max_length=100)
@@ -16,5 +18,11 @@ class TaskUpdate(BaseModel):
     
 class TaskRead(TaskCreate):
     task_id: int
+    created_at: datetime
+    updated_at: datetime
+    created_by: int
+    updated_by: int
     
     model_config=  ConfigDict(from_attributes= True)
+    
+    
