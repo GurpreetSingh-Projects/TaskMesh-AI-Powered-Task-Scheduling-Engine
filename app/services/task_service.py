@@ -39,7 +39,7 @@ async def getTask(task_id: int, db: AsyncSession, user: User):
     task= (await db.execute(select(Task).where((Task.task_id == task_id) & (Task.user_id == user.user_id)))).scalar_one_or_none()
     
     if not task:
-        raise HTTPException(status_code=404, detail=f"No tasks found for ${user.user_id}")
+        raise HTTPException(status_code=404, detail=f"No tasks found for user.name")
     
     return task
 
@@ -73,7 +73,3 @@ async def deleteTask(task_id: int, db: AsyncSession, user: User):
     await db.delete(task)
     await db.commit()
     return
-
-async def getAllTasks(db: AsyncSession, user: User):
-    tasks= await db.execute(select(Task))
-    return tasks.scalars().all()
