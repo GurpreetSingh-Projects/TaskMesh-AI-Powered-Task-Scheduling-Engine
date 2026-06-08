@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from uuid import UUID
 from ..models.user_roles import UserRoles
 
 class UserCreate(BaseModel):
@@ -9,7 +10,7 @@ class UserCreate(BaseModel):
     
 class UserPublic(BaseModel):
     email: EmailStr
-    user_id: int
+    user_id: UUID
     role: UserRoles
     
     model_config = ConfigDict(from_attributes= True)
@@ -24,7 +25,7 @@ class UserLoginResponse(BaseModel):
     user: UserPublic
     
 class UserRead(BaseModel):
-    user_id: int
+    user_id: UUID
     email: EmailStr
     role: UserRoles
         
