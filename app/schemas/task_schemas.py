@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from ..models import TaskStatus
 from datetime import datetime
 from uuid import UUID
+from typing import Optional
 
 class TaskBase(BaseModel):
     task_name: str= Field(min_length=2, max_length=100)
@@ -12,9 +13,9 @@ class TaskCreate(TaskBase):
     user_id: UUID | None
     
 class TaskUpdate(BaseModel):
-    task_name: str | None = Field(default = None, min_length=2, max_length=100)
-    task_description: str | None = Field(default= None, max_length= 500 )
-    task_status: TaskStatus | None
+    task_name: Optional[str]  = Field(default = None, min_length=2, max_length=100)
+    task_description: Optional[str]  = Field(default= None, max_length= 500 )
+    task_status: Optional[TaskStatus] 
     
 class TaskRead(TaskCreate):
     task_id: UUID
