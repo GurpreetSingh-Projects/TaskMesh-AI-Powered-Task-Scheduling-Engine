@@ -18,7 +18,7 @@ async def getCurrentUser(token: str = Depends(oauth2_scheme), db: AsyncSession =
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     
     user_id = decoded_token["sub"]
-    user = await getUserById(int(user_id), db)
+    user = await getUserById(UUID(user_id), db)
     return user
 
 async def loginUser(response: Response, email: EmailStr, password: str, db: AsyncSession = Depends(get_db)):
