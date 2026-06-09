@@ -30,7 +30,7 @@ async def getUserByEmail(email: EmailStr | None, db: AsyncSession,):
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-async def getUserById(user_id: int | None, db: AsyncSession):
+async def getUserById(user_id: UUID | None, db: AsyncSession):
     user = await db.get(User, user_id)
     
     if not user: 
@@ -54,7 +54,7 @@ async def getAllUsers(db:AsyncSession):
     result= await db.execute(select(User))
     return result.scalars().all()
 
-async def editUser(user_id: int, email: EmailStr | None, password: str| None, db: AsyncSession):
+async def editUser(user_id: UUID, email: EmailStr | None, password: str| None, db: AsyncSession):
     user = await getUserById(user_id, db)
       
     if email:
@@ -68,7 +68,7 @@ async def editUser(user_id: int, email: EmailStr | None, password: str| None, db
     await db.refresh(user)
     return user
 
-async def deleteUser(user_id: int, db: AsyncSession):
+async def deleteUser(user_id: UUID, db: AsyncSession):
     user = await getUserById(user_id, db)
     
     await db.delete(user)
