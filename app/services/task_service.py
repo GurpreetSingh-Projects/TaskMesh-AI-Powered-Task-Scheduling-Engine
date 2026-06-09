@@ -5,7 +5,7 @@ from ..models import *
 from ..schemas import *
 from .user_service import *
 
-async def createTask(task_name: str, task_status: TaskStatus, db: AsyncSession, current_user: User, user_id: Optional[int]= None, task_description: Optional[str] = None):
+async def createTask(task_name: str, task_status: TaskStatus, db: AsyncSession, current_user: User, user_id: Optional[UUID]= None, task_description: Optional[str] = None):
     if current_user.role != UserRoles.ADMIN and user_id is not None:
         raise HTTPException(status_code=403, detail="Forbidden Action!!")
     
@@ -35,7 +35,7 @@ async def createTask(task_name: str, task_status: TaskStatus, db: AsyncSession, 
     await db.refresh(new_task)
     return new_task
     
-async def getTask(task_id: int, db: AsyncSession, user: User):
+async def getTask(task_id: UUID, db: AsyncSession, user: User):
     task= (await db.execute(select(Task).where((Task.task_id == task_id) & (Task.user_id == user.user_id)))).scalar_one_or_none()
     
     if not task:
@@ -43,13 +43,13 @@ async def getTask(task_id: int, db: AsyncSession, user: User):
     
     return task
 
-async def getAllTasksByUser(user_id: int, db: AsyncSession):
+async def getAllTasksByUser(user_id: UUID, db: AsyncSession):
     user = await getUserById(user_id, db)
     
     tasks= (await db.execute(select(Task).where(Task.user_id == user_id))).scalars().all()
     return tasks
 
-async def editTask(task_id: int, task_details: TaskUpdate, db: AsyncSession, user: User):
+async def editTask(task_id: UUID, task_details: TaskUpdate, db: AsyncSession, user: User):
     task = await getTask(task_id, db, user)
     
     if task_details.task_name:
@@ -67,7 +67,7 @@ async def editTask(task_id: int, task_details: TaskUpdate, db: AsyncSession, use
     await db.refresh(task)
     return task
     
-async def deleteTask(task_id: int, db: AsyncSession, user: User):
+async def deleteTask(task_id: UUID, db: AsyncSession, user: User):
     task = await getTask(task_id, db, user)
     
     await db.delete(task)
