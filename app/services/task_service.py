@@ -36,10 +36,13 @@ async def createTask(task_name: str, task_status: TaskStatus, db: AsyncSession, 
     return new_task
     
 async def getTask(task_id: UUID, db: AsyncSession, user: User):
-    task= (await db.execute(select(Task).where((Task.task_id == task_id) & (Task.user_id == user.user_id)))).scalar_one_or_none()
-    
+    if user.role == "User":
+        task= (await db.execute(select(Task).where((Task.task_id == task_id) & (Task.user_id == user.user_id)))).scalar_one_or_none()
+    else:
+        task= (await db.execute(select(Task).where((Task.task_id == task_id)))).scalar_one_or_none()
+        
     if not task:
-        raise HTTPException(status_code=404, detail=f"No tasks found for user.name")
+        raise HTTPException(status_code=404, detail=f"No task found!!")
     
     return task
 
@@ -52,14 +55,13 @@ async def getAllTasksByUser(user_id: UUID, db: AsyncSession):
 async def editTask(task_id: UUID, task_details: TaskUpdate, db: AsyncSession, user: User):
     task = await getTask(task_id, db, user)
     
-    if task_details.task_name:
-        task.task_name= task_details.task_name
+    updated_task_details = task_details.model_dump(exclude_unset=True)
     
-    if task_details.task_description:
-        task.task_description= task_details.task_description
+    if not updated_task_details:
+        raise HTTPException(status_code= 404, detail="Please enter valid details for edit task!!")
     
-    if task_details.task_status:
-        task.task_status= task_details.task_status
+    for key,value in updated_task_details.items():
+        setattr(task, key, value)
     
     task.updated_by = user.user_id
     
