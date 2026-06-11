@@ -12,6 +12,7 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.post("/create", response_model=UserRead, summary="Create a new user", description="Creates a new user")
 async def create_user(user_details: UserCreate, db: AsyncSession= Depends(get_db)):
+        
         new_user = await createUser(user_details, db)
         return new_user
 
@@ -31,7 +32,7 @@ async def get_users(db: AsyncSession = Depends(get_db)):
     users = await getAllUsers(db)
     return users
 
-@router.patch("/edit/{user_id}", response_model=UserRead, summary="Edit user details like email", description="Patch endpoint to edit user details like email, password ( Admin Accessible only )", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
+@router.patch("/edit/{user_id}", response_model=UserRead, summary="Edit user details like email", description="Patch endpoint to edit user details like email, password ( Admin Accessible only )", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
 async def edit_user(user_id: UUID, email: Optional[EmailStr]= None, password: Optional[str]= None, db: AsyncSession= Depends(get_db)):
         edit_user = await editUser(user_id, email, password, db)
         return edit_user
