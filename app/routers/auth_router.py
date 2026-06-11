@@ -15,7 +15,7 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
     
     return await loginUser(response, email, password, db )
     
-@router.post("/me", response_model=UserRead)
+@router.post("/who-am-i", response_model=UserRead)
 async def who_am_I(current_user = Depends(getCurrentUser)):
     return current_user
 
