@@ -39,14 +39,14 @@ async def createUser(user_data: UserCreate, db: AsyncSession):
         logger.exception("Unexpected error occurred during Create User")
 
 async def getUserByEmail(email: EmailStr | None, db: AsyncSession,):
-    user= (await db.execute(select(User).where(User.email == email))).scalar_one()
+    user= (await db.execute(select(User).where((User.email == email) & (User.is_deleted == False)))).scalar_one_or_none()
     
     if not user: 
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
 async def getUserById(user_id: UUID | None, db: AsyncSession):
-    user = await db.get(User, user_id)
+    user = (await db.execute(select(User).where((User.user_id == user_id) & (User.is_deleted == False)))).scalar_one_or_none()
     
     if not user: 
         raise HTTPException(status_code=404, detail="User not found")
@@ -83,11 +83,18 @@ async def editUser(user_id: UUID, email: EmailStr | None, password: str| None, d
     await db.refresh(user)
     return user
 
-async def deleteUser(user_id: UUID, db: AsyncSession):
+async def deactivateUser(user_id: UUID, db: AsyncSession):
     user = await getUserById(user_id, db)
     
     user.is_deleted = True
     user.deleted_at = datetime.now(timezone.utc)
 
+    await db.commit()
+    return
+
+async def deleteUser(user_id: UUID, db: AsyncSession):
+    user = await getUserById(user_id, db)
+    
+    await db.delete(user)
     await db.commit()
     return
