@@ -21,8 +21,8 @@ async def createUser(user_data: UserCreate, db: AsyncSession):
 
     query = query.on_conflict_do_update(
         index_elements=[User.email],
-        set_= {User.is_deleted: False},
-        where=(User.is_deleted.is_(True))
+        set_= {User.is_deleted: False, User.hashed_pswd : user_data.password},
+        where=((User.is_deleted == True) & (User.hashed_pswd == user_data.password))
     ).returning(User)
     
     try:
@@ -58,7 +58,7 @@ async def verifyUser(email: EmailStr, password: str, db:AsyncSession):
     if not user: 
         raise HTTPException(status_code=401, detail="Invalid Credentials!!")
     
-    password_matched = verifyPassword(password, user.hashed_pswd )
+    password_matched = verifyPassword(password, user.hashed_pswd)
     
     if not password_matched:
         raise HTTPException(status_code=401, detail="Invalid Credentials!!")
