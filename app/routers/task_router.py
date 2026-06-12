@@ -19,7 +19,7 @@ async def get_tasks( db: AsyncSession = Depends(get_db), user = Depends(getCurre
     tasks = await getAllTasksByUser(user.user_id, db)
     return tasks
 
-@router.get("/user/{user_id}", response_model=List[TaskRead], summary="Gets tasks by user_id", description="Gets all tasks from tasks table linked with user_id", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
+@router.get("/user/{user_id}", response_model=List[TaskRead], summary="Gets tasks by user_id", description="Gets all tasks from tasks table linked with user_id ( Admin Accessible only )", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
 async def get_tasks_by_user(user_id: UUID, db: AsyncSession = Depends(get_db)):
     tasks = await getAllTasksByUser(user_id, db)
     return tasks
@@ -34,6 +34,11 @@ async def edit_task(task_id: UUID, task_details: TaskUpdate, db: AsyncSession= D
     task = await editTask(task_id, task_details, db, user)
     return task
 
+@router.patch("/deactivate/{task_id}", summary="Deactivates the task", description="Deactivates the provided task")
+async def deactivate_task(task_id: UUID, db: AsyncSession= Depends(get_db), user= Depends(getCurrentUser)):
+        await deactivateTask(task_id, db, user)
+        return {"detail": "Task deactivated successfully"}
+    
 @router.delete("/delete/{task_id}", summary="Deletes the task", description="Deletes the task")
 async def delete_task(task_id: UUID, db: AsyncSession= Depends(get_db), user= Depends(getCurrentUser)):
         await deleteTask(task_id, db, user)
