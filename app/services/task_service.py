@@ -38,9 +38,9 @@ async def createTask(task_name: str, task_status: TaskStatus, db: AsyncSession, 
     
 async def getTask(task_id: UUID, db: AsyncSession, user: User):
     if user.role == "User":
-        task= (await db.execute(select(Task).where((Task.task_id == task_id) & (Task.user_id == user.user_id)))).scalar_one_or_none()
+        task= (await db.execute(select(Task).where((Task.task_id == task_id) & (Task.user_id == user.user_id) & (Task.is_deleted == False)))).scalar_one_or_none()
     else:
-        task= (await db.execute(select(Task).where((Task.task_id == task_id)))).scalar_one_or_none()
+        task= (await db.execute(select(Task).where((Task.task_id == task_id) & (Task.is_deleted == False)))).scalar_one_or_none()
         
     if not task:
         raise HTTPException(status_code=404, detail=f"No task found!!")
@@ -50,7 +50,7 @@ async def getTask(task_id: UUID, db: AsyncSession, user: User):
 async def getAllTasksByUser(user_id: UUID, db: AsyncSession):
     user = await getUserById(user_id, db)
     
-    tasks= (await db.execute(select(Task).where(Task.user_id == user_id))).scalars().all()
+    tasks= (await db.execute(select(Task).where((Task.user_id == user_id) & (Task.is_deleted == False)) )).scalars().all()
     return tasks
 
 async def editTask(task_id: UUID, task_details: TaskUpdate, db: AsyncSession, user: User):
@@ -70,12 +70,18 @@ async def editTask(task_id: UUID, task_details: TaskUpdate, db: AsyncSession, us
     await db.refresh(task)
     return task
     
-async def deleteTask(task_id: UUID, db: AsyncSession, user: User):
+async def deactivateTask(task_id: UUID, db: AsyncSession, user: User):
     task = await getTask(task_id, db, user)
     
     task.is_deleted = True
     task.deleted_at = datetime.now(timezone.utc)
 
+    await db.commit()
+    return
+
+async def deleteTask(task_id: UUID, db: AsyncSession, user: User):
+    task = await getTask(task_id, db, user)
+    
     await db.delete(task)
     await db.commit()
     return
