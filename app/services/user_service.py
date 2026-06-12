@@ -1,30 +1,45 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.dialects.postgresql import insert
 from fastapi import HTTPException
 from datetime import datetime, timezone
 from ..schemas.user_schemas import *
 from ..models.users import *
 from ..core.security import hashPassword, verifyPassword
+import logging
 
-async def createUser(user_data: UserCreate, db: AsyncSession)-> User:
-    existing_user = (await db.execute(select(User).where(User.email == user_data.email))).scalar_one_or_none()
+logger = logging.getLogger(__name__)
+
+async def createUser(user_data: UserCreate, db: AsyncSession):    
+    query = insert(User).values(
+        email= user_data.email,
+        hashed_pswd= hashPassword(user_data.password),
+        role = UserRoles.USER,
+        is_deleted = False
+    )
+
+    query = query.on_conflict_do_update(
+        index_elements=[User.email],
+        set_= {User.is_deleted: False},
+        where=(User.is_deleted.is_(True))
+    ).returning(User)
     
-    if existing_user :
-        raise HTTPException(status_code=409, detail="User already exists!! please try with different email")
+    try:
+        result= (await db.execute(query)).scalar_one_or_none()
+        await db.commit()
+        return result
     
-    new_user=User(
-            email= user_data.email,
-            hashed_pswd= hashPassword(user_data.password),
-            role = UserRoles.USER,
-        )
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=409, detail="User already exists!! please login with your current account")
     
-    db.add(new_user)
-    await db.commit()
-    await db.refresh(new_user)
-    return new_user
+    except Exception:
+        await db.rollback()
+        logger.exception("Unexpected error occurred during Create User")
 
 async def getUserByEmail(email: EmailStr | None, db: AsyncSession,):
-    user= (await db.execute(select(User).where(User.email == email))).scalar_one_or_none()
+    user= (await db.execute(select(User).where(User.email == email))).scalar_one()
     
     if not user: 
         raise HTTPException(status_code=404, detail="User not found")
@@ -71,6 +86,8 @@ async def editUser(user_id: UUID, email: EmailStr | None, password: str| None, d
 async def deleteUser(user_id: UUID, db: AsyncSession):
     user = await getUserById(user_id, db)
     
-    await db.delete(user)
+    user.is_deleted = True
+    user.deleted_at = datetime.now(timezone.utc)
+
     await db.commit()
     return
