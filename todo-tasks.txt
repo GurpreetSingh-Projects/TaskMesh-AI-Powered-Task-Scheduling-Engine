@@ -2,12 +2,43 @@ just use this login in backend -
 todo@project.com todo@project.com
 admin@gmail.com admin@1234
 
-Logoout api not working, need to implement token version implementation - 41
+introduce new task_completed_at, expected_completed_at, priority, needs_reminders
+implement these
 
-user can change email of admin (p0)
-image upload -44
+image upload - 44
 filtering - 45
 sorting -46
 pagination -47
 Need api for admin to change roles of user -48
+rate limiting
 soft delete
+move db to supabase
+improve function naming
+move from functions to py classes
+implement reddis
+bundle in docker
+ai features with voice, image support
+advanced mobile app with easy to use interface
+deploy on render
+Logoout api not working, need to implement token version implementation - 41
+
+Task schema improvements
+Fix role/security + admin APIs
+Soft delete
+Filtering / sorting / pagination
+Code refactor (naming + classes)
+Docker
+Deploy
+THEN
+ONE AI feature (important)
+MAYBE
+Redis
+Rate limiting
+IGNORE FOR NOW
+mobile app
+voice/image AI
+supabase migration
+image upload
+
+
+if trying to create new user, first check email, if it exists then return current existing user, if deactivated, give option to reactive account
