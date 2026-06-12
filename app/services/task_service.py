@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
+from datetime import datetime, timezone
 from ..models import *
 from ..schemas import *
 from .user_service import *
@@ -72,6 +73,9 @@ async def editTask(task_id: UUID, task_details: TaskUpdate, db: AsyncSession, us
 async def deleteTask(task_id: UUID, db: AsyncSession, user: User):
     task = await getTask(task_id, db, user)
     
+    task.is_deleted = True
+    task.deleted_at = datetime.now(timezone.utc)
+
     await db.delete(task)
     await db.commit()
     return
