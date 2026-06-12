@@ -21,6 +21,7 @@ ai features with voice, image support
 advanced mobile app with easy to use interface
 deploy on render
 Logoout api not working, need to implement token version implementation - 41
+introduce new api to get deactivated users
 
 Task schema improvements
 Fix role/security + admin APIs
