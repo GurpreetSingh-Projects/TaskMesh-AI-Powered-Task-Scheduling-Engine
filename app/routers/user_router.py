@@ -23,11 +23,11 @@ async def get_user(user_id: Optional[UUID]= None, email: Optional[EmailStr]= Non
 
     if user_id:
         user = await getUserById(user_id, db)
-    else: 
-        user = await getUserByEmail(email, db)      
+    else:
+        user = await getUserByEmail(email, db)
     return user
 
-@router.get("/get/all", response_model=list[UserRead], summary="Get all users", description="Gets back you the list of all users", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
+@router.get("/get/all", response_model=list[UserRead], summary="Get all users", description="Gets back you the list of all users ( Admin Accessible only )", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
 async def get_users(db: AsyncSession = Depends(get_db)):
     users = await getAllUsers(db)
     return users
@@ -36,8 +36,13 @@ async def get_users(db: AsyncSession = Depends(get_db)):
 async def edit_user(user_id: UUID, email: Optional[EmailStr]= None, password: Optional[str]= None, db: AsyncSession= Depends(get_db)):
         edit_user = await editUser(user_id, email, password, db)
         return edit_user
+
+@router.patch("/deactivate/{user_id}", summary="Deactivates the current user", description="Deactivates the current user", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
+async def deactivate_user(user_id: UUID, db: AsyncSession= Depends(get_db)):
+        await deactivateUser(user_id, db)
+        return {"detail": "User deactivated successfully"}
     
-@router.delete("/delete/{user_id}", summary="Deletes the user", description="Deletes the user along with its linked tasks", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
+@router.delete("/delete/{user_id}", summary="Deletes the user", description="Deletes the user along with its linked tasks ( Admin Accessible only )", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
 async def delete_user(user_id: UUID, db: AsyncSession= Depends(get_db)):
         await deleteUser(user_id, db)
         return {"detail": "User deleted successfully"}
