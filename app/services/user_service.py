@@ -8,6 +8,7 @@ from ..schemas.user_schemas import *
 from ..models.users import *
 from ..core.security import hashPassword, verifyPassword
 import logging
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -65,9 +66,33 @@ async def verifyUser(email: EmailStr, password: str, db:AsyncSession):
 
     return user
 
-async def getAllUsers(db:AsyncSession):
-    result= await db.execute(select(User))
-    return result.scalars().all()
+async def getAllUsers( page: int, page_size: int, db:AsyncSession):
+    total_pages = 0
+    total_users = (
+        await db.execute(
+            select(func.count(User.user_id))
+            .where(User.is_deleted == False)
+            )
+        ).scalar()
+    
+    items= (await db.execute(
+        select(User)
+        .where(User.is_deleted == False)
+        .order_by(User.created_at)
+        .offset((page - 1)* page_size)
+        .limit(page_size)
+        )).scalars().all()
+    
+    if total_users is not None and total_users > 0 and page_size > 0:
+        total_pages = math.ceil(total_users / page_size)
+    
+    return {
+        "items": items,
+        "total": total_users,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages
+    }
 
 async def editUser(user_id: UUID, email: EmailStr | None, password: str| None, db: AsyncSession):
     user = await getUserById(user_id, db)
