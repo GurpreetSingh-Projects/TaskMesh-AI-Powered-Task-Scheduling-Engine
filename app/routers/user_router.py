@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
+from typing import Optional, Annotated
 from pydantic import EmailStr
 from uuid import UUID
 from ..models import *
@@ -27,9 +27,9 @@ async def get_user(user_id: Optional[UUID]= None, email: Optional[EmailStr]= Non
         user = await getUserByEmail(email, db)
     return user
 
-@router.get("/get/all", response_model=list[UserRead], summary="Get all users", description="Gets back you the list of all users ( Admin Accessible only )", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
-async def get_users(db: AsyncSession = Depends(get_db)):
-    users = await getAllUsers(db)
+@router.get("/get/all", response_model= GetAllUsersResponse, summary="Get all users", description="Gets back you the list of all users ( Admin Accessible only )", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
+async def get_users(page: Annotated[int, Query(ge = 1, le = 999)] = 1, page_size: Annotated[int, Query(ge=1, le=999)] = 5, db: AsyncSession = Depends(get_db)):
+    users = await getAllUsers(page, page_size, db)
     return users
 
 @router.patch("/edit/{user_id}", response_model=UserRead, summary="Edit user details like email", description="Patch endpoint to edit user details like email, password ( Admin Accessible only )", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
