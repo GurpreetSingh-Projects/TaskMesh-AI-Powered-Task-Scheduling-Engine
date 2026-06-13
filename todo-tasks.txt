@@ -5,6 +5,14 @@ admin@gmail.com admin@1234
 introduce new task_completed_at, expected_completed_at, priority, needs_reminders
 implement these
 
+{
+  "total": 47,
+  "page": 2,
+  "page_size": 10,
+  "total_pages": 5,
+  "data": [...]
+} for all pagination
+
 image upload - 44
 filtering - 45
 sorting -46
