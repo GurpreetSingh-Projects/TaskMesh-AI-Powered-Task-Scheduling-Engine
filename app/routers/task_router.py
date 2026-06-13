@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
+from typing import List, Optional, Annotated, Literal
 from uuid import UUID
 from ..models import *
 from ..schemas import *
@@ -14,14 +14,14 @@ async def create_task(task_name: str, task_status: TaskStatus, db: AsyncSession=
     task = await createTask(task_name, task_status, db, current_user, user_id, task_description)
     return task
 
-@router.get("", response_model=List[TaskRead], summary="Get current user tasks", description="Gets all tasks related to the logged in user", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
-async def get_tasks( db: AsyncSession = Depends(get_db), user = Depends(getCurrentUser)):
-    tasks = await getAllTasksByUser(user.user_id, db)
+@router.get("/all", response_model=List[TaskRead], summary="Get current user tasks", description="Gets all tasks related to the logged in user", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
+async def get_tasks(filters: TaskFilters = Depends(), page: Annotated[int, Query(ge=1, le=250)] = 1, page_size: Annotated[int, Query(ge=1, le=1000)] = 5, db: AsyncSession = Depends(get_db), user = Depends(getCurrentUser)):
+    tasks = await getAllTasksByUser(filters, user.user_id, page, page_size, db)
     return tasks
 
 @router.get("/user/{user_id}", response_model=List[TaskRead], summary="Gets tasks by user_id", description="Gets all tasks from tasks table linked with user_id ( Admin Accessible only )", dependencies=[Depends(require_roles(UserRoles.ADMIN))])
-async def get_tasks_by_user(user_id: UUID, db: AsyncSession = Depends(get_db)):
-    tasks = await getAllTasksByUser(user_id, db)
+async def get_tasks_by_user(user_id: UUID, page: Annotated[int, Query(ge=1, le=250)] = 1, page_size: Annotated[int, Query(ge=1, le=1000)] = 5, db: AsyncSession = Depends(get_db), filters: TaskFilters = Depends() ):
+    tasks = await getAllTasksByUser(filters, user_id, page, page_size, db)
     return tasks
 
 @router.get("/{task_id}", response_model=TaskRead, summary="Get specific task", description="Gets the specific task linked with task_id")
