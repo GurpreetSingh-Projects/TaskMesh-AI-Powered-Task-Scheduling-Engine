@@ -47,10 +47,16 @@ async def getTask(task_id: UUID, db: AsyncSession, user: User):
     
     return task
 
-async def getAllTasksByUser(user_id: UUID, db: AsyncSession):
+async def getAllTasksByUser(filters: TaskFilters, user_id: UUID, page: int, page_size: int, db: AsyncSession):
     user = await getUserById(user_id, db)
     
-    tasks= (await db.execute(select(Task).where((Task.user_id == user_id) & (Task.is_deleted == False)) )).scalars().all()
+    tasks= (await db.execute(
+        select(Task)
+        .where((Task.user_id == user_id) & (Task.is_deleted == False))
+        .order_by(Task.updated_at.desc())
+        .offset((page-1) * page_size)
+        .limit(page_size)
+        )).scalars().all()
     return tasks
 
 async def editTask(task_id: UUID, task_details: TaskUpdate, db: AsyncSession, user: User):
