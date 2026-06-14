@@ -1,12 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.dialects.postgresql import insert
 from fastapi import HTTPException
 from datetime import datetime, timezone
-from ..schemas.user_schemas import *
-from ..models.users import *
+from ..schemas.user_schemas import UserCreate
+from ..models.users import User, UserRoles
 from ..core.security import hash_password, verify_password
+from uuid import UUID
+from pydantic import EmailStr
 import logging
 import math
 
@@ -27,7 +29,7 @@ async def create_user(user_data: UserCreate, db: AsyncSession):
             User.is_deleted: False,
             User.hashed_pswd: user_data.password
         },
-        where=((User.is_deleted == True) & (User.hashed_pswd == user_data.password))
+        where=((User.is_deleted) & (User.hashed_pswd == user_data.password))
     ).returning(User)
 
     try:
@@ -51,7 +53,7 @@ async def get_user_by_email(email: EmailStr | None, db: AsyncSession):
     user = (
         await db.execute(
             select(User).where(
-                (User.email == email) & (User.is_deleted == False)
+                (User.email == email) & (not User.is_deleted)
             )
         )
     ).scalar_one_or_none()
@@ -66,7 +68,7 @@ async def get_user_by_id(user_id: UUID | None, db: AsyncSession):
     user = (
         await db.execute(
             select(User).where(
-                (User.user_id == user_id) & (User.is_deleted == False)
+                (User.user_id == user_id) & (not User.is_deleted)
             )
         )
     ).scalar_one_or_none()
@@ -97,14 +99,14 @@ async def get_all_users(page: int, page_size: int, db: AsyncSession):
     total_users = (
         await db.execute(
             select(func.count(User.user_id))
-            .where(User.is_deleted == False)
+            .where(User.is_deleted.is_(False))
         )
     ).scalar()
 
     items = (
         await db.execute(
             select(User)
-            .where(User.is_deleted == False)
+            .where(User.is_deleted.is_(False))
             .order_by(User.created_at)
             .offset((page - 1) * page_size)
             .limit(page_size)
