@@ -3,10 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, Annotated
 from pydantic import EmailStr
 from uuid import UUID
-from ..models import *
-from ..schemas import *
+from ..models import UserRoles
+from ..schemas import UserRead, UserCreate, GetAllUsersResponse
 from ..services import user_service
-from ..dependencies import *
+from ..dependencies import get_db, require_roles
 
 router = APIRouter(prefix="/users", tags=["users"])
 
