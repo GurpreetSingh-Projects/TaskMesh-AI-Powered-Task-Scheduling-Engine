@@ -7,7 +7,7 @@ from .database import get_db
 from ..models import *
 from ..core.config import settings
 from ..core.security import *
-from ..services.user_service import *
+from ..services import user_service
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -18,11 +18,11 @@ async def getCurrentUser(token: str = Depends(oauth2_scheme), db: AsyncSession =
         raise HTTPException(status_code=401, detail="Invalid or expired token")
     
     user_id = decoded_token["sub"]
-    user = await getUserById(UUID(user_id), db)
+    user = await user_service.get_user_by_id(UUID(user_id), db)
     return user
 
 async def loginUser(response: Response, email: EmailStr, password: str, db: AsyncSession = Depends(get_db)):
-    verified_user = await verifyUser(email, password, db)
+    verified_user = await user_service.verify_user(email, password, db)
     
     if not verified_user:
         raise HTTPException(status_code=401, detail="Verification failed")
@@ -70,7 +70,7 @@ async def logoutUser(response: Response):
     }
     
 async def changePassword(old_password: str, new_password:str, db: AsyncSession, user_data: User):
-    user = await getUserById(user_data.user_id, db)
+    user = await user_service.get_user_by_id(user_data.user_id, db)
     response = verifyPassword(old_password, user.hashed_pswd)
         
     if not response:
