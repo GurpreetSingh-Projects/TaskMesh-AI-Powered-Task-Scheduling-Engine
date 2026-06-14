@@ -1,21 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, Request
+from fastapi import APIRouter, Depends, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..dependencies import *
-from ..services.user_service import *
-from ..models.users import *    
-from ..core.security import *
+from ..dependencies import get_db, get_current_user, login_user, refresh_user_token, logout_user
+from ..models.users import User    
+from ..schemas import UserLoginResponse, UserRead
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-@router.post("/login", response_model=UserLoginResponse)
+@router.post("/login", response_model= UserLoginResponse)
 async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depends() , db: AsyncSession = Depends(get_db)):
     email = form_data.username
     password = form_data.password
     
     return await login_user(response, email, password, db )
     
-@router.post("/who-am-i", response_model=UserRead)
+@router.post("/me", response_model= UserRead)
 async def who_am_I(current_user = Depends(get_current_user)):
     return current_user
 
@@ -23,7 +22,7 @@ async def who_am_I(current_user = Depends(get_current_user)):
 async def verify_token(current_user: User = Depends(get_current_user)):
     return {
             "token": "valid",
-             "user_id": current_user.user_id
+            "user_id": current_user.user_id
         }
         
 @router.post("/refresh-token")
