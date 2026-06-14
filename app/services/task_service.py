@@ -83,10 +83,14 @@ async def get_all_tasks_by_user(
 ):
     await get_user_by_id(user_id, db)
 
+    query = select(Task).where((Task.user_id == user_id) & (not Task.is_deleted))
+
+    if filters.status:
+        query = query.where((Task.user_id == user_id))
+    
     tasks = (
         await db.execute(
-            select(Task)
-            .where((Task.user_id == user_id) & (not Task.is_deleted))
+            query.
             .order_by(Task.updated_at.desc())
             .offset((page - 1) * page_size)
             .limit(page_size)
