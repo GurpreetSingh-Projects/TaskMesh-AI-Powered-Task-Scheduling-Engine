@@ -25,3 +25,10 @@ class TaskRead(TaskCreate):
     updated_by: UUID
     
     model_config=  ConfigDict(from_attributes= True)
+    
+class GetAllTasksResponse(BaseModel):
+    items: list[TaskRead]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
