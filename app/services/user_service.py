@@ -53,7 +53,7 @@ async def get_user_by_email(email: EmailStr | None, db: AsyncSession):
     user = (
         await db.execute(
             select(User).where(
-                (User.email == email) & (not User.is_deleted)
+                (User.email == email) & (User.is_deleted.is_(False))
             )
         )
     ).scalar_one_or_none()
@@ -68,7 +68,7 @@ async def get_user_by_id(user_id: UUID | None, db: AsyncSession):
     user = (
         await db.execute(
             select(User).where(
-                (User.user_id == user_id) & (not User.is_deleted)
+                (User.user_id == user_id) & (User.is_deleted.is_(False))
             )
         )
     ).scalar_one_or_none()
