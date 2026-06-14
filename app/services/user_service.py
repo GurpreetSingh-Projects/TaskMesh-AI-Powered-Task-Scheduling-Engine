@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from datetime import datetime, timezone
 from ..schemas.user_schemas import *
 from ..models.users import *
-from ..core.security import hashPassword, verifyPassword
+from ..core.security import hash_password, verify_password
 import logging
 import math
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 async def create_user(user_data: UserCreate, db: AsyncSession):
     query = insert(User).values(
         email=user_data.email,
-        hashed_pswd=hashPassword(user_data.password),
+        hashed_pswd=hash_password(user_data.password),
         role=UserRoles.USER,
         is_deleted=False
     )
@@ -83,7 +83,7 @@ async def verify_user(email: EmailStr, password: str, db: AsyncSession):
     if not user:
         raise HTTPException(status_code=401, detail="Invalid Credentials!!")
 
-    password_matched = verifyPassword(password, user.hashed_pswd)
+    password_matched = verify_password(password, user.hashed_pswd)
 
     if not password_matched:
         raise HTTPException(status_code=401, detail="Invalid Credentials!!")
@@ -135,7 +135,7 @@ async def edit_user(
         user.email = email
 
     if password:
-        user.hashed_pswd = hashPassword(password)
+        user.hashed_pswd = hash_password(password)
 
     user.updated_by = user.user_id
 
