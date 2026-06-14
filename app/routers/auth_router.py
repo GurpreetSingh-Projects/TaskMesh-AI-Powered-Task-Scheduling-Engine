@@ -13,14 +13,14 @@ async def login(response: Response, form_data: OAuth2PasswordRequestForm = Depen
     email = form_data.username
     password = form_data.password
     
-    return await loginUser(response, email, password, db )
+    return await login_user(response, email, password, db )
     
 @router.post("/who-am-i", response_model=UserRead)
-async def who_am_I(current_user = Depends(getCurrentUser)):
+async def who_am_I(current_user = Depends(get_current_user)):
     return current_user
 
 @router.post("/verify-token")
-async def verify_token(current_user: User = Depends(getCurrentUser)):
+async def verify_token(current_user: User = Depends(get_current_user)):
     return {
             "token": "valid",
              "user_id": current_user.user_id
@@ -28,12 +28,12 @@ async def verify_token(current_user: User = Depends(getCurrentUser)):
         
 @router.post("/refresh-token")
 async def refresh_token(request: Request):
-    return await refreshUserToken(request)
+    return await refresh_user_token(request)
 
 @router.post("/change-password")
-async def change_password(old_password: str,new_password: str, db: AsyncSession= Depends(get_db), user = Depends(getCurrentUser)):
-    return await changePassword(old_password, new_password, db, user)
+async def change_password(old_password: str,new_password: str, db: AsyncSession= Depends(get_db), user = Depends(get_current_user)):
+    return await change_password(old_password, new_password, db, user)
 
-@router.get("/logout", dependencies=[Depends(getCurrentUser)])
+@router.get("/logout", dependencies=[Depends(get_current_user)])
 async def logout(response: Response):
-    return await logoutUser(response)
+    return await logout_user(response)
