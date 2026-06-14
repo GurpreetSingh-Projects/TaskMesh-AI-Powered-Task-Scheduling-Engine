@@ -1,10 +1,12 @@
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import Optional
 from datetime import datetime, timezone
-from ..models import *
-from ..schemas import *
-from .user_service import *
+from uuid import UUID
+from ..models import User, Task, TaskStatus, UserRoles
+from ..schemas import TaskFilters, TaskUpdate
+from .user_service import get_user_by_id
 
 
 async def create_task(
@@ -52,7 +54,7 @@ async def get_task(task_id: UUID, db: AsyncSession, user: User):
                 select(Task).where(
                     (Task.task_id == task_id)
                     & (Task.user_id == user.user_id)
-                    & (Task.is_deleted == False)
+                    & (not Task.is_deleted)
                 )
             )
         ).scalar_one_or_none()
@@ -61,7 +63,7 @@ async def get_task(task_id: UUID, db: AsyncSession, user: User):
             await db.execute(
                 select(Task).where(
                     (Task.task_id == task_id)
-                    & (Task.is_deleted == False)
+                    & (not Task.is_deleted)
                 )
             )
         ).scalar_one_or_none()
@@ -79,12 +81,12 @@ async def get_all_tasks_by_user(
     page_size: int,
     db: AsyncSession
 ):
-    user = await get_user_by_id(user_id, db)
+    await get_user_by_id(user_id, db)
 
     tasks = (
         await db.execute(
             select(Task)
-            .where((Task.user_id == user_id) & (Task.is_deleted == False))
+            .where((Task.user_id == user_id) & (not Task.is_deleted))
             .order_by(Task.updated_at.desc())
             .offset((page - 1) * page_size)
             .limit(page_size)
