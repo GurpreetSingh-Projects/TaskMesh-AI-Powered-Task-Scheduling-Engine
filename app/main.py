@@ -1,11 +1,8 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from .models import *
-from .schemas import *
-from .services import *
+from .models import Base
 from .dependencies.database import engine
-from .routers import *
+from .routers import auth_router, user_router, task_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,7 +11,7 @@ async def lifespan(app: FastAPI):
 
     yield
     
-app = FastAPI(title="TODO API", version="1.0.2", lifespan=lifespan)
+app = FastAPI(title="TaskMesh API", version="1.0.3", lifespan=lifespan)
 
 @app.get("/")
 def read_root():
