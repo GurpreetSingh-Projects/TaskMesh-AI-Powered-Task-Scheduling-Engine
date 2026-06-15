@@ -4,7 +4,7 @@ from typing import List, Optional, Annotated
 from uuid import UUID
 from ..models import UserRoles, TaskStatus
 from ..dependencies import get_db, get_current_user, require_roles
-from ..schemas import TaskRead, TaskUpdate, TaskFilters
+from ..schemas import TaskRead, TaskUpdate, TaskFilters, GetAllTasksResponse
 from ..services import task_service
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
@@ -14,7 +14,7 @@ async def create_task(task_name: str, task_status: TaskStatus, db: AsyncSession=
     task = await task_service.create_task(task_name, task_status, db, current_user, user_id, task_description)
     return task
 
-@router.get("/all", response_model=List[TaskRead], summary="Get current user tasks", description="Gets all tasks related to the logged in user", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
+@router.get("/all", response_model=GetAllTasksResponse, summary="Get current user tasks", description="Gets all tasks related to the logged in user", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
 async def get_tasks(filters: TaskFilters = Depends(), page: Annotated[int, Query(ge=1, le=250)] = 1, page_size: Annotated[int, Query(ge=1, le=1000)] = 5, db: AsyncSession = Depends(get_db), user = Depends(get_current_user)):
     tasks = await task_service.get_all_tasks_by_user(filters, user.user_id, page, page_size, db)
     return tasks
