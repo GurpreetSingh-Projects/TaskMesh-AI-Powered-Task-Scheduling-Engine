@@ -1,5 +1,5 @@
-from .task_schemas import TaskCreate, TaskRead, TaskUpdate
 from .user_schemas import UserCreate, UserPublic, UserLoginResponse, UserLogin, UserRead, GetAllUsersResponse
+from .task_schemas import TaskCreate, TaskRead, TaskUpdate, GetAllTasksResponse
 from .token_schemas import Token
 from .task_filters import TaskFilters
 
@@ -14,5 +14,6 @@ __all__ = [
     "UserLogin",
     "UserRead",
     "Token",
-    "TaskFilters"
+    "TaskFilters",
+    "GetAllTasksResponse"
 ]
