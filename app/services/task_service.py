@@ -1,13 +1,13 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from typing import Optional
 from datetime import datetime, timezone
 from uuid import UUID
 from ..models import User, Task, TaskStatus, UserRoles
 from ..schemas import TaskFilters, TaskUpdate
 from .user_service import get_user_by_id
-
+import math
 
 async def create_task(
     task_name: str,
@@ -83,22 +83,47 @@ async def get_all_tasks_by_user(
 ):
     await get_user_by_id(user_id, db)
 
-    query = select(Task).where((Task.user_id == user_id) & (not Task.is_deleted))
+    total_pages = 0
+    total_tasks = 0
+    
+    query = select(Task).where(
+        (Task.user_id == user_id) & (Task.is_deleted.is_(False))
+        )
 
     if filters.status:
-        query = query.where((Task.user_id == user_id))
+        query = query.where(Task.task_status == filters.status)
+        
+    if filters.priority:
+        query = query.where(Task.priority == filters.priority)
+        
+    if filters.search and filters.search.strip():
+        search_term = f"%{filters.search}%"
+        query = query.where(
+            or_(
+                Task.task_name.ilike(search_term), 
+                Task.task_description.ilike(search_term))
+            )
     
-    tasks = (
+    print( "createdquery",query)
+    items = (
         await db.execute(
-            query.
-            .order_by(Task.updated_at.desc())
+            query.order_by(Task.updated_at.desc())
             .offset((page - 1) * page_size)
             .limit(page_size)
         )
     ).scalars().all()
 
-    return tasks
-
+    if total_tasks is not None and total_tasks > 0 and page_size > 0:
+        total_pages = math.ceil(total_tasks / page_size)
+    
+    return {
+        "items": items,
+        "total": total_tasks,
+        "page": page,
+        "page_size": page_size,
+        "total_pages": total_pages
+    }
+    
 
 async def edit_task(
     task_id: UUID,
