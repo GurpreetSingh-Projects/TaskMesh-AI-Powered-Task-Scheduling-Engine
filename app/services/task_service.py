@@ -105,7 +105,8 @@ async def get_all_tasks_by_user(
     print("created query", query)
    
     total_tasks = (
-        await db.execute(select(func.count(Task.task_id)))).scalar()
+        await db.execute(
+            select(func.count(Task.task_id)).where(query))).scalar()
              
     items = (
         await db.execute(
