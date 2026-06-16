@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, func
 from typing import Optional
 from datetime import datetime, timezone
 from uuid import UUID
@@ -86,28 +86,32 @@ async def get_all_tasks_by_user(
     total_pages = 0
     total_tasks = 0
     
-    query = select(Task).where(
-        (Task.user_id == user_id) & (Task.is_deleted.is_(False))
-        )
+    query = (Task.user_id == user_id) & (Task.is_deleted.is_(False))
 
     if filters.status:
-        query = query.where(Task.task_status == filters.status)
+        query = query & (Task.task_status == filters.status)
         
     if filters.priority:
-        query = query.where(Task.priority == filters.priority)
+        query = query & (Task.priority == filters.priority)
         
     if filters.search and filters.search.strip():
         search_term = f"%{filters.search}%"
-        query = query.where(
+        query = query & (
             or_(
                 Task.task_name.ilike(search_term), 
                 Task.task_description.ilike(search_term))
             )
-    
-    print( "createdquery",query)
+        
+    print("created query", query)
+   
+    total_tasks = (
+        await db.execute(select(func.count(Task.task_id)))).scalar()
+             
     items = (
         await db.execute(
-            query.order_by(Task.updated_at.desc())
+            select(Task)
+            .where(query)
+            .order_by(Task.updated_at.desc())
             .offset((page - 1) * page_size)
             .limit(page_size)
         )
