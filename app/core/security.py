@@ -3,6 +3,9 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from .config import settings
+# from ..models.users import User
+# from ..services.user_service import *
+
 pwd_context= CryptContext( schemes=["argon2"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/create")
