@@ -2,27 +2,12 @@ just use this login in backend -
 todo@project.com todo@project.com
 admin@gmail.com admin@1234
 
-introduce new task_completed_at, expected_completed_at, priority, needs_reminders
-implement these
-
-{
-  "total": 47,
-  "page": 2,
-  "page_size": 10,
-  "total_pages": 5,
-  "data": [...]
-} for all pagination
-
-image upload - 44
-filtering - 45
 sorting -46
-pagination -47
 Need api for admin to change roles of user -48
 rate limiting
-soft delete
 move db to supabase
-improve function naming
-move from functions to py classes
+image upload - 44
+
 implement reddis
 bundle in docker
 ai features with voice, image support
@@ -50,4 +35,4 @@ supabase migration
 image upload
 
 
-if trying to create new user, first check email, if it exists then return current existing user, if deactivated, give option to reactive account
+If trying to create new user, first check email, if it exists then return current existing user, if deactivated, give option to reactive account
