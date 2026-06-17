@@ -54,7 +54,7 @@ async def get_task(task_id: UUID, db: AsyncSession, user: User):
                 select(Task).where(
                     (Task.task_id == task_id)
                     & (Task.user_id == user.user_id)
-                    & (not Task.is_deleted)
+                    & (Task.is_deleted.is_(False))
                 )
             )
         ).scalar_one_or_none()
