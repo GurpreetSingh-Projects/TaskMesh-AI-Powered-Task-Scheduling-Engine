@@ -1,0 +1,16 @@
+node_modules
+.git
+.github
+
+design-assets
+raw-assets
+figma-exports
+screenshots
+docs
+
+*.psd
+*.ai
+*.sketch
+*.fig
+*.zip
+*.mp4
