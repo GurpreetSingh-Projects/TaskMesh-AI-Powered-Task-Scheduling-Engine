@@ -11,7 +11,7 @@ const ThemeButton = (props) => {
   return (
     <Pressable
       onPress={pressHandler}
-      className={`p-default gap-default items-center rounded-default my-default font-semibold max-h-[50px] ${props?.className}`}
+      className={`p-default gap-default items-center justify-center rounded-default my-default font-semibold max-h-[50px] ${props?.className}`}
       style={{
         elevation: 8,
       }}
