@@ -15,7 +15,7 @@ import { useSignInMutation } from "@/features/baseApi";
 
 const loginSchema = z.object({
   email: z.email(),
-  password: z.string().min(3, "Password is Required!!"),
+  password: z.string().min(3, "Password is Required"),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -83,48 +83,60 @@ const Login = () => {
           </View>
 
           <View className="w-full gap-7 py-5">
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { value, onChange, onBlur } }) => (
-                <ThemeTextInput
-                  placeholder="Email"
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  icon={
-                    <EmailIcon
-                      height={22.5}
-                      width={22.5}
-                      stroke={themeColors?.cloud}
-                    />
-                  }
-                />
+            <View>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { value, onChange, onBlur } }) => (
+                  <ThemeTextInput
+                    placeholder="Email"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    icon={
+                      <EmailIcon
+                        height={22.5}
+                        width={22.5}
+                        stroke={themeColors?.cloud}
+                      />
+                    }
+                  />
+                )}
+              />
+              {errors && errors?.email?.message && (
+                <ThemeText className="mt-1 text-xs text-red-500">
+                  {errors?.email?.message}
+                </ThemeText>
               )}
-            />
-
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { value, onChange, onBlur } }) => (
-                <ThemeTextInput
-                  placeholder="Password"
-                  secure
-                  value={value}
-                  onChangeText={onChange}
-                  onBlur={onBlur}
-                  keyboardType="email-address"
-                  icon={
-                    <LockIcon
-                      height={22.5}
-                      width={22.5}
-                      stroke={themeColors?.cloud}
-                    />
-                  }
-                />
+            </View>
+            <View>
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { value, onChange, onBlur } }) => (
+                  <ThemeTextInput
+                    placeholder="Password"
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    keyboardType="email-address"
+                    icon={
+                      <LockIcon
+                        height={22.5}
+                        width={22.5}
+                        stroke={themeColors?.cloud}
+                      />
+                    }
+                    secure
+                  />
+                )}
+              />
+              {errors && errors?.password?.message && (
+                <ThemeText className="mt-1 text-xs text-red-500">
+                  {errors?.password?.message}
+                </ThemeText>
               )}
-            />
-
+            </View>
             <ThemeButton
               className="bg-ink mx-default! rounded-full"
               textColor="text-white!"
