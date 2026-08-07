@@ -39,7 +39,7 @@ const ThemeTextInput = memo((props: any) => {
         }}
         placeholderTextColor={themeColors?.mist}
         cursorColor={themeColors?.obsidian}
-        secureTextEntry={isSecure}
+        secureTextEntry={props?.secure}
         textAlignVertical={props?.textAlignVertical}
       />
 
@@ -48,7 +48,7 @@ const ThemeTextInput = memo((props: any) => {
           onPress={() => {
             setIsSecure((prev) => !prev);
           }}
-          className="h-full items-center justify-center flex-1"
+          className="h-full items-center justify-center flex-1 pr-5"
         >
           {isSecure ? (
             <VisibilityIcon
