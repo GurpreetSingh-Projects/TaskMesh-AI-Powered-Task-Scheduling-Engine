@@ -37,7 +37,7 @@ const ThemeTextInput = memo((props: any) => {
           width: props?.secure || props?.icon ? "85%" : "100%",
           height: "100%",
         }}
-        placeholderTextColor={themeColors?.mist}
+        placeholderTextColor={themeColors?.steel}
         cursorColor={themeColors?.obsidian}
         secureTextEntry={props?.secure}
         textAlignVertical={props?.textAlignVertical}
@@ -54,14 +54,14 @@ const ThemeTextInput = memo((props: any) => {
             <VisibilityIcon
               height={25}
               width={25}
-              strokeWidth={2.0}
+              strokeWidth={1.5}
               color={themeColors?.obsidian}
             />
           ) : (
             <HideVisibilityIcon
               height={25}
               width={25}
-              strokeWidth={2.0}
+              strokeWidth={1.5}
               color={themeColors?.obsidian}
             />
           )}
