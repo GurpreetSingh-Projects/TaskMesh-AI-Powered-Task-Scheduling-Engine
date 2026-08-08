@@ -10,7 +10,7 @@ from ..dependencies import get_db, require_roles
 
 router = APIRouter(prefix="/users", tags=["users"])
 
-@router.post("/create", response_model=UserRead, summary="Create a new user", description="Creates a new user")
+@router.post("/register", response_model=UserRead, summary="Create a new user", description="Creates a new user")
 async def create_user(user_details: UserCreate, db: AsyncSession= Depends(get_db)):
         
         new_user = await user_service.create_user(user_details, db)
