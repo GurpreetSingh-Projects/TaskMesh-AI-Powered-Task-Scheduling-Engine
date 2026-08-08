@@ -1,13 +1,14 @@
-from app.core.enums import ActivationStatus
-from app.features.onboarding.enums import OnboardingQuestionType
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import ForeignKey, String, Enum as SAEnum, DateTime, Boolean, Integer, JSON
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-from datetime import datetime
 from sqlalchemy import text
+from datetime import datetime
 import uuid
 from app.database import Base
+from app.core.enums import ActivationStatus
+from app.features.onboarding.enums import OnboardingQuestionType
+from app.features.onboarding.schemas import QuestionnaireOption
 
 class OnboardingQuestionnaire(Base):
     __tablename__ = "onboarding_questionnaire"
@@ -17,7 +18,7 @@ class OnboardingQuestionnaire(Base):
     description: Mapped[str | None]= mapped_column(String(500), nullable=True)
     image_url: Mapped[str]= mapped_column(String(1000), nullable=True)
     status: Mapped[ActivationStatus] = mapped_column(SAEnum(ActivationStatus, name="onboarding_question_status", native_enum= True), nullable=False, default=ActivationStatus.ENABLED, server_default="ENABLED")
-    question_type: Mapped[OnboardingQuestionType] = mapped_column(SAEnum(OnboardingQuestionType, name="onboarding_question_stype", native_enum= True), nullable=False, default=OnboardingQuestionType.MCQ_SINGLE_SELECT, server_default="MCQ_SINGLE_SELECT")
+    question_type: Mapped[OnboardingQuestionType] = mapped_column(SAEnum(OnboardingQuestionType, name="onboarding_question_type", native_enum= True), nullable=False, default=OnboardingQuestionType.MCQ_SINGLE_SELECT, server_default="MCQ_SINGLE_SELECT")
     media_source: Mapped[str | None]= mapped_column(String(500), nullable=True)
     options: Mapped[list] = mapped_column(JSON, nullable=True)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
