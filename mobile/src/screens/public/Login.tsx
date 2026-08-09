@@ -64,7 +64,7 @@ const Login = () => {
               height: 450,
               width: 450,
               position: "absolute",
-              // zIndex: -1,
+              zIndex: -10,
             }}
             source={images?.onboarding?.login}
             contentFit="cover"
