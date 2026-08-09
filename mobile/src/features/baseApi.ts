@@ -21,6 +21,27 @@ export const baseApi = createApi({
         },
       }),
     }),
+
+    // register: builder.mutation({
+    //   query: ({ email, password }) => ({
+    //     url: "/auth/register",
+    //     method: "POST",
+    //     body: {
+    //       useranme: email,
+    //       password,
+    //     },
+    //   }),
+    // }),
+    register: builder.mutation({
+      query: ({ email, password }) => ({
+        url: "/users/create",
+        method: "POST",
+        body: {
+          email: email,
+          password,
+        },
+      }),
+    }),
   }),
 });
 
