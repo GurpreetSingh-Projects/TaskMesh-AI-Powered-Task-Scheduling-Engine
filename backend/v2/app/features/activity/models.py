@@ -5,8 +5,8 @@ from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from datetime import datetime
 from sqlalchemy import text
 import uuid
-from ...database import Base
-from .enums import UserActivityType
+from app.database import Base
+from app.features.activity.enums import UserActivityType
 
 class UserActivity(Base):
   __tablename__ = "user_activity"
@@ -14,7 +14,7 @@ class UserActivity(Base):
   user_activity_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"), default=uuid.uuid4, nullable=False)
   user_id: Mapped[uuid.UUID]= mapped_column(ForeignKey("users.user_id"), nullable=False)
   timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False)
-  activity_type: Mapped[UserActivityType]= mapped_column(SAEnum)
+  activity_type: Mapped[UserActivityType]= mapped_column(SAEnum(UserActivityType, name='user_activity_type', native_enum= True), nullable=False)
   task_id: Mapped[uuid.UUID]= mapped_column(ForeignKey("tasks.task_id"), nullable=False)
   subtask_id: Mapped[uuid.UUID]= mapped_column(ForeignKey("subtasks.subtask_id"), nullable=False)
   device_id: Mapped[str]= mapped_column(String(100), nullable=False)
