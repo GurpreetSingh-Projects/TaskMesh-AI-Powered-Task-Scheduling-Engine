@@ -75,8 +75,9 @@ const OnboardingCarousel = () => {
             </ThemeText>
           </View>
           <ThemeText className="font-normal! text-center text-graphite!">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Laboriosam
-            consectetur molestiae deserunt veniam veritatis, fuga doloremque
+            Taskmesh is a smart app for helping you manage your
+            daily tasks effectively, with timely reminders, ease of use and
+            powered by <ThemeText className="font-bold!">AI</ThemeText>
           </ThemeText>
           <View className="w-full">
             <ThemeButton
