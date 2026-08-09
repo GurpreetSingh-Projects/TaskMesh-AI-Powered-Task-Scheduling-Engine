@@ -12,6 +12,8 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSignInMutation } from "@/features/baseApi";
+import OrSeparator from "@/components/OrSeparator";
+import { Link } from "@react-navigation/native";
 
 const loginSchema = z.object({
   email: z.email(),
@@ -64,13 +66,13 @@ const Login = () => {
               position: "absolute",
               // zIndex: -1,
             }}
-            source={images?.onboarding?.register}
+            source={images?.onboarding?.login}
             contentFit="cover"
             allowDownscaling={false}
           />
         </OnboardingBg>
         <View
-          className="flex-1 w-full pt-5 gap-5  bg-canvas px-page"
+          className="flex-1 w-full pt-5 bg-canvas px-page"
           style={{ zIndex: 99999 }}
         >
           <View className="gap-1">
@@ -82,8 +84,8 @@ const Login = () => {
             </ThemeText>
           </View>
 
-          <View className="w-full gap-7 py-5">
-            <View>
+          <View className="w-full pt-5">
+            <View className="pb-5">
               <Controller
                 control={control}
                 name="email"
@@ -97,7 +99,7 @@ const Login = () => {
                       <EmailIcon
                         height={22.5}
                         width={22.5}
-                        stroke={themeColors?.cloud}
+                        stroke={themeColors?.steel}
                       />
                     }
                   />
@@ -109,7 +111,7 @@ const Login = () => {
                 </ThemeText>
               )}
             </View>
-            <View>
+            <View className="pb-5">
               <Controller
                 control={control}
                 name="password"
@@ -124,7 +126,7 @@ const Login = () => {
                       <LockIcon
                         height={22.5}
                         width={22.5}
-                        stroke={themeColors?.cloud}
+                        stroke={themeColors?.steel}
                       />
                     }
                     secure
@@ -137,12 +139,26 @@ const Login = () => {
                 </ThemeText>
               )}
             </View>
+
             <ThemeButton
               className="bg-ink mx-default! rounded-full"
               textColor="text-white!"
               text="GET STARTED"
               onPress={handleSubmit(submitHandler)}
             />
+            <>
+              <OrSeparator />
+              <View className="flex-row w-full items-center justify-center gap-1 mt-5">
+                <ThemeText className="text-sm text-steel">
+                  Don't have an account ?
+                </ThemeText>
+                <Link screen="Register">
+                  <ThemeText className="font-bold! text-sm text-ink">
+                    Register Now
+                  </ThemeText>
+                </Link>
+              </View>
+            </>
           </View>
         </View>
       </View>
