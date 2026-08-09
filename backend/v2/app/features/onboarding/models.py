@@ -8,7 +8,7 @@ import uuid
 from app.database import Base
 from app.core.enums import ActivationStatus
 from app.features.onboarding.enums import OnboardingQuestionType
-from app.features.onboarding.schemas import QuestionnaireOption
+from app.features.onboarding.schemas import QuestionnaireOptionSchema
 
 class OnboardingQuestionnaire(Base):
     __tablename__ = "onboarding_questionnaire"

@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from datetime import datetime, timezone
+from uuid import UUID
 from app.features.onboarding.models import OnboardingQuestionnaire
 from app.features.onboarding.schemas import OnboardingQuestionnaireRequestSchema
 from app.features.users.models import Users
