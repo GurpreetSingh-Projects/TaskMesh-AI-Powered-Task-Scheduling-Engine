@@ -3,28 +3,37 @@ from uuid import UUID
 from app.core.enums import ActivationStatus
 from app.features.onboarding.enums import OnboardingQuestionType
 
-class QuestionnaireOption(BaseModel):
+class QuestionnaireOptionSchema(BaseModel):
     title: str
     description: str | None = None
     image_url: str | None = None
 
-class OnboardingQuestionnaireRequest(BaseModel):
+class OnboardingQuestionnaireRequestSchema(BaseModel):
     title: str
     description: str | None = None
-    options: list[QuestionnaireOption]
+    options: list[QuestionnaireOptionSchema]
     question_type: OnboardingQuestionType
     media_source: str | None = None
 
-class OnboardingQuestionnaireItem(BaseModel):
+class OnboardingQuestionnaireItemSchema(BaseModel):
     onboarding_question_id: UUID
     title: str
     description: str | None = None
-    options: list[QuestionnaireOption]
+    options: list[QuestionnaireOptionSchema]
     question_type: OnboardingQuestionType
     media_source: str | None = None
     status: ActivationStatus
     image_url: str | None = None
 
-class OnboardingQuestionnaireReadResponse(BaseModel):
-    items: list [OnboardingQuestionnaireItem]
+class OnboardingQuestionnaireReadResponseSchema(BaseModel):
+    items: list [OnboardingQuestionnaireItemSchema]
     total: int
+
+class OnboardingQuestionnaireEditRequest(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    options: list[QuestionnaireOptionSchema]
+    question_type: OnboardingQuestionType
+    media_source: str | None = None
+    status: ActivationStatus
+    image_url: str | None = None

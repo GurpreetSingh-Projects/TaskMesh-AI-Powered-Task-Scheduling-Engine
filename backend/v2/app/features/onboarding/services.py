@@ -4,14 +4,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from datetime import datetime, timezone
 from app.features.onboarding.models import OnboardingQuestionnaire
-from app.features.onboarding.schemas import OnboardingQuestionnaireRequest
+from app.features.onboarding.schemas import OnboardingQuestionnaireRequestSchema
 from app.features.users.models import Users
     
 class OnboardingService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def add_onboarding_questions(self, user: Users, onboarding_questions: list[OnboardingQuestionnaireRequest]):
+    async def add_onboarding_questions(self, user: Users, onboarding_questions: list[OnboardingQuestionnaireRequestSchema]):
         if not onboarding_questions:
             raise HTTPException(status_code= 400, detail="No onboarding questions provided.")
 
@@ -52,7 +52,7 @@ class OnboardingService:
         await self.db.commit()
         return added_questions
 
-    async def get_onboarding_questions(self, user: Users):
+    async def get_onboarding_questions(self):
         query= select(OnboardingQuestionnaire).where(OnboardingQuestionnaire.status == "ENABLED", OnboardingQuestionnaire.is_deleted.is_(False)).limit(25)
 
         questions = (await self.db.execute(query)).scalars().all()
@@ -65,3 +65,10 @@ class OnboardingService:
             "items": questions,
             "total": total
         }
+
+    async def edit_onboarding_question(self, question_id: UUID, user: Users):
+        query= select(OnboardingQuestionnaire).where( OnboardingQuestionnaire.onboarding_question_id == question_id, OnboardingQuestionnaire.status == "ENABLED", OnboardingQuestionnaire.is_deleted.is_(False))
+
+        question = (self.db.execute(query)).scalar_one_or_none()
+
+
