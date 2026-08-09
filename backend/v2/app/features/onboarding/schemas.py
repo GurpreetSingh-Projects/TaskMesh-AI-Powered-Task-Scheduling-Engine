@@ -15,7 +15,7 @@ class OnboardingQuestionnaireRequest(BaseModel):
     question_type: OnboardingQuestionType
     media_source: str | None = None
 
-class OnboardingQuestionnaireResponse(BaseModel):
+class OnboardingQuestionnaireItem(BaseModel):
     onboarding_question_id: UUID
     title: str
     description: str | None = None
@@ -24,3 +24,7 @@ class OnboardingQuestionnaireResponse(BaseModel):
     media_source: str | None = None
     status: ActivationStatus
     image_url: str | None = None
+
+class OnboardingQuestionnaireReadResponse(BaseModel):
+    items: list [OnboardingQuestionnaireItem]
+    total: int
