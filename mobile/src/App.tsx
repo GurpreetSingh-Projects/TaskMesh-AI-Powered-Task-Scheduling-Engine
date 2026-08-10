@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import RootNavigator from "./screens/RootNavigator";
 import { store } from "./store";
 import "../global.css";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 const App = () => {
   return (
@@ -14,7 +15,9 @@ const App = () => {
         <NavigationContainer>
           <SafeAreaProvider>
             <KeyboardProvider>
-              <RootNavigator />
+              <BottomSheetModalProvider>
+                <RootNavigator />
+              </BottomSheetModalProvider>
             </KeyboardProvider>
           </SafeAreaProvider>
         </NavigationContainer>
