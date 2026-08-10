@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useSignInMutation } from "@/features/baseApi";
 import OrSeparator from "@/components/OrSeparator";
 import { Link } from "@react-navigation/native";
+import ThemeDrawer from "@/components/ThemeDrawer";
 
 const loginSchema = z.object({
   email: z.email(),
@@ -63,8 +64,7 @@ const Login = () => {
             style={{
               height: 450,
               width: 450,
-              position: "absolute",
-              zIndex: -10,
+              zIndex: 0,
             }}
             source={images?.onboarding?.login}
             contentFit="cover"
@@ -163,6 +163,7 @@ const Login = () => {
         </View>
       </View>
       {/* </KeyboardAvoidingView> */}
+      <ThemeDrawer />
     </ThemePage>
   );
 };
