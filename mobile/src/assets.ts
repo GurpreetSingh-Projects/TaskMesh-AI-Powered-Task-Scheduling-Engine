@@ -17,7 +17,9 @@ export const images = {
   },
 };
 
-export const animations: Record<string, ImageSourcePropType> = {};
+export const animations = {
+  tickIcon: require("@/assets/animations/tick-icon.lottie"),
+};
 
 export const sounds: Record<string, ImageSourcePropType> = {};
 
