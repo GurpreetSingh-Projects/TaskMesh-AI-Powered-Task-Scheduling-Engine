@@ -81,7 +81,7 @@ importers:
         specifier: ~55.0.18
         version: 55.0.18(expo@55.0.26)(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))
       lottie-react-native:
-        specifier: ^7.3.6
+        specifier: ^7.3.8
         version: 7.3.8(react-native@0.83.6(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
       nativewind:
         specifier: 5.0.0-preview.4
