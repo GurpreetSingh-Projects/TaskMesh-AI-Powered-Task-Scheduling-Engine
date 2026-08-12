@@ -32,7 +32,7 @@ export const primarySizes = {
 
 export const primarySpacing = {
   default: 16,
-  "default/2": 8,
+  "default-half": 8,
   16: "16px",
   14: "14px",
   12: "12px",
