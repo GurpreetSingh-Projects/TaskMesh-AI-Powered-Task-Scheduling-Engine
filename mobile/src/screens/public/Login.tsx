@@ -4,7 +4,7 @@ import ThemeText from "@/components/ThemeText";
 import ThemePage from "@/components/ThemePage";
 import OnboardingBg from "@/components/OnboardingBg";
 import { Image } from "expo-image";
-import { images } from "@/assets";
+import { animations, images } from "@/assets";
 import ThemeTextInput from "@/components/ThemeTextInput";
 import { EmailIcon, LockIcon } from "@/Icon";
 import { themeColors } from "@/theme";
@@ -15,6 +15,9 @@ import { useSignInMutation } from "@/features/baseApi";
 import OrSeparator from "@/components/OrSeparator";
 import { Link } from "@react-navigation/native";
 import ThemeDrawer from "@/components/ThemeDrawer";
+import { useEffect, useRef } from "react";
+import type { BottomSheetModal } from "@gorhom/bottom-sheet";
+import LottieView from "lottie-react-native";
 
 const loginSchema = z.object({
   email: z.email(),
@@ -25,6 +28,8 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const [signIn, { isSuccess, isError, error }] = useSignInMutation();
+  const loginDrawerRef = useRef<BottomSheetModal>(null);
+
   const {
     control,
     handleSubmit,
@@ -49,6 +54,10 @@ const Login = () => {
       console.error("Login api error:", error);
     }
   };
+
+  useEffect(() => {
+    loginDrawerRef?.current?.present();
+  }, []);
 
   return (
     <ThemePage className="bg-canvas" noSafeArea isScrollable>
@@ -163,7 +172,27 @@ const Login = () => {
         </View>
       </View>
       {/* </KeyboardAvoidingView> */}
-      <ThemeDrawer />
+      <ThemeDrawer ref={loginDrawerRef} snapPoints={["30%"]} closable={false}>
+        <View className="h-full w-full flex-1 items-center justify-center bg-red-300">
+          <LottieView
+            source={animations?.tickIcon}
+            autoPlay
+            loop={false}
+            style={{
+              width: 100,
+              height: 100,
+            }}
+          />
+          <View className="gap-3 py-3">
+            <ThemeText className="font-medium text-2xl text-start">
+              Login successfull
+            </ThemeText>
+            <ThemeText className="text-sm font-normal! text-graphite!">
+              Preparing your workspace
+            </ThemeText>
+          </View>
+        </View>
+      </ThemeDrawer>
     </ThemePage>
   );
 };
