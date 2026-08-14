@@ -1,8 +1,8 @@
 from fastapi import HTTPException
 from uuid import UUID
+from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from pydantic import EmailStr
 from datetime import datetime, timezone
 from app.features.users.schemas import UserEditRequestSchema
@@ -50,11 +50,28 @@ class UserService:
 
 
     async def deactivate_user(self, user_id: UUID):
-        user = await self.get_user_details(user_id= user_id)
+        deactivate_query= (
+            update(Users)
+            .where(
+                Users.user_id == user_id
+            )
+            .values(
+                is_deleted= True,
+                deleted_at= datetime.now(timezone.utc),
+                updated_by= user_id
+            )
+            .returning(Users)
+        )
 
-        user.is_deleted = True
-        user.deleted_at = datetime.now(timezone.utc)
+        try:
+            response = (await self.db.execute(deactivate_query)).scalar_one_or_none()
+            if response is None:
+                raise HTTPException(status_code= 400, detail= "No task found with the given id")
+        except HTTPException:
+            await self.db.rollback()
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
 
-        user.updated_by = user_id
         await self.db.commit()
         return
