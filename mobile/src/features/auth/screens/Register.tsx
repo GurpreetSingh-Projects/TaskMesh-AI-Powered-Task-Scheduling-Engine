@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import React from "react";
 import ThemePage from "@/components/ThemePage";
-import OnboardingBg from "@/components/OnboardingBg";
+import OnboardingBg from "@/features/onboarding/components/OnboardingBg";
 import { Image } from "expo-image";
 import { images } from "@/assets";
 import ThemeText from "@/components/ThemeText";
@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigation } from "@react-navigation/native";
 import ThemeButton from "@/components/ThemeButton";
 import OrSeparator from "@/components/OrSeparator";
+import BackButton from "@/components/BackButton";
 
 const registerSchema = z.object({
   email: z.email(),
@@ -43,9 +44,9 @@ const Register = () => {
             className="h-full"
             // keyboardVerticalOffset={150}
           > */}
+      {/* <BackButton goBack /> */}
       <View className="flex-1 items-center">
         <OnboardingBg className="h-1/2 relative items-center justify-start">
-          {/* <BackButton goBack /> */}
           <Image
             style={{
               height: 450,
@@ -62,7 +63,7 @@ const Register = () => {
           style={{ zIndex: 99999 }}
         >
           <View className="gap-1">
-            <ThemeText className="font-medium text-3xl text-start">
+            <ThemeText variant="heading" className="text-start">
               Create Account
             </ThemeText>
             <ThemeText className="font-normal! text-graphite!">

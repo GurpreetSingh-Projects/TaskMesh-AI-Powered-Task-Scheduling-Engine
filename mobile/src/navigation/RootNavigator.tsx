@@ -2,9 +2,9 @@ import { StyleSheet, Text, View } from "react-native";
 import React, { useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAwakeServerCall } from "@/hooks/useAwakeServer";
-import OnboardingCarousel from "./public/OnboardingCarousel";
-import Register from "./public/Register";
-import Login from "./public/Login";
+import OnboardingCarousel from "../features/onboarding/screens/OnboardingCarousel";
+import Register from "../features/auth/screens/Register";
+import Login from "../features/auth/screens/Login";
 
 const Stack = createNativeStackNavigator();
 const RootNavigator = () => {

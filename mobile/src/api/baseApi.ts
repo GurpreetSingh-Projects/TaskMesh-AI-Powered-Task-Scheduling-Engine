@@ -5,7 +5,7 @@ export const baseApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: `${process.env.EXPO_PUBLIC_API_URL}` }),
   endpoints: (builder) => ({
     awakeServer: builder.query<ResponseType, void>({
-      query: () => "/",
+      query: () => "/health",
     }),
 
     signIn: builder.mutation({
@@ -13,31 +13,18 @@ export const baseApi = createApi({
         url: "/auth/login",
         method: "POST",
         body: {
-          useranme: email,
+          email,
           password,
-        },
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
         },
       }),
     }),
 
-    // register: builder.mutation({
-    //   query: ({ email, password }) => ({
-    //     url: "/auth/register",
-    //     method: "POST",
-    //     body: {
-    //       useranme: email,
-    //       password,
-    //     },
-    //   }),
-    // }),
     register: builder.mutation({
       query: ({ email, password }) => ({
         url: "/users/create",
         method: "POST",
         body: {
-          email: email,
+          email,
           password,
         },
       }),

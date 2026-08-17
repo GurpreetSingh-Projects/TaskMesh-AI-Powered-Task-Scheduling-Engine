@@ -14,9 +14,10 @@ import { SlideItem } from "@/components/SlideItem";
 import { primaryBorderRadius } from "@/theme";
 import ThemeButton from "@/components/ThemeButton";
 import ThemeText from "@/components/ThemeText";
-import OnboardingBg from "@/components/OnboardingBg";
+import OnboardingBg from "@/features/onboarding/components/OnboardingBg";
 import { useNavigation } from "@react-navigation/native";
-import BackButton from "@/components/BackButton";
+import { AuthStackParamList } from "@/features/auth/types";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 const OnboardingCarousel = () => {
   const { height, width } = useWindowDimensions();
@@ -33,7 +34,8 @@ const OnboardingCarousel = () => {
     };
   }, []);
 
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
   return (
     <ThemePage className="bg-canvas" noSafeArea>
@@ -43,7 +45,7 @@ const OnboardingCarousel = () => {
             loop={true}
             autoPlay
             width={width}
-            height={height / 1.65}
+            height={height / 1.5}
             data={carouselImages}
             onScrollStart={() => {
               pressAnim.value = withTiming(1);
@@ -65,29 +67,34 @@ const OnboardingCarousel = () => {
             autoPlayInterval={2500}
           />
         </OnboardingBg>
-        <View className="flex-1 w-full items-center pt-5 gap-5 z-10 px-page">
+        <View className="flex-1 w-full items-center pt-5 gap-5 z-10 px-page relative">
           <View className="gap-1">
-            <ThemeText className="font-medium text-3xl text-center">
-              Meet TaskMesh, organize
-            </ThemeText>
-            <ThemeText className="font-medium text-3xl text-center">
-              chaos with AI
+            <ThemeText variant="heading" className="text-center">
+              Meet TaskMesh, Organizing your day just got smarter
             </ThemeText>
           </View>
-          <ThemeText className="font-normal! text-center text-graphite!">
-            Taskmesh is a smart app for helping you manage your
-            daily tasks effectively, with timely reminders, ease of use and
-            powered by <ThemeText className="font-bold!">AI</ThemeText>
+          <ThemeText className="text-sm font-normal! text-center text-graphite!">
+            A smart app for helping you manage your daily tasks effectively,
+            with timely reminders, ease of use and powered by{" "}
+            <ThemeText className="font-bold!">AI</ThemeText>
           </ThemeText>
-          <View className="w-full">
-            <ThemeButton
+          <View className="w-full absolute bottom-5">
+            {/* <ThemeButton
               className="bg-ink mx-default! rounded-full"
               textColor="text-white!"
               text="GET STARTED"
               onPress={() => {
                 navigation.navigate("Login");
               }}
-            />
+            /> */}
+            <ThemeButton
+              className="bg-ink mx-default! rounded-full items-center justify-center"
+              onPress={() => navigation.navigate("Login")}
+            >
+              <ThemeText className="font-bold text-white text-center text-base">
+                GET STARTED
+              </ThemeText>
+            </ThemeButton>
           </View>
         </View>
       </View>

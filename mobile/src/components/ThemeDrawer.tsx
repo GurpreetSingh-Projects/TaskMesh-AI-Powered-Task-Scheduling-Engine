@@ -59,7 +59,7 @@ const ThemeDrawer = (props: ThemeDrawerProps) => {
       onDismiss={props?.onDismiss}
       handleComponent={ThemeDrawerPill}
     >
-      <BottomSheetView className="h-full w-full bg-yellow-400">
+      <BottomSheetView className="h-full w-full">
         {props?.children}
       </BottomSheetView>
     </BottomSheetModal>

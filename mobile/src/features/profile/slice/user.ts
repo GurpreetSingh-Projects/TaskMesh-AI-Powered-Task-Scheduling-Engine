@@ -36,4 +36,3 @@ export const userSlice = createSlice({
 });
 
 export const { setUserInfo } = userSlice.actions;
-

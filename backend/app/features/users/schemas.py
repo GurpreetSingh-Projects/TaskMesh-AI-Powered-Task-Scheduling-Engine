@@ -26,9 +26,12 @@ class UserReadResponseSchema(BaseModel):
 
 class UserLoginResponseSchema(BaseModel):
     access_token: str
+    access_token_expires_at: datetime
     refresh_token: str
+    refresh_token_expires_at: datetime
     token_type: str
     user: UserReadResponseSchema
+    user_settings: str
 
 class UserRegisterResponseSchema(UserLoginResponseSchema):
     pass
