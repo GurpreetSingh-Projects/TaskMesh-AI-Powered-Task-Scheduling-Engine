@@ -7,10 +7,12 @@ from uuid import UUID
 from app.features.onboarding.models import OnboardingQuestionnaire, OnboardingQuestionnaireResponse
 from app.features.onboarding.schemas import OnboardingQuestionnaireRequestSchema, OnboardingQuestionnaireEditRequestSchema, OnboardingQuestionnaireItemRequestSchema
 from app.features.users.models import Users
-    
+from app.features.users.services import UserService
+
 class OnboardingService:
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.user_service= UserService
 
     async def add_onboarding_questions(self, user: Users, onboarding_questions: list[OnboardingQuestionnaireRequestSchema]):
         if not onboarding_questions:
@@ -165,14 +167,25 @@ class OnboardingService:
                 for item in onboarding_questions_response 
         ]
 
-        try:
-            insert_query= (
-                insert(OnboardingQuestionnaireResponse)
-                    .values(values_list)
-                    .returning(OnboardingQuestionnaireResponse)
+        insert_query= (
+            insert(OnboardingQuestionnaireResponse)
+                .values(values_list)
+                .returning(OnboardingQuestionnaireResponse)
+        )
+
+        user_update_query = (
+            update(Users)
+            .where(
+                Users.user_id == user.user_id,
+                Users.is_deleted.is_(False)
             )
-            
-            result = (await self.db.execute(insert_query)).scalars().all()
+            .values(is_onboarding_completed= True)
+        )
+
+        
+        try:   
+            onboarding_result = (await self.db.execute(insert_query)).scalars().all()
+            user_update_result= (await self.db.execute(user_update_query))
 
         except HTTPException:
             await self.db.rollback()
@@ -183,8 +196,7 @@ class OnboardingService:
             raise HTTPException(status_code=500, detail=f"An error occurred while adding onboarding questions: {str(e)}")
 
         await self.db.commit()
-
-        return result
+        return onboarding_result
 
     async def get_onboarding_responses(self, user: Users):
         query = (

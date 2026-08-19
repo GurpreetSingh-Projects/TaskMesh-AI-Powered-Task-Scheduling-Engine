@@ -1,5 +1,6 @@
 from uuid import UUID
-from fastapi import  HTTPException, Depends
+from fastapi import  HTTPException
+from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.features.users.services import UserService
@@ -24,6 +25,7 @@ class AuthService:
         return user
 
     async def create_user(self, user_details: UserCreateRequestSchema):
+        
         query= insert(Users).values(
             email= user_details.email, 
             hashed_pswd= hash_password(user_details.password), 
@@ -33,13 +35,8 @@ class AuthService:
             deleted_at= None
         )
 
-        query = query.on_conflict_do_update(
+        query = query.on_conflict_do_nothing(
             index_elements=[Users.email],
-            set_={
-                "is_deleted": False,
-                "deleted_at": None
-            },
-            where= (Users.email == user_details.email) & (Users.is_deleted.is_(True))
         ).returning(Users)
 
         try:
@@ -47,7 +44,7 @@ class AuthService:
             
             if result is None:
                 await self.db.rollback()
-                raise HTTPException(status_code = 409, detail= "User with this email already exists") 
+                raise HTTPException(status_code = 409, detail= "User with this email already exists")
 
             await self.db.commit()
             access_token = create_access_token(result.user_id)
@@ -105,3 +102,30 @@ class AuthService:
             "refresh_token_expires_at": datetime.now(timezone.utc) + timedelta(days= settings.REFRESH_TOKEN_EXPIRE_DAYS),
             "token_type": "bearer"
         }
+
+    async def reactivate_user(self, user_id: UUID):
+        reactivate_query= (
+            update(Users)
+            .where(
+                Users.user_id == user_id
+            )
+            .values(
+                is_deleted= False,
+                deleted_at= None,
+                updated_by= user_id
+            )
+            .returning(Users)
+        )
+
+        try:
+            response = (await self.db.execute(reactivate_query)).scalar_one_or_none()
+            if response is None:
+                raise HTTPException(status_code= 400, detail= "No task found with the given id")
+        except HTTPException:
+            await self.db.rollback()
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
+
+        await self.db.commit()
+        return

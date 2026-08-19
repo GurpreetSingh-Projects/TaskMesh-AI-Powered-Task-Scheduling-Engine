@@ -11,14 +11,15 @@ import { themeColors } from "@/theme";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSignInMutation } from "@/api/baseApi";
+import { useLoginMutation } from "@/api/baseApi";
 import OrSeparator from "@/components/OrSeparator";
-import { Link } from "@react-navigation/native";
+import { Link, useNavigation } from "@react-navigation/native";
 import ThemeDrawer from "@/components/ThemeDrawer";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import LottieView from "lottie-react-native";
 import { DrawerMode } from "../types";
+import { getAuthMessage, setAuth } from "../utils";
 
 const loginSchema = z.object({
   email: z.email(),
@@ -28,10 +29,14 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 const Login = () => {
-  const [signIn, { isLoading, isSuccess, isError, error, reset }] =
-    useSignInMutation();
+  const [login, { isLoading, isSuccess, isError, error, reset }] =
+    useLoginMutation();
   const loginDrawerRef = useRef<BottomSheetModal>(null);
   const [drawerMode, setDrawerMode] = useState<DrawerMode>("default");
+  const [drawerMsg, setDrawerMsg] = useState({
+    title: "",
+    description: "",
+  });
 
   const {
     control,
@@ -45,21 +50,31 @@ const Login = () => {
     },
   });
 
+  const navigation = useNavigation();
+
   const submitHandler = async (values: LoginForm) => {
     try {
-      const response = await signIn({
+      const response = await login({
         email: values.email,
         password: values.password,
       }).unwrap();
       console.log(response);
+      await setAuth(response);
+      setDrawerMsg({
+        title: "Welcome back!!",
+        description: "Logged in successfully, setting up...",
+      });
       setDrawerMode("success");
     } catch (error) {
       console.log("Login api error:", error);
+      setDrawerMsg(getAuthMessage(error?.status));
       setDrawerMode("fail");
     }
+
     loginDrawerRef?.current?.present();
     setTimeout(() => {
       loginDrawerRef?.current?.dismiss();
+      reset();
     }, 3500);
   };
 
@@ -88,7 +103,7 @@ const Login = () => {
               Welcome back
             </ThemeText>
             <ThemeText className="text-sm font-normal! text-graphite!">
-              Sign in to continue managing your day
+              Login to continue managing your day
             </ThemeText>
           </View>
 
@@ -111,7 +126,7 @@ const Login = () => {
                         stroke={themeColors?.steel}
                       />
                     }
-                    autoFocus
+                    // autoFocus
                   />
                 )}
               />
@@ -153,15 +168,7 @@ const Login = () => {
               className="bg-ink mx-default! rounded-full"
               textColor="text-white!"
               text="GET STARTED"
-              status={
-                isLoading
-                  ? "loading"
-                  : isSuccess
-                    ? "success"
-                    : isError
-                      ? "error"
-                      : "default"
-              }
+              status={isLoading ? "loading" : "default"}
               onPress={() => {
                 Keyboard.dismiss();
                 handleSubmit(submitHandler)();
@@ -201,11 +208,10 @@ const Login = () => {
           />
           <View className="gap-3 py-3">
             <ThemeText variant="subheading" className="text-center">
-              {drawerMode === "success" ? "Login Successfull" : "Login Failed"}
-              !!
+              {drawerMsg?.title}
             </ThemeText>
             <ThemeText className="text-graphite! text-center">
-              {error?.data?.detail}
+              {drawerMsg?.description}
             </ThemeText>
           </View>
         </View>

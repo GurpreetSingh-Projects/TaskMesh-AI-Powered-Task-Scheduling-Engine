@@ -32,22 +32,36 @@ class UserService:
         return user
 
 
-    async def edit_user(self, user_id: UUID, user_data: UserEditRequestSchema):
-        user = await self.get_user_details(user_id= user_id)
+    async def edit_user(self, user: Users, user_data: UserEditRequestSchema):
+        user_data= user_data.model_dump(exclude_unset= True)
 
         if not user_data:
-            raise HTTPException(status_code= 401, detail="Invalid input provided")
-        if user_data.email:
-            user.email = user_data.email
-        if user_data.password:
-            user.password = hash_password(user_data.password)
-        if user_data.profile_img:
-            user.profile_img = user_data.profile_img
+            raise HTTPException(status_code= 400, detail= "Invalid update user details provided")
 
-        user.updated_by = user_id
+        user_data["updated_by"]= user.user_id
+
+        update_query= (
+            update(Users)
+            .where(
+                Users.user_id == user.user_id,
+                Users.is_deleted.is_(False)
+            )
+            .values(**user_data)
+            .returning(Users)
+        )
+
+        try:
+            response = (await self.db.execute(update_query)).scalar_one_or_none()
+            if response is None:
+                raise HTTPException(status_code= 400, detail= "No user found with the given id")
+        except HTTPException:
+            await self.db.rollback()
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred while updating user: {str(e)}")
+
         await self.db.commit()
-        return user
-
+        return response
 
     async def deactivate_user(self, user_id: UUID):
         deactivate_query= (

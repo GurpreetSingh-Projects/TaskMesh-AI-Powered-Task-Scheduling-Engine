@@ -8,7 +8,7 @@ export const baseApi = createApi({
       query: () => "/health",
     }),
 
-    signIn: builder.mutation({
+    login: builder.mutation({
       query: ({ email, password }) => ({
         url: "/auth/login",
         method: "POST",
@@ -21,7 +21,7 @@ export const baseApi = createApi({
 
     register: builder.mutation({
       query: ({ email, password }) => ({
-        url: "/users/create",
+        url: "/auth/register",
         method: "POST",
         body: {
           email,
@@ -32,4 +32,8 @@ export const baseApi = createApi({
   }),
 });
 
-export const { useLazyAwakeServerQuery, useSignInMutation } = baseApi;
+export const {
+  useLazyAwakeServerQuery,
+  useLoginMutation,
+  useRegisterMutation,
+} = baseApi;

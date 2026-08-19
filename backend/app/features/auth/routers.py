@@ -1,9 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.features.users.schemas import UserCreateRequestSchema, UserLoginRequestSchema, UserLoginResponseSchema, UserRegisterResponseSchema
-from app.features.users.services import UserService
 from app.features.auth.services import AuthService
 from app.features.auth.dependencies import get_auth_service
 from app.core.dependencies import get_current_user
@@ -33,3 +31,7 @@ async def login_user( user_details: UserLoginRequestSchema, auth_service: AuthSe
 async def refresh_token(refresh_token: str, auth_service: AuthService = Depends(get_auth_service)):
     user = await auth_service.refresh_token(refresh_token)
     return user
+
+@router.patch("/reactivate", status_code=204, summary="Reactivates the current user", description="Reactivates the current user")
+async def reactivate_user(user_details: UserLoginRequestSchema, auth_services: AuthService = Depends(get_auth_service)):
+    return await auth_services.reactivate_user(user_details)
