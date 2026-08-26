@@ -2,11 +2,7 @@ from pydantic import BaseModel
 from pydantic import EmailStr
 from uuid import UUID
 from datetime import datetime
-
-class UserCreateRequestSchema(BaseModel):
-    email: EmailStr
-    password: str
-    image_url: str | None = None
+from fastapi import UploadFile, Form
 
 class UserLoginRequestSchema(BaseModel):
     email: EmailStr
