@@ -57,12 +57,13 @@ class StorageService:
         
             try:
                 async with self._session.client(**self._client_kwargs) as s3:
-                    await s3.put_object(
+                    response = await s3.put_object(
                         Bucket=self.bucket, 
                         Key=storage_key, 
                         Body=file_bytes, 
                         ContentType=file.content_type
                     )
+                    print("file upload Response", response)
             except HTTPException:
                 raise
             except Exception as e:
@@ -129,23 +130,7 @@ class StorageService:
         if file is None:
             raise HTTPException(status_code=404, detail="File not found")
 
-        try:
-            async with self._session.client(**self._client_kwargs) as s3:
-                file.download_url = await s3.generate_presigned_url(
-                    "get_object",
-                    Params={
-                        "Bucket": self.bucket,
-                        "Key": file.storage_key,
-                    },
-                    ExpiresIn=settings.ASSET_TOKEN_EXPIRY_SECONDS,
-                )
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Failed to generate file URL: {str(e)}",
-            )
+        file.download_url = await self.get_signed_asset_url(file.storage_key)
         return file
 
     async def deactivate_file(self, file_storage_id, user):
@@ -205,3 +190,23 @@ class StorageService:
             "item": reactivated_file,
             "detail": "Previously deleted file reactivated",
         }
+
+    async def get_signed_asset_url(self, storage_key: str) -> str:
+        try:
+            async with self._session.client(**self._client_kwargs) as s3:
+                return await s3.generate_presigned_url(
+                    "get_object",
+                    Params={
+                        "Bucket": self.bucket,
+                        "Key": storage_key,
+                    },
+                    ExpiresIn=settings.ASSET_TOKEN_EXPIRY_SECONDS,
+                )
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=502,
+                detail=f"Failed to generate file URL: {str(e)}",
+            )
+        
