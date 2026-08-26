@@ -1,31 +1,27 @@
 from uuid import UUID
-from fastapi import  HTTPException
+from fastapi import  HTTPException, UploadFile
+from pydantic import EmailStr
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.features.users.services import UserService
-from app.features.users.schemas import UserCreateRequestSchema, UserLoginRequestSchema
+from app.features.storage.services import StorageService
+from app.features.users.schemas import UserCreateRequestSchema, UserLoginRequestSchema, UserEditRequestSchema
 from app.features.users.models import Users
 from app.features.users.enums import UserRoles
 from app.core.utils import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
 from datetime import datetime, timezone, timedelta
 from app.config import settings
+from app.features.storage.enums import FileStorageEntity
 
 class AuthService:
     def __init__(self, db: AsyncSession):
         self.db= db
         self.user_service= UserService(db)
+        self.storage_service= StorageService(db)
 
-    async def get_current_user(self, token: str):
-        payload = decode_token(token)
-        if not payload or not payload.sub:
-            raise HTTPException(status_code=401, detail="Invalid or expired token")
-
-        user = await self.user_service.get_user_details(user_id= UUID(payload.sub))
-        return user
-
-    async def create_user(self, user_details: UserCreateRequestSchema):
-        user = await self.user_service.get_user_details(user_details.email, silent_mode= True)
+    async def create_user(self, email: EmailStr, password: str, profile_img: UploadFile | None):
+        user = await self.user_service.get_user_details(email= email, silent_mode= True)
 
         if user:
             if not user.is_deleted and user.deleted_at is None:
@@ -33,8 +29,8 @@ class AuthService:
             raise HTTPException(status_code = 410, detail= "This user was deleted, please try reactivating your account")
 
         insert_query= insert(Users).values(
-            email= user_details.email, 
-            hashed_pswd= hash_password(user_details.password), 
+            email= email, 
+            hashed_pswd= hash_password(password), 
             role= UserRoles.USER,
             profile_img= None,
             is_deleted= False,
@@ -46,19 +42,30 @@ class AuthService:
         ).returning(Users)
 
         try:
-            result= (await self.db.execute(insert_query)).scalar_one_or_none()
+            user= (await self.db.execute(insert_query)).scalar_one_or_none()
             
-            if result is None:
+            if user is None:
                 await self.db.rollback()
                 raise HTTPException(status_code = 409, detail= "User with this email already exists")
 
             await self.db.commit()
-            access_token = create_access_token(result.user_id)
-            refresh_token = create_refresh_token(result.user_id)
+
+            if profile_img:
+                file_record = await self.storage_service.upload_file(
+                    user=user,
+                    file=profile_img,
+                    entity_type=FileStorageEntity.PROFILE_IMG,
+                    entity_id=str(user.user_id),
+                )
+
+                await self.user_service.edit_user(user= user, user_data= UserEditRequestSchema(profile_img=str(file_record["item"].file_storage_id)))
+
+            access_token = create_access_token(user.user_id)
+            refresh_token = create_refresh_token(user.user_id)
 
             return {
                 "message": "User created successfully",
-                "user": result,
+                "user": user,
                 "access_token": access_token,
                 "access_token_expires_at": datetime.now(timezone.utc) + timedelta(minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES),
                 "refresh_token": refresh_token,
@@ -73,6 +80,15 @@ class AuthService:
         except Exception as e:
             await self.db.rollback()
             raise HTTPException(status_code=500, detail= "Something went wrong while creating the user")
+
+
+    async def get_current_user(self, token: str):
+        payload = decode_token(token)
+        if not payload or not payload.sub:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+        user = await self.user_service.get_user_details(user_id= UUID(payload.sub))
+        return user
 
     async def login_user(self, user_details: UserLoginRequestSchema):
         user = await self.user_service.get_user_details(user_details.email)
