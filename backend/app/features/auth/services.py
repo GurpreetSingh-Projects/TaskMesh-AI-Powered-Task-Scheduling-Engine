@@ -51,18 +51,10 @@ class AuthService:
             await self.db.commit()
 
             if profile_img:
-                file_record = await self.storage_service.upload_file(
-                    user=user,
-                    file=profile_img,
-                    entity_type=FileStorageEntity.PROFILE_IMG,
-                    entity_id=str(user.user_id),
-                )
-
-                await self.user_service.edit_user(user= user, user_data= UserEditRequestSchema(profile_img=str(file_record["item"].file_storage_id)))
+                file_record = await self.user_service.edit_user(user= user, profile_img= profile_img)
 
             access_token = create_access_token(user.user_id)
             refresh_token = create_refresh_token(user.user_id)
-            user.profile_img= await self.storage_service.get_signed_asset_url(file_record["item"].storage_key)
 
             return {
                 "message": "User created successfully",
