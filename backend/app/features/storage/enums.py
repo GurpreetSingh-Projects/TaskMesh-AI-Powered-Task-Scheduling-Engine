@@ -1,0 +1,15 @@
+from enum import Enum
+
+class FileStorageEntity(str, Enum):
+    PROFILE_IMG = "PROFILE_IMG"
+    TASK = "TASK"
+    SUBTASK = "SUBTASK"
+    ONBOARDING_QUESTIONNAIRE_RESPONSE = "ONBOARDING_QUESTIONNAIRE_RESPONSE"
+    LABEL = "LABEL"
+    TASK_REMINDER = "TASK_REMINDER"
+    NOTIFICATION = "NOTIFICATION"
+    OTHER= "OTHER"
+
+class ChecksumType(str, Enum):
+    MD5 = "MD5"
+    SHA256 = "SHA256"
