@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.features.users.schemas import UserCreateRequestSchema, UserLoginRequestSchema
+from app.features.users.schemas import UserCreateRequestSchema, UserLoginRequestSchema, UserLoginResponseSchema
 from app.features.users.services import UserService
 from app.features.auth.services import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-@router.post("/register", response_model= UserLoginRequestSchema, summary="New User regsitration", description="Creates a new user")
+@router.post("/register", response_model= UserLoginResponseSchema, summary="New User regsitration", description="Creates a new user")
 async def create_user( user_details: UserCreateRequestSchema, db: AsyncSession= Depends(get_db)):
     user = await AuthService.create_user(user_details.email, db)
     access_token = AuthService.create_access_token(user)
@@ -21,12 +21,12 @@ async def create_user( user_details: UserCreateRequestSchema, db: AsyncSession= 
         "token_type": "bearer"
     }
 
-@router.post("/login", response_model= UserLoginRequestSchema, summary="Existing User login endpoint", description="Authenticates an existing user")
+@router.post("/login", response_model= UserLoginResponseSchema, summary="Existing User login endpoint", description="Authenticates an existing user")
 async def login_user( user_details: UserLoginRequestSchema, db: AsyncSession= Depends(get_db)):
     user = await AuthService.login_user(user_details.email, db)
     return user
 
-@router.post("/refresh", response_model= UserLoginRequestSchema, summary="Refresh User token", description="Refreshes user token")
+@router.post("/refresh", response_model= UserLoginResponseSchema, summary="Refresh User token", description="Refreshes user token")
 async def refresh_token(db: AsyncSession= Depends(get_db)):
     user = await refresh_token(db)
     access_token = AuthService.refresh_access_token(user)
