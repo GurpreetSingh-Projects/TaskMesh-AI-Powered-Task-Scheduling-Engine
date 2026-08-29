@@ -31,14 +31,14 @@ async def get_user(user_id: UUID | None = None, email: EmailStr | None= None, db
     #     user = await UserService.get_user_by_email(email, db)
     # return user
 
-@router.patch("/edit/{user_id}", response_model=UserReadRequestSchema, summary="Edit user details like email", description="Patch endpoint to edit user details like email, password ( Admin Accessible only )", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
-async def edit_user(user_id: UUID, email: EmailStr | None = None, password: str | None = None, db: AsyncSession= Depends(get_db)):
-    # edit_user = await UserService.edit_user(user_id, email, password, db)
-    # return edit_user
-    pass
+# @router.patch("/edit/{user_id}", response_model=UserReadRequestSchema, summary="Edit user details like email", description="Patch endpoint to edit user details like email, password ( Admin Accessible only )", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
+# async def edit_user(user_id: UUID, email: EmailStr | None = None, password: str | None = None, db: AsyncSession= Depends(get_db)):
+#     # edit_user = await UserService.edit_user(user_id, email, password, db)
+#     # return edit_user
+#     pass
 
-@router.patch("/deactivate/{user_id}", summary="Deactivates the current user", description="Deactivates the current user", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))], dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
-async def deactivate_user(user_id: UUID, db: AsyncSession= Depends(get_db)):
-    # await UserService.deactivate_user(user_id, db)
-    # return {"detail": "User deactivated successfully"}
-    pass
+# @router.patch("/deactivate/{user_id}", summary="Deactivates the current user", description="Deactivates the current user", dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))], dependencies=[Depends(require_roles(UserRoles.ADMIN, UserRoles.USER))])
+# async def deactivate_user(user_id: UUID, db: AsyncSession= Depends(get_db)):
+#     # await UserService.deactivate_user(user_id, db)
+#     # return {"detail": "User deactivated successfully"}
+#     pass
