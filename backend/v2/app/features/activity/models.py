@@ -5,8 +5,8 @@ from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from datetime import datetime
 from sqlalchemy import text
 import uuid
-from ...database import Base
-from .enums import UserActivityType
+from app.database import Base
+from app.features.users.enums import UserActivityType
 
 class UserActivity(Base):
   __tablename__ = "user_activity"
