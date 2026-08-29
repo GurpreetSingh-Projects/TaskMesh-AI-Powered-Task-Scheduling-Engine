@@ -1,6 +1,7 @@
 from pydantic import BaseModel
-from typing import EmailStr
+from pydantic import EmailStr
 from uuid import UUID
+from datetime import datetime
 
 class UserCreateRequestSchema(BaseModel):
     email: EmailStr
@@ -11,7 +12,20 @@ class UserLoginRequestSchema(BaseModel):
     email: EmailStr
     password: str
 
-class UserReadRequestSchema(BaseModel):
+class UserReadResponseSchema(BaseModel):
     user_id: UUID
     email: EmailStr
-    image_url: str | None = None
+    profile_img: str | None = None
+    role: str
+    is_deleted: bool
+    deleted_at: datetime | None = None
+    created_by: UUID
+    updated_by: UUID
+    created_at: datetime
+    updated_at: datetime
+
+class UserLoginResponseSchema(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str
+    user: UserReadResponseSchema
