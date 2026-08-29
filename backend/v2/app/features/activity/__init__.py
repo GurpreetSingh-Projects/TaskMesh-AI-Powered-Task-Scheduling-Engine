@@ -1,0 +1,1 @@
+from app.features.activity.models import UserActivity
