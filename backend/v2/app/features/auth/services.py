@@ -54,6 +54,7 @@ class AuthService:
 
         
     async def create_user(self, user_details: UserCreateRequestSchema):
+        print("User details:", user_details)
         query= insert(Users).values(
             email= user_details.email, 
             hashed_pswd= self.hash_password(user_details.password), 
