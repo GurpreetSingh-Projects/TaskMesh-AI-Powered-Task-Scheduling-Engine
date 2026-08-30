@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from pydantic import EmailStr
+from pydantic import EmailStr, ConfigDict
 from uuid import UUID
 from datetime import datetime
 from fastapi import UploadFile, Form
@@ -36,3 +36,19 @@ class UserEditRequestSchema(BaseModel):
     email: EmailStr | None = None
     password: str | None = None
     full_name: str | None = None
+
+class UserSettingsReadSchema(BaseModel):
+    user_settings_id: UUID
+    user_id: UUID | None
+    needs_reminders: bool
+    timezone: str | None
+    notification_enabled: bool | None
+    preferred_lang: list[str]
+    available_lang: list[str]
+    theme: str
+    supported_image_formats: list[str]
+    max_image_dimension: int | None
+    image_conversion_format: str | None
+    image_quality: float | None
+
+    model_config = ConfigDict(from_attributes=True)

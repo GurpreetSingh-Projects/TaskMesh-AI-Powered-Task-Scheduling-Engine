@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey, String, Enum as SAEnum, DateTime, Boolean, Integer, JSON
+from sqlalchemy import ForeignKey, String, Enum as SAEnum, DateTime, Boolean, Integer, JSON, Float, Index
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from datetime import datetime
@@ -26,21 +26,35 @@ class Users(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), onupdate=func.now(), nullable=False)
     version_number: Mapped[int] = mapped_column(Integer, default=0)
-    
+
 class UserSettings(Base):
-  __tablename__ = "user_settings"
-  
-  user_settings_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"), default=uuid.uuid4, nullable=False)
-  user_id: Mapped[uuid.UUID]= mapped_column(ForeignKey("users.user_id"), nullable=False)
-  needs_reminders: Mapped[bool] = mapped_column( Boolean, default= False, server_default= text("false"))
-  timezone: Mapped[str]= mapped_column(String(255), default='Asia/Kolkata', nullable=False)
-  notification_enabled: Mapped[bool]= mapped_column(Boolean, default=True, nullable=False)
-  preferred_lang: Mapped[list]= mapped_column(JSON, default=["en"])
-  available_lang: Mapped[list]= mapped_column(JSON, default=["en"])
-  theme: Mapped[str]= mapped_column(String(25), default='light')
-  is_deleted: Mapped[bool] = mapped_column( Boolean, default= False, server_default= text("false"))
-  deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-  created_by: Mapped[uuid.UUID]= mapped_column(ForeignKey("users.user_id"), nullable=True)
-  updated_by: Mapped[uuid.UUID]= mapped_column(ForeignKey("users.user_id"), nullable=True)
-  created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=False)
-  updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), onupdate=func.now(), nullable=False)
+    __tablename__ = "user_settings"
+    __table_args__ = (
+        Index(
+            "unique_master_row",
+            "user_id",
+            unique= True,
+            postgresql_where = text("user_id IS NULL")
+        )
+    )
+
+    user_settings_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"), default=uuid.uuid4, nullable=False)
+    user_id: Mapped[uuid.UUID]= mapped_column(ForeignKey("users.user_id"), unique=True, nullable=True)
+    needs_reminders: Mapped[bool] = mapped_column( Boolean, default= False, server_default= text("false"))
+    timezone: Mapped[str]= mapped_column(String(255), default='Asia/Kolkata', nullable=True)
+    notification_enabled: Mapped[bool]= mapped_column(Boolean, default=True, nullable=True)
+    preferred_lang: Mapped[list]= mapped_column(JSON, default=["en"])
+    available_lang: Mapped[list]= mapped_column(JSON, default=["en"])
+    theme: Mapped[str]= mapped_column(String(25), default='light')
+    supported_media_types: Mapped[list] = mapped_column(JSON, default=["image/jpeg", "image/png", "image/webp"])
+    max_media_size: Mapped[int] = mapped_column(Integer, default=5120, server_default=text("5120"), nullable=True,
+    )
+    max_image_width: Mapped[int] = mapped_column(Integer, default=720, server_default=text("720"), nullable=True)
+    image_conversion_format: Mapped[str] = mapped_column(String(10), default="webp", server_default=text("'webp'"), nullable=True)
+    image_quality: Mapped[float] = mapped_column(Float, default=0.75, server_default=text("0.75"), nullable=True)
+    is_deleted: Mapped[bool] = mapped_column( Boolean, default= False, server_default= text("false"))
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_by: Mapped[uuid.UUID]= mapped_column(ForeignKey("users.user_id"), nullable=True)
+    updated_by: Mapped[uuid.UUID]= mapped_column(ForeignKey("users.user_id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), onupdate=func.now(), nullable=True)

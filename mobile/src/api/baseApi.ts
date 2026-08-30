@@ -5,7 +5,7 @@ export const baseApi = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: `${process.env.EXPO_PUBLIC_API_URL}` }),
   endpoints: (builder) => ({
     awakeServer: builder.query<ResponseType, void>({
-      query: () => "/health",
+      query: () => "/awake",
     }),
 
     login: builder.mutation({

@@ -5,6 +5,7 @@ import { persistReducer, persistStore } from "redux-persist";
 import { useDispatch, useSelector } from "react-redux";
 import { userReducer } from "@/features/profile/slice/user";
 import { authReducer } from "@/features/auth/slice/auth";
+import { settingsReducer } from "@/features/settings/slice/settings";
 
 export const mmkvStorage = createMMKV({
   id: "taskmesh-ai",
@@ -28,6 +29,7 @@ export const mmkvReduxStorage = {
 const appReducer = combineReducers({
   auth: authReducer,
   userProfile: userReducer,
+  settings: settingsReducer,
   [baseApi.reducerPath]: baseApi.reducer,
 });
 
@@ -45,7 +47,7 @@ const persistConfig = {
   key: "taskmesh-ai",
   storage: mmkvReduxStorage,
   version: 1,
-  whitelist: ["userProfile"],
+  whitelist: ["auth", "userProfile", "settings"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

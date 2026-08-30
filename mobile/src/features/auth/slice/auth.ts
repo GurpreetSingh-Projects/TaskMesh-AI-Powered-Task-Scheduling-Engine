@@ -1,15 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
-export type AuthState = {
-  token_type: string;
-  hasAccessToken: boolean;
-  hasRefreshToken: boolean;
-  last_login_at: string | null;
-  last_refresh_at: string | null;
-  isAuthenticated: boolean;
-  accessTokenExpiresAt: Date | null;
-  refreshTokenExpiresAt: Date | null;
-};
+import { AuthState } from "../types";
 
 const initialState: AuthState = {
   token_type: "",
@@ -27,14 +17,7 @@ export const authSlice = createSlice({
   initialState,
   reducers: {
     setAuthInfo: (state, action: PayloadAction<AuthState>) => {
-      state.token_type = action.payload.token_type;
-      state.hasAccessToken = action.payload.hasAccessToken;
-      state.hasRefreshToken = action.payload.hasRefreshToken;
-      state.last_login_at = action.payload.last_login_at;
-      state.last_refresh_at = action.payload.last_refresh_at;
-      state.isAuthenticated = action.payload.isAuthenticated;
-      state.accessTokenExpiresAt = action.payload.accessTokenExpiresAt;
-      state.refreshTokenExpiresAt = action.payload.refreshTokenExpiresAt;
+      Object.assign(state, action.payload);
     },
     setTokenType: (state, action: PayloadAction<string>) => {
       state.token_type = action.payload;

@@ -176,14 +176,17 @@ const Login = () => {
             />
             <>
               <OrSeparator />
-              <View className="flex-row w-full items-center justify-center gap-1 mt-5">
-                <ThemeText className="text-sm text-steel">
-                  Don't have an account ?
-                </ThemeText>
+              <View className="w-full items-center justify-center mt-5">
                 <Link screen="Register">
-                  <ThemeText className="font-bold! text-sm text-ink">
-                    Register Now
-                  </ThemeText>
+                  <View className="flex-row items-center gap-1">
+                    <ThemeText className="text-sm text-steel">
+                      Don't have an account ?
+                    </ThemeText>
+
+                    <ThemeText className="font-bold! text-sm text-ink">
+                      Register Now
+                    </ThemeText>
+                  </View>
                 </Link>
               </View>
             </>

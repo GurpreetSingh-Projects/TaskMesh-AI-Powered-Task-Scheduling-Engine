@@ -4,7 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 
 const OnboardingBg = (props) => {
   return (
-    <View className={`relative ${props?.className}`}>
+    <View {...props} className={`relative ${props?.className}`}>
       <LinearGradient
         colors={[
           "rgba(255,255,255,1)",
