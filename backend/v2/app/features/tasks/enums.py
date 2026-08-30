@@ -10,8 +10,3 @@ class TaskPriority(str, Enum):
     normal = "normal"    
     high = "high"
     important = "important"
-
-class TaskLabelsOwner(str, Enum):
-    admin = "ADMIN"
-    user = "USER"
-    system = "SYSTEM"z

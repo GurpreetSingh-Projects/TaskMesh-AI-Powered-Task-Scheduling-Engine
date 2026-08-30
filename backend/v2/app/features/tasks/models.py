@@ -2,8 +2,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import ForeignKey, String, Enum as SAEnum, DateTime, Boolean, Integer, JSON
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-from datetime import datetime
 from sqlalchemy import text
+from datetime import datetime
 import uuid
 from app.database import Base
 from app.features.tasks.enums import TaskStatus, TaskPriority, TaskLabelsOwner
@@ -46,34 +46,6 @@ class SubTasks(Base):
     created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id"), default=None, nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=True, onupdate=func.now())
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=True)
-    
-class TaskLabels(Base):
-    __tablename__= "task_labels"
-    
-    task_label_id: Mapped[uuid.UUID]= mapped_column(PG_UUID(as_uuid= True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"), nullable=False)
-    title: Mapped[str]= mapped_column(String(100), nullable=False)
-    description: Mapped[str | None]= mapped_column(String(500), nullable=True)
-    image_url: Mapped[str]= mapped_column(String(1000), nullable=True)
-    source: Mapped[TaskLabelsOwner] = mapped_column(SAEnum(TaskLabelsOwner, name= "task_labels", native_enum= True), nullable= False, default= TaskLabelsOwner.user, server_default = "normal" )
-    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"))
-    is_deleted: Mapped[bool] = mapped_column( Boolean, default= False, server_default= text('false'))
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    updated_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id"), default=None, nullable=True)
-    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id"), default=None, nullable=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=True, onupdate=func.now())
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=True)
-    
-class TaskLabelMapping(Base):
-    __tablename__= "task_label_mapping"
-    
-    task_label_mapping_id: Mapped[uuid.UUID]= mapped_column(PG_UUID(as_uuid= True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"), nullable=False)
-    task_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tasks.task_id", ondelete="CASCADE"))
-    subtask_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("subtasks.subtask_id", ondelete="CASCADE"), nullable=True)
-    updated_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id"), default=None, nullable=True)
-    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id"), default=None, nullable=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=True, onupdate=func.now())
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=True)
-
     
 class TaskReminderConfig(Base):
     __tablename__= "task_reminder_config"

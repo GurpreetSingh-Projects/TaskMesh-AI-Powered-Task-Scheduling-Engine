@@ -8,7 +8,6 @@ import uuid
 from app.database import Base
 from app.core.enums import ActivationStatus
 
-
 class Notifications(Base):
     __tablename__ = "notifications"
     
