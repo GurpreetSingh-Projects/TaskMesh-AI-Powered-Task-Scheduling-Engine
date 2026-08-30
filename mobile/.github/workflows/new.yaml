@@ -1,7 +1,7 @@
-name: test
+name: Stage Mobile Debug Apk Script
 on:
   push:
-    branches: [stage]
+    branches: [dev]
     paths:
       - "mobile/**"
   pull_request:
