@@ -32,10 +32,10 @@ class UserSettings(Base):
     __table_args__ = (
         Index(
             "unique_master_row",
-            "user_id",
-            unique= True,
-            postgresql_where = text("user_id IS NULL")
-        )
+            text("(user_id IS NULL)"),
+            unique=True,
+            postgresql_where=text("user_id IS NULL"),
+        ),
     )
 
     user_settings_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"), default=uuid.uuid4, nullable=False)
