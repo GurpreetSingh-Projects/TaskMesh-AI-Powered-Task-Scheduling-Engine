@@ -1,11 +1,11 @@
 from fastapi import HTTPException
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, update, func
 from datetime import datetime, timezone
 from uuid import UUID
 from app.features.onboarding.models import OnboardingQuestionnaire
-from app.features.onboarding.schemas import OnboardingQuestionnaireRequestSchema
+from app.features.onboarding.schemas import OnboardingQuestionnaireRequestSchema, OnboardingQuestionnaireEditRequestSchema
 from app.features.users.models import Users
     
 class OnboardingService:
@@ -51,7 +51,15 @@ class OnboardingService:
             raise HTTPException(status_code=500, detail=f"An error occurred while adding onboarding questions: {str(e)}")
 
         await self.db.commit()
-        return added_questions
+
+        count_query = select(func.count(OnboardingQuestionnaire.onboarding_question_id)).where(OnboardingQuestionnaire.status == "ENABLED", OnboardingQuestionnaire.is_deleted.is_(False))
+        
+        total = (await self.db.execute(count_query)).scalar_one()
+        
+        return {
+                "items": added_questions,
+                "total": total
+        }
 
     async def get_onboarding_questions(self):
         query= select(OnboardingQuestionnaire).where(OnboardingQuestionnaire.status == "ENABLED", OnboardingQuestionnaire.is_deleted.is_(False)).limit(25)
@@ -67,9 +75,33 @@ class OnboardingService:
             "total": total
         }
 
-    async def edit_onboarding_question(self, question_id: UUID, user: Users):
-        query= select(OnboardingQuestionnaire).where( OnboardingQuestionnaire.onboarding_question_id == question_id, OnboardingQuestionnaire.status == "ENABLED", OnboardingQuestionnaire.is_deleted.is_(False))
+    async def edit_onboarding_question(self, question_id: UUID, question_data: OnboardingQuestionnaireEditRequestSchema, user: Users):
+        updated_question= question_data.model_dump(exclude_unset= True, mode="json")
 
-        question = (self.db.execute(query)).scalar_one_or_none()
+        if not updated_question:
+            raise HTTPException(status_code= 400, detail= "Invalid question data provided")
+        
+        updated_question["updated_by"]= user.user_id
 
+        query= (
+            update(OnboardingQuestionnaire)
+                .where(OnboardingQuestionnaire.onboarding_question_id == question_id)
+                .values(**updated_question)
+                .returning(OnboardingQuestionnaire)
+        )
 
+        try:
+            result= (await self.db.execute(query)).scalar_one_or_none()
+            if not result:
+                raise HTTPException(status_code= 404, detail= "No onboarding question found for the entered question_id")
+            await self.db.commit()
+            return result
+        
+        except HTTPException:
+            await self.db.rollback()
+            raise
+
+        except Exception as e:
+            await self.db.rollback()
+            raise HTTPException(status_code=500, detail=f"An error occurred while updating onboarding question: {str(e)}")
+            

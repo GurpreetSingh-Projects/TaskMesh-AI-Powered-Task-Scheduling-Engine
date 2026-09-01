@@ -29,11 +29,11 @@ class OnboardingQuestionnaireReadResponseSchema(BaseModel):
     items: list [OnboardingQuestionnaireItemSchema]
     total: int
 
-class OnboardingQuestionnaireEditRequest(BaseModel):
+class OnboardingQuestionnaireEditRequestSchema(BaseModel):
     title: str | None = None
     description: str | None = None
-    options: list[QuestionnaireOptionSchema]
-    question_type: OnboardingQuestionType
+    options: list[QuestionnaireOptionSchema] | None = None
+    question_type: OnboardingQuestionType | None = None
     media_source: str | None = None
-    status: ActivationStatus
+    status: ActivationStatus | None = None
     image_url: str | None = None
