@@ -104,4 +104,24 @@ class OnboardingService:
         except Exception as e:
             await self.db.rollback()
             raise HTTPException(status_code=500, detail=f"An error occurred while updating onboarding question: {str(e)}")
-            
+
+    async def deactivate_onboarding_question(self, question_id: UUID, user: Users):
+        updated_question={
+            "updated_by": user.user_id,
+            "is_deleted": True,
+            "deleted_at": datetime.now(timezone.utc)
+        }
+
+        query= (
+            update(OnboardingQuestionnaire)
+                .where(OnboardingQuestionnaire.onboarding_question_id == question_id)
+                .values(**updated_question)
+                .returning(OnboardingQuestionnaire)
+        )
+
+        result = (await self.db.execute(query)).scalar_one_or_none()
+
+        if not result:
+            raise HTTPException(status_code= 404, detail= "No onboarding question found for the entered question_id")
+        await self.db.commit()
+        return
