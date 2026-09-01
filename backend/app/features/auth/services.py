@@ -48,13 +48,14 @@ class AuthService:
                 await self.db.rollback()
                 raise HTTPException(status_code = 409, detail= "User with this email already exists")
 
-            await self.db.commit()
 
             if profile_img:
                 file_record = await self.user_service.edit_user(user= user, profile_img= profile_img)
 
             access_token = create_access_token(user.user_id)
             refresh_token = create_refresh_token(user.user_id)
+
+            await self.db.commit()
 
             return {
                 "message": "User created successfully",
