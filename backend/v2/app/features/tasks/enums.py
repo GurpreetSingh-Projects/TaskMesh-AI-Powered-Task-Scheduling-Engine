@@ -1,12 +1,13 @@
 from enum import Enum
 
 class TaskStatus(str, Enum):
-    pending= "pending"
-    in_progress= "in_progress"
-    completed= "completed"
+    PENDING = "PENDING"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    OVERDUE = "OVERDUE"
 
 class TaskPriority(str, Enum):
-    optional = "optional"
-    normal = "normal"    
-    high = "high"
-    important = "important"
+    OPTIONAL = "OPTIONAL"
+    NORMAL = "NORMAL"
+    HIGH = "HIGH"
+    IMPORTANT = "IMPORTANT"
