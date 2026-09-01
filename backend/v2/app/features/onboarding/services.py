@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, func
 from datetime import datetime, timezone
 from uuid import UUID
-from app.features.onboarding.models import OnboardingQuestionnaire
-from app.features.onboarding.schemas import OnboardingQuestionnaireRequestSchema, OnboardingQuestionnaireEditRequestSchema
+from app.features.onboarding.models import OnboardingQuestionnaire, OnboardingQuestionnaireResponse
+from app.features.onboarding.schemas import OnboardingQuestionnaireRequestSchema, OnboardingQuestionnaireEditRequestSchema, OnboardingQuestionnaireItemRequestSchema
 from app.features.users.models import Users
     
 class OnboardingService:
@@ -125,3 +125,63 @@ class OnboardingService:
             raise HTTPException(status_code= 404, detail= "No onboarding question found for the entered question_id")
         await self.db.commit()
         return
+
+    async def add_onboarding_questions_response(self, onboarding_questions_response: list[OnboardingQuestionnaireItemRequestSchema], user: Users):
+        if not onboarding_questions_response:
+            raise HTTPException(status_code= 400, detail="No onboarding question responses provided.")
+        
+        question_ids = {
+            item.onboarding_question_id
+            for item in onboarding_questions_response
+        }
+
+        questions_query = (
+            select(OnboardingQuestionnaire)
+            .where(OnboardingQuestionnaire.onboarding_question_id.in_(question_ids))
+        )
+
+        questions = (await self.db.execute(questions_query)).scalars().all()
+
+        if not questions:
+            raise HTTPException(status_code= 404, detail="Invalid Question Ids provided.")
+
+        questions= {
+            question.onboarding_question_id: question
+            for question in questions
+        }
+        
+        values_list = [
+                {
+                    "onboarding_question_id": item.onboarding_question_id,
+                    "user_id": user.user_id,
+                    "title": questions[item.onboarding_question_id].title,
+                    "description": questions[item.onboarding_question_id].description,
+                    "image_url": questions[item.onboarding_question_id].image_url,
+                    "media_source": questions[item.onboarding_question_id].media_source,
+                    "question_response": item.question_response,
+                    "created_by": user.user_id,
+                    "updated_by": user.user_id,
+                }
+                for item in onboarding_questions_response 
+        ]
+
+        try:
+            insert_query= (
+                insert(OnboardingQuestionnaireResponse)
+                    .values(values_list)
+                    .returning(OnboardingQuestionnaireResponse)
+            )
+            
+            result = (await self.db.execute(insert_query)).scalars().all()
+
+        except HTTPException:
+            await self.db.rollback()
+            raise
+
+        except Exception as e:
+            await self.db.rollback()
+            raise HTTPException(status_code=500, detail=f"An error occurred while adding onboarding questions: {str(e)}")
+
+        await self.db.commit()
+
+        return result

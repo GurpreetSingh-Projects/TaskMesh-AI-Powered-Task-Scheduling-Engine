@@ -37,3 +37,7 @@ class OnboardingQuestionnaireEditRequestSchema(BaseModel):
     media_source: str | None = None
     status: ActivationStatus | None = None
     image_url: str | None = None
+
+class OnboardingQuestionnaireItemRequestSchema(BaseModel):
+    onboarding_question_id: UUID
+    question_response: str
