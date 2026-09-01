@@ -33,7 +33,7 @@ class OnboardingQuestionnaireResponse(Base):
 
     onboarding_questionnaire_response_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"), default=uuid.uuid4, nullable=False)
     onboarding_question_id: Mapped[uuid.UUID]= mapped_column(ForeignKey("onboarding_questionnaire.onboarding_question_id"), nullable=False)
-    user_id: Mapped[uuid.UUID]= mapped_column(ForeignKey("users.user_id"), nullable=False)
+    user_id: Mapped[uuid.UUID]= mapped_column(ForeignKey("users.user_id"), unique=True, nullable=False)
     title: Mapped[str]= mapped_column(String(100), nullable=False)
     description: Mapped[str | None]= mapped_column(String(500), nullable=True)
     image_url: Mapped[str]= mapped_column(String(1000), nullable=True)

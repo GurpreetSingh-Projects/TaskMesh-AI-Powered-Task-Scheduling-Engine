@@ -16,8 +16,6 @@ const MediaPicker = ({ onMediaSelected }: MediaPickerProps) => {
       const uri =
         source === "gallery" ? await pickFromGallery() : await pickFromCamera();
 
-      console.log(uri, "uri");
-
       if (uri) {
         onMediaSelected(uri);
       }

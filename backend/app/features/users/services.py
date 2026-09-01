@@ -37,6 +37,7 @@ class UserService:
                 Users.profile_img,
                 Users.hashed_pswd,
                 Users.role,
+                Users.is_profile_completed,
                 Users.is_onboarding_completed,
                 Users.is_deleted,
                 Users.deleted_at,

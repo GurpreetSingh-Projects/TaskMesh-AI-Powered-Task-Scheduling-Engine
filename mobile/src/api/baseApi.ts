@@ -24,16 +24,18 @@ export const baseApi = createApi({
       queryFn: async (fields: {
         email: string;
         password: string;
-        profile_img_uri: string | null;
+        profile_img: string | null;
       }) => {
         try {
           const parts = [
             { name: "email", data: fields?.email },
             { name: "password", data: fields?.password },
             {
-              name: fields?.profile_img_uri,
-              data: fields?.profile_img_uri
-                ? ReactNativeBlobUtil.wrap(fields?.profile_img_uri)
+              name: "profile_img",
+              filename: fields?.profile_img.name,
+              type: fields?.profile_img.type,
+              data: fields?.profile_img?.uri
+                ? ReactNativeBlobUtil.wrap(fields?.profile_img?.uri)
                 : null,
             },
           ];

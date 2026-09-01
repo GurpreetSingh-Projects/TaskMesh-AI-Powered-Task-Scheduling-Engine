@@ -75,7 +75,7 @@ const Register = () => {
       const response = await register({
         email: values?.email,
         password: values?.password,
-        profile_img_uri: profileImg,
+        profile_img: profileImg,
       }).unwrap();
 
       await setAuth(response);
@@ -159,7 +159,7 @@ const Register = () => {
                       borderRadius: 9999,
                       zIndex: 0,
                     }}
-                    source={profileImg}
+                    source={profileImg?.uri}
                     contentFit="cover"
                     allowDownscaling={false}
                   />

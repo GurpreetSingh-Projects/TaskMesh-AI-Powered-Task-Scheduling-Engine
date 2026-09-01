@@ -12,7 +12,7 @@ const initialState: SettingsState = {
   supported_media_types: ["image/jpeg", "image/png", "image/webp"],
   max_image_width: 720,
   max_media_size: 5120,
-  image_conversion_format: "webp",
+  image_conversion_format: "image/webp",
   image_quality: 0.75,
 };
 

@@ -1,9 +1,14 @@
-import { UserState } from "../profile/slice/user";
+import { UserState } from "../profile/types";
 
 export type AuthStackParamList = {
   OnboardingCarousel: undefined;
   Login: undefined;
   Register: undefined;
+};
+
+export type HomeStackParamList = {
+  OnboardingQuestionnaire: undefined;
+  Home: undefined;
 };
 
 export type DrawerMode = "default" | "success" | "fail" | "mediaSelection";
