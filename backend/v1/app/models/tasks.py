@@ -6,7 +6,6 @@ from datetime import datetime
 from app.models.users import User
 from .base import Base
 from .enums import TaskStatus, TaskPriority
-from sqlalchemy import text
 import uuid
 
 class Task(Base):
