@@ -1,5 +1,5 @@
 from fastapi import  HTTPException
-from sqlalchemy import insert
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
@@ -9,6 +9,7 @@ from app.config import settings
 from app.features.users.services import UserService
 from app.features.users.schemas import UserCreateRequestSchema
 from app.features.users.models import Users
+from app.features.users.enums import UserRoles
 
 pwd_context = CryptContext( schemes=["argon2"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/create")
@@ -58,7 +59,7 @@ class AuthService:
         query= insert(Users).values(
             email= user_details.email, 
             hashed_pswd= self.hash_password(user_details.password), 
-            role= user_details.role,
+            role= UserRoles.USER,
             profile_img= None,
             is_deleted= False,
             deleted_at= None
