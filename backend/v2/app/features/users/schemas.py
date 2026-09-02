@@ -19,8 +19,8 @@ class UserReadResponseSchema(BaseModel):
     role: str
     is_deleted: bool
     deleted_at: datetime | None = None
-    created_by: UUID
-    updated_by: UUID
+    created_by: UUID | None = None
+    updated_by: UUID | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -29,3 +29,6 @@ class UserLoginResponseSchema(BaseModel):
     refresh_token: str
     token_type: str
     user: UserReadResponseSchema
+
+class UserRegisterResponseSchema(UserLoginResponseSchema):
+    pass

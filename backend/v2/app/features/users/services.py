@@ -9,9 +9,13 @@ class UserService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_user_details(self, user_details: UserCreateRequestSchema):
-        query = select(Users).where(Users.email == user_details.email, Users.is_deleted.is_(False))
+    async def get_user_details(self, email: str):
+        query = select(Users).where(Users.email == email, Users.is_deleted.is_(False))
         user = (await self.db.execute(query)).scalar_one_or_none()
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
         return user
 
     # only for reference

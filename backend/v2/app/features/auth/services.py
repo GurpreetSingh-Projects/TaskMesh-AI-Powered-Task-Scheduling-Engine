@@ -7,7 +7,7 @@ from jose import jwt, JWTError
 from datetime import datetime, timezone, timedelta
 from app.config import settings
 from app.features.users.services import UserService
-from app.features.users.schemas import UserCreateRequestSchema
+from app.features.users.schemas import UserCreateRequestSchema, UserLoginRequestSchema
 from app.features.users.models import Users
 from app.features.users.enums import UserRoles
 
@@ -33,7 +33,7 @@ class AuthService:
 
     def create_refresh_token(self, data: dict):
         toEncode = data
-        tokenExpiry = datetime.now(timezone.utc) + timedelta( minutes = settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+        tokenExpiry = datetime.now(timezone.utc) + timedelta( minutes = settings.REFRESH_TOKEN_EXPIRE_DAYS)
         toEncode.update({"exp": tokenExpiry})
         encodedJwt = jwt.encode(toEncode, settings.SECRET_KEY, algorithm= settings.ALGORITHM)
         return encodedJwt
@@ -55,7 +55,6 @@ class AuthService:
 
         
     async def create_user(self, user_details: UserCreateRequestSchema):
-        print("User details:", user_details)
         query= insert(Users).values(
             email= user_details.email, 
             hashed_pswd= self.hash_password(user_details.password), 
@@ -90,9 +89,13 @@ class AuthService:
             await self.db.rollback()
             raise HTTPException(status_code=500, detail= "Something went wrong while creating the user")   
 
+    async def login_user(self, user_details: UserLoginRequestSchema):
+        user_service = UserService(self.db)
+        user = await user_service.get_user_details(user_details.email)
 
-    async def login_user(self, email: str, db: AsyncSession):
-        user = await UserService.get_user_details(email, db)
+        if not user.is_deleted and not self.verify_password(user_details.password, user.hashed_pswd):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+
         return {
             "message": "User logged in successfully",
             "user": user,
