@@ -1,0 +1,1 @@
+from app.features.labels.models import Labels, LabelMapping
