@@ -4,14 +4,16 @@ from app.database import get_db
 from app.features.users.schemas import UserCreateRequestSchema, UserLoginRequestSchema, UserLoginResponseSchema
 from app.features.users.services import UserService
 from app.features.auth.services import AuthService
+from app.features.auth.dependencies import get_auth_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/register", response_model= UserLoginResponseSchema, summary="New User regsitration", description="Creates a new user")
-async def create_user( user_details: UserCreateRequestSchema, db: AsyncSession= Depends(get_db)):
-    user = await AuthService.create_user(user_details.email, db)
-    access_token = AuthService.create_access_token(user)
-    refresh_token = AuthService.create_refresh_token(user)
+async def create_user( user_details: UserCreateRequestSchema, auth_service: AuthService = Depends(get_auth_service)):
+    user = await auth_service.create_user(user_details)
+    access_token = auth_service.create_access_token(user)
+    refresh_token = auth_service.create_refresh_token(user)
+
     
     return {
         "message": "User created successfully",
