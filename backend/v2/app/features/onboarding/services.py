@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, func, and_
+from sqlalchemy import select, update, func, and_, bindparam
 from datetime import datetime, timezone
 from uuid import UUID
 from app.features.onboarding.models import OnboardingQuestionnaire, OnboardingQuestionnaireResponse
@@ -213,5 +213,51 @@ class OnboardingService:
         response = (await self.db.execute(query)).mappings().all()
         return response
 
-    async def edit_onbaording_responses(self, user: Users):
-        pass
+    async def edit_onboarding_responses(self, edit_questions_response: list[OnboardingQuestionnaireItemRequestSchema], user: Users):
+        if not edit_questions_response:
+            raise HTTPException(status_code= 400, detail="No onboarding question responses provided.")
+
+        response_ids= {
+            response.onboarding_questionnaire_response_id
+            for response in edit_questions_response
+        }
+
+        responses_query= (
+            select(OnboardingQuestionnaireResponse)
+            .where(OnboardingQuestionnaireResponse.onboarding_questionnaire_response_id.in_(response_ids),
+            OnboardingQuestionnaireResponse.user_id == user.user_id
+            )
+        )
+
+        responses= (await self.db.execute(responses_query)).scalars().all()
+
+        if not responses:
+            raise HTTPException(status_code= 404, detail="Invalid Response Ids provided.")
+
+        values_list= [
+            {
+                "oqr_id": item.onboarding_questionnaire_response_id,
+                "question_response": item.question_response,
+                "updated_by": user.user_id
+            }
+            for item in edit_questions_response
+        ]
+
+        table = OnboardingQuestionnaireResponse.__table__
+
+        update_query= (
+            update(table)
+            .where(table.c.onboarding_questionnaire_response_id == bindparam("oqr_id"))
+        )
+
+        try:
+            (await self.db.execute(update_query, values_list))
+        except HTTPException:
+            await self.db.rollback()
+            raise
+        except Exception as e:
+            await self.db.rollback()
+            raise HTTPException(status_code=500, detail=f"An error occurred while editing onboarding questions: {str(e)}")
+
+        await self.db.commit()
+        return True
