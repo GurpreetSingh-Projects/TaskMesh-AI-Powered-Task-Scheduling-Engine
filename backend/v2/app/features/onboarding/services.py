@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, func
+from sqlalchemy import select, update, func, and_
 from datetime import datetime, timezone
 from uuid import UUID
 from app.features.onboarding.models import OnboardingQuestionnaire, OnboardingQuestionnaireResponse
@@ -185,3 +185,33 @@ class OnboardingService:
         await self.db.commit()
 
         return result
+
+    async def get_onboarding_responses(self, user: Users):
+        query = (
+            select(
+                OnboardingQuestionnaireResponse.onboarding_questionnaire_response_id,
+                OnboardingQuestionnaireResponse.onboarding_question_id,
+                OnboardingQuestionnaireResponse.user_id,
+                OnboardingQuestionnaireResponse.question_response,
+                OnboardingQuestionnaireResponse.title,
+                OnboardingQuestionnaireResponse.description,
+                OnboardingQuestionnaireResponse.image_url,
+                OnboardingQuestionnaireResponse.media_source,
+                OnboardingQuestionnaire.options,
+                OnboardingQuestionnaire.question_type,
+            )
+            .outerjoin(
+                OnboardingQuestionnaireResponse,
+                    and_(
+                        OnboardingQuestionnaireResponse.onboarding_question_id == OnboardingQuestionnaire.onboarding_question_id
+                    )
+            )
+            .where(OnboardingQuestionnaireResponse.user_id == user.user_id)
+            .limit(25)
+        )
+
+        response = (await self.db.execute(query)).mappings().all()
+        return response
+
+    async def edit_onbaording_responses(self, user: Users):
+        pass
