@@ -55,6 +55,7 @@ class AuthService:
 
         
     async def create_user(self, user_details: UserCreateRequestSchema):
+        user_service = UserService(self.db)
         query= insert(Users).values(
             email= user_details.email, 
             hashed_pswd= self.hash_password(user_details.password), 
@@ -81,7 +82,16 @@ class AuthService:
                 raise HTTPException(status_code = 409, detail= "User with this email already exists") 
 
             await self.db.commit()
-            return result
+            access_token = user_service.create_access_token(user_details.user_id)
+            refresh_token = user_service.create_refresh_token(user_details.user_id)
+
+            return {
+                "message": "User created successfully",
+                "user": user_details,
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_type": "bearer"
+            }
 
         except Exception as e:
             raise

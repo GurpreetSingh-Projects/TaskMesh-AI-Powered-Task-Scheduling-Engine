@@ -11,16 +11,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/register", response_model= UserRegisterResponseSchema, summary="New User regsitration", description="Creates a new user")
 async def create_user( user_details: UserCreateRequestSchema, auth_service: AuthService = Depends(get_auth_service)):
     user = await auth_service.create_user(user_details)
-    access_token = auth_service.create_access_token(user.user_id)
-    refresh_token = auth_service.create_refresh_token(user.user_id)
-
-    return {
-        "message": "User created successfully",
-        "user": user,
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer"
-    }
+    return user
 
 @router.post("/login", response_model= UserLoginResponseSchema, summary="Existing User login endpoint", description="Authenticates an existing user")
 async def login_user( user_details: UserLoginRequestSchema, auth_service: AuthService = Depends(get_auth_service)):

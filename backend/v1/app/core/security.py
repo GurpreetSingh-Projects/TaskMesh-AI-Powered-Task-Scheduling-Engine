@@ -1,3 +1,4 @@
+from faetapi import HTTPException
 from datetime import datetime, timezone, timedelta
 from jose import jwt, JWTError
 from passlib.context import CryptContext
@@ -35,6 +36,6 @@ def decode_token(token: str):
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms= settings.ALGORITHM)
         return payload
     except JWTError:
-        print("Invalid or expired token!!")
+        raise HTTPException(status_code= 401, detail= "Invalid or expired token!!")
     
     return None
