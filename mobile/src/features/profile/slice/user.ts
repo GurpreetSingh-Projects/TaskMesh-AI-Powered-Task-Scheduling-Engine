@@ -6,6 +6,8 @@ const initialState: UserState = {
   email: null,
   profile_img: null,
   role: null,
+  is_onboarding_completed: false,
+  is_profile_completed: false,
   is_deleted: false,
   deleted_at: null,
   created_by: null,
@@ -33,6 +35,12 @@ export const userSlice = createSlice({
     setRole: (state, action: PayloadAction<string>) => {
       state.role = action.payload;
     },
+    setIsOnboardingCompleted: (state, action: PayloadAction<boolean>) => {
+      state.is_onboarding_completed = action.payload;
+    },
+    setIsProfileCompleted: (state, action: PayloadAction<boolean>) => {
+      state.is_profile_completed = action.payload;
+    },
     setIsDeleted: (state, action: PayloadAction<boolean>) => {
       state.is_deleted = action.payload;
     },
@@ -55,11 +63,11 @@ export const {
   setEmail,
   setProfileImg,
   setRole,
+  setIsOnboardingCompleted,
+  setIsProfileCompleted,
   setIsDeleted,
   setDeletedAt,
-  setCreatedBy,
   setUpdatedBy,
-  setCreatedAt,
   setUpdatedAt,
   clearUser,
 } = userSlice.actions;

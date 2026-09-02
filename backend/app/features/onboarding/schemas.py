@@ -23,7 +23,6 @@ class OnboardingQuestionnaireItemSchema(BaseModel):
     options: list[QuestionnaireOptionSchema]
     question_type: OnboardingQuestionType
     media_source: str | None = None
-    status: ActivationStatus
 
 class OnboardingQuestionnaireReadResponseSchema(BaseModel):
     items: list [OnboardingQuestionnaireItemSchema]

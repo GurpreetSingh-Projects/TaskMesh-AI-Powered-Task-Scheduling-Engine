@@ -9,6 +9,8 @@ export type UserState = {
   email: string;
   profile_img: string | null;
   role: string;
+  is_onboarding_completed: boolean;
+  is_profile_completed: boolean;
   is_deleted: boolean;
   deleted_at: string | null;
   created_by: string | null;

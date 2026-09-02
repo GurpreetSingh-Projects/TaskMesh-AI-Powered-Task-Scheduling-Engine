@@ -69,36 +69,36 @@ const Register = () => {
   const navigation = useNavigation();
 
   const submitHandler = async (values: RegisterForm) => {
-    console.log("profileImg:", profileImg);
-
     try {
       const response = await register({
-        email: values?.email,
-        password: values?.password,
+        email: values.email,
+        password: values.password,
         profile_img: profileImg,
       }).unwrap();
-
-      await setAuth(response);
 
       setDrawerMsg({
         title: "Account Created!!",
         description: "Registered successfully, setting up...",
       });
-
       setDrawerMode("success");
+      registerDrawerRef?.current?.present();
+
+      setTimeout(() => {
+        registerDrawerRef?.current?.dismiss();
+        setAuth(response);
+        reset();
+      }, 2500);
     } catch (error) {
       console.log("Register api error:", error);
 
       setDrawerMsg(getAuthMessage(error?.status));
       setDrawerMode("fail");
+      registerDrawerRef?.current?.present();
+
+      setTimeout(() => {
+        registerDrawerRef?.current?.dismiss();
+      }, 2500);
     }
-
-    registerDrawerRef.current?.present();
-
-    setTimeout(() => {
-      registerDrawerRef.current?.dismiss();
-      reset();
-    }, 3500);
   };
 
   return (

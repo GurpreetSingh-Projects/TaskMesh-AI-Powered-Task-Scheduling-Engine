@@ -64,11 +64,18 @@ class OnboardingService:
         }
 
     async def get_onboarding_questions(self):
-        query= select(OnboardingQuestionnaire).where(OnboardingQuestionnaire.status == "ENABLED", OnboardingQuestionnaire.is_deleted.is_(False)).limit(25)
+        query= (
+            select(OnboardingQuestionnaire)
+            .where(OnboardingQuestionnaire.status == "ENABLED", OnboardingQuestionnaire.is_deleted.is_(False))
+            .limit(25)
+        )
 
         questions = (await self.db.execute(query)).scalars().all()
 
-        count_query = select(func.count(OnboardingQuestionnaire.onboarding_question_id)).where(OnboardingQuestionnaire.status == "ENABLED", OnboardingQuestionnaire.is_deleted.is_(False))
+        count_query = (
+            select(func.count(OnboardingQuestionnaire.onboarding_question_id))
+            .where(OnboardingQuestionnaire.status == "ENABLED", OnboardingQuestionnaire.is_deleted.is_(False))
+        )
 
         total = (await self.db.execute(count_query)).scalar_one()
 
