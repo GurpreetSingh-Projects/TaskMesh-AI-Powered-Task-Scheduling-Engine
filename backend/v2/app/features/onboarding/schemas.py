@@ -42,7 +42,7 @@ class OnboardingQuestionnaireItemRequestSchema(BaseModel):
     onboarding_question_id: UUID
     question_response: str
 
-class OnboardingQuestionnaireResponseSchema(BaseModel):
+class OnboardingResponsesSchema(BaseModel):
     onboarding_questionnaire_response_id: UUID
     onboarding_question_id: UUID
     user_id: UUID
@@ -53,3 +53,7 @@ class OnboardingQuestionnaireResponseSchema(BaseModel):
     image_url: str | None = None
     media_source: str | None = None
     options: list[QuestionnaireOptionSchema]
+
+class OnboardingeResponseItemRequestSchema(BaseModel):
+    onboarding_questionnaire_response_id: UUID
+    question_response: str

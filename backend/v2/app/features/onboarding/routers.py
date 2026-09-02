@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from uuid import UUID
 from app.features.onboarding.dependencies import get_onboarding_service
 from app.features.onboarding.services import OnboardingService
-from app.features.onboarding.schemas import OnboardingQuestionnaireRequestSchema, OnboardingQuestionnaireReadResponseSchema, OnboardingQuestionnaireEditRequestSchema, OnboardingQuestionnaireItemSchema, OnboardingQuestionnaireItemRequestSchema, OnboardingQuestionnaireResponseSchema
+from app.features.onboarding.schemas import OnboardingQuestionnaireRequestSchema, OnboardingQuestionnaireReadResponseSchema, OnboardingQuestionnaireEditRequestSchema, OnboardingQuestionnaireItemSchema, OnboardingQuestionnaireItemRequestSchema, OnboardingResponsesSchema, OnboardingeResponseItemRequestSchema
 from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/user-onboarding", tags=["User - Onboarding Questionnaire & Responses"], dependencies=[Depends(get_current_user)])
@@ -32,11 +32,15 @@ async def add_onboarding_questions_response(onboarding_questions_response: list[
     responses = await onboarding_service.add_onboarding_questions_response(onboarding_questions_response, user)
     return responses
 
-@router.get("/responses", response_model= list[OnboardingQuestionnaireResponseSchema], summary="Get Onboarding Responses for user", description="Retrieve the onboarding responses" )
+@router.get("/responses", response_model= list[OnboardingResponsesSchema], summary="Get Onboarding Responses for user", description="Retrieve the onboarding responses" )
 async def get_onboarding_responses(user= Depends(get_current_user), onboarding_service: OnboardingService= Depends(get_onboarding_service)):
     response = await onboarding_service.get_onboarding_responses(user)
     return response
 
 @router.patch("/responses/", summary="Update Onboarding Responses for user", description="Update the onboarding responses")
-async def update_onboarding_responses():
-    pass
+async def edit_onboarding_responses(edit_questions_response: list[OnboardingeResponseItemRequestSchema], user= Depends(get_current_user), onboarding_service: OnboardingService= Depends(get_onboarding_service)):
+    await onboarding_service.edit_onboarding_responses(edit_questions_response, user)
+
+    return {
+        "detail": "Onboarding responses updated successfully."
+    }
