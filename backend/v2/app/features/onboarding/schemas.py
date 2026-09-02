@@ -19,11 +19,11 @@ class OnboardingQuestionnaireItemSchema(BaseModel):
     onboarding_question_id: UUID
     title: str
     description: str | None = None
+    image_url: str | None = None
     options: list[QuestionnaireOptionSchema]
     question_type: OnboardingQuestionType
     media_source: str | None = None
     status: ActivationStatus
-    image_url: str | None = None
 
 class OnboardingQuestionnaireReadResponseSchema(BaseModel):
     items: list [OnboardingQuestionnaireItemSchema]
@@ -41,3 +41,15 @@ class OnboardingQuestionnaireEditRequestSchema(BaseModel):
 class OnboardingQuestionnaireItemRequestSchema(BaseModel):
     onboarding_question_id: UUID
     question_response: str
+
+class OnboardingQuestionnaireResponseSchema(BaseModel):
+    onboarding_questionnaire_response_id: UUID
+    onboarding_question_id: UUID
+    user_id: UUID
+    question_response: str | None = None
+    question_type: OnboardingQuestionType
+    title: str
+    description: str | None = None
+    image_url: str | None = None
+    media_source: str | None = None
+    options: list[QuestionnaireOptionSchema]
