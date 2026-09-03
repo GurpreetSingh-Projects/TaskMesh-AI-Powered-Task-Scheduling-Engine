@@ -1,0 +1,1 @@
+from app.features.notifications.models import Notifications, NotificationHistory
