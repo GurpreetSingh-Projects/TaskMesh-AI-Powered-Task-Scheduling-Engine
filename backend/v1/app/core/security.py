@@ -37,5 +37,3 @@ def decode_token(token: str):
         return payload
     except JWTError:
         raise HTTPException(status_code= 401, detail= "Invalid or expired token!!")
-    
-    return None

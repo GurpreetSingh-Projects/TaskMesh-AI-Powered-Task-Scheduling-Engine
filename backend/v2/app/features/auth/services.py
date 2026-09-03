@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import  HTTPException
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,15 +25,19 @@ class AuthService:
     def verify_password(self, password: str, hashed_password: str)-> bool:
         return pwd_context.verify(password, hashed_password)
 
-    def create_access_token(self,  data: dict):
-        toEncode = data
+    def create_access_token(self,  user_id: UUID):
+        toEncode = {
+            "sub": str(user_id),
+        }
         tokenExpiry = datetime.now(timezone.utc) + timedelta( minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         toEncode.update({"exp": tokenExpiry})
         encodedJwt = jwt.encode(toEncode, settings.SECRET_KEY, algorithm= settings.ALGORITHM)
         return encodedJwt
 
-    def create_refresh_token(self, data: dict):
-        toEncode = data
+    def create_refresh_token(self, user_id: UUID):
+        toEncode = {
+            "sub": str(user_id),
+        }
         tokenExpiry = datetime.now(timezone.utc) + timedelta( minutes = settings.REFRESH_TOKEN_EXPIRE_DAYS)
         toEncode.update({"exp": tokenExpiry})
         encodedJwt = jwt.encode(toEncode, settings.SECRET_KEY, algorithm= settings.ALGORITHM)
@@ -76,20 +81,20 @@ class AuthService:
 
         try:
             result= (await self.db.execute(query)).scalar_one_or_none()
-
+            
             if result is None:
                 await self.db.rollback()
                 raise HTTPException(status_code = 409, detail= "User with this email already exists") 
 
             await self.db.commit()
-            access_token = user_service.create_access_token(user_details.user_id)
-            refresh_token = user_service.create_refresh_token(user_details.user_id)
+            access_token = self.create_access_token(result.user_id)
+            # refresh_token = self.create_refresh_token(result.user_id)
 
             return {
                 "message": "User created successfully",
-                "user": user_details,
+                "user": result,
                 "access_token": access_token,
-                "refresh_token": refresh_token,
+                "refresh_token": "refresh_token",
                 "token_type": "bearer"
             }
 
