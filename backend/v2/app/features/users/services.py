@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+from uuid import UUID
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -9,13 +10,19 @@ class UserService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_user_details(self, email: str):
-        query = select(Users).where(Users.email == email, Users.is_deleted.is_(False))
-        user = (await self.db.execute(query)).scalar_one_or_none()
-
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+    async def get_user_details(self, email: str | None = None, user_id: UUID | None = None):
+        if not email and not user_id:
+            raise HTTPException(status_code=400, detail="Either email or user_id must be provided")
         
+        if user_id:
+            query = select(Users).where(Users.user_id == user_id, Users.is_deleted.is_(False))
+        elif email is not None:
+            query = select(Users).where(Users.email == email, Users.is_deleted.is_(False))
+
+        user = (await self.db.execute(query)).scalar_one_or_none()
+    
+        if not user:
+                raise HTTPException(status_code=404, detail="User not found")
         return user
 
     # only for reference
