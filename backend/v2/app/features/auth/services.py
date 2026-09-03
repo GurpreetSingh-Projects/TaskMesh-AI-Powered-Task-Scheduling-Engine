@@ -1,3 +1,4 @@
+import re
 from uuid import UUID
 from fastapi import  HTTPException
 from sqlalchemy.dialects.postgresql import insert
@@ -11,6 +12,7 @@ from app.features.users.services import UserService
 from app.features.users.schemas import UserCreateRequestSchema, UserLoginRequestSchema
 from app.features.users.models import Users
 from app.features.users.enums import UserRoles
+from app.features.auth.schemas import TokenSchema
 
 pwd_context = CryptContext( schemes=["argon2"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/create")
@@ -18,6 +20,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/create")
 class AuthService:
     def __init__(self, db: AsyncSession):
         self.db= db
+        self.user_service= UserService(db)
 
     def hash_password(self, password: str)-> str:
         return pwd_context.hash(password)
@@ -26,19 +29,15 @@ class AuthService:
         return pwd_context.verify(password, hashed_password)
 
     def create_access_token(self,  user_id: UUID):
-        toEncode = {
-            "sub": str(user_id),
-        }
+        toEncode = {"sub": str(user_id)}
         tokenExpiry = datetime.now(timezone.utc) + timedelta( minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         toEncode.update({"exp": tokenExpiry})
         encodedJwt = jwt.encode(toEncode, settings.SECRET_KEY, algorithm= settings.ALGORITHM)
         return encodedJwt
 
     def create_refresh_token(self, user_id: UUID):
-        toEncode = {
-            "sub": str(user_id),
-        }
-        tokenExpiry = datetime.now(timezone.utc) + timedelta( minutes = settings.REFRESH_TOKEN_EXPIRE_DAYS)
+        toEncode = {"sub": str(user_id)}
+        tokenExpiry = datetime.now(timezone.utc) + timedelta( days = settings.REFRESH_TOKEN_EXPIRE_DAYS)
         toEncode.update({"exp": tokenExpiry})
         encodedJwt = jwt.encode(toEncode, settings.SECRET_KEY, algorithm= settings.ALGORITHM)
         return encodedJwt
@@ -46,11 +45,9 @@ class AuthService:
     def decode_token(self, token: str):
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms= settings.ALGORITHM)
-            return payload
+            return TokenSchema.model_validate(payload)
         except JWTError:
-            print("Invalid or expired token!!")
-
-        return None
+            raise HTTPException(status_code=401, detail="Invalid or expired token!!")
 
     def refresh_access_token(self, token: str):
         payload = self.decode_token(token)
@@ -60,7 +57,6 @@ class AuthService:
 
         
     async def create_user(self, user_details: UserCreateRequestSchema):
-        user_service = UserService(self.db)
         query= insert(Users).values(
             email= user_details.email, 
             hashed_pswd= self.hash_password(user_details.password), 
@@ -88,13 +84,13 @@ class AuthService:
 
             await self.db.commit()
             access_token = self.create_access_token(result.user_id)
-            # refresh_token = self.create_refresh_token(result.user_id)
+            refresh_token = self.create_refresh_token(result.user_id)
 
             return {
                 "message": "User created successfully",
                 "user": result,
                 "access_token": access_token,
-                "refresh_token": "refresh_token",
+                "refresh_token": refresh_token,
                 "token_type": "bearer"
             }
 
@@ -105,8 +101,7 @@ class AuthService:
             raise HTTPException(status_code=500, detail= "Something went wrong while creating the user")   
 
     async def login_user(self, user_details: UserLoginRequestSchema):
-        user_service = UserService(self.db)
-        user = await user_service.get_user_details(user_details.email)
+        user = await self.user_service.get_user_details(user_details.email)
 
         if not user.is_deleted and not self.verify_password(user_details.password, user.hashed_pswd):
             raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -114,7 +109,22 @@ class AuthService:
         return {
             "message": "User logged in successfully",
             "user": user,
-            "access_token": self.create_access_token({"sub": str(user.user_id)}),
-            "refresh_token": self.create_refresh_token({"sub": str(user.user_id)}),
+            "access_token": self.create_access_token(user.user_id),
+            "refresh_token": self.create_refresh_token(user.user_id),
+            "token_type": "bearer"
+        }
+
+    async def refresh_token(self, refresh_token: str):
+        result = self.decode_token(refresh_token)
+        print(f"Decoded token: {result, type(result)}")  # Debugging line
+        if result.sub is None:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+        user = await self.user_service.get_user_details(user_id=UUID(result.sub))
+        return {
+            "message": "User token refreshed successfully",
+            "user": user,
+            "access_token": self.create_access_token(user.user_id),
+            "refresh_token": refresh_token,
             "token_type": "bearer"
         }
