@@ -6,7 +6,7 @@ from app.features.users.services import UserService
 from app.features.auth.services import AuthService
 from app.features.auth.dependencies import get_auth_service
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model= UserRegisterResponseSchema, summary="New User regsitration", description="Creates a new user")
 async def create_user( user_details: UserCreateRequestSchema, auth_service: AuthService = Depends(get_auth_service)):
