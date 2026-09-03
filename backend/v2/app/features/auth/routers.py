@@ -19,14 +19,6 @@ async def login_user( user_details: UserLoginRequestSchema, auth_service: AuthSe
     return user
 
 @router.post("/refresh", response_model= UserLoginResponseSchema, summary="Refresh User token", description="Refreshes user token")
-async def refresh_token(db: AsyncSession= Depends(get_db)):
-    user = await refresh_token(db)
-    access_token = AuthService.refresh_access_token(user)
-    
-    return {
-        "message": "User token refreshed successfully",
-        "user": user,
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer"
-    }
+async def refresh_token(refresh_token: str, auth_service: AuthService = Depends(get_auth_service)):
+    user = await auth_service.refresh_token(refresh_token)
+    return user
