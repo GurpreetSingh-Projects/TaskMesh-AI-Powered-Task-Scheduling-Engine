@@ -32,3 +32,8 @@ class UserLoginResponseSchema(BaseModel):
 
 class UserRegisterResponseSchema(UserLoginResponseSchema):
     pass
+
+class UserEditRequestSchema(BaseModel):
+    email: EmailStr | None = None
+    password: str | None = None
+    profile_img: str | None = None
