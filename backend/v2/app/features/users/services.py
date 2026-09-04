@@ -32,8 +32,8 @@ class UserService:
         return user
 
 
-    async def edit_user(self, user_data: UserEditRequestSchema):
-        user = await self.get_user_details(user_id= user_data.user_id)
+    async def edit_user(self, user_id: UUID, user_data: UserEditRequestSchema):
+        user = await self.get_user_details(user_id= user_id)
 
         if user_data.email:
             user.email = user_data.email
@@ -42,6 +42,7 @@ class UserService:
         if user_data.profile_img:
             user.profile_img = user_data.profile_img
 
+        user.updated_by = user_id
         await self.db.commit()
         return user
 

@@ -16,7 +16,7 @@ async def get_user(user_id: UUID | None = None, email: EmailStr | None= None, us
 
 @router.patch("/edit/{user_id}", response_model=UserReadResponseSchema, summary="Edit user details", description="Patch endpoint to edit user details like email, password")
 async def edit_user( user_data: UserEditRequestSchema, user_id: UUID, user_services: UserService = Depends(get_user_service)):
-    user = await user_services.edit_user(user_data)
+    user = await user_services.edit_user(user_id= user_id, user_data= user_data)
     return user
     
 @router.patch("/deactivate/{user_id}", summary="Deactivates the current user", description="Deactivates the current user")
