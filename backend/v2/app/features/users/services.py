@@ -3,21 +3,27 @@ from uuid import UUID
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from app.features.users.schemas import UserCreateRequestSchema
+from pydantic import EmailStr
+from datetime import datetime, timezone
+from app.features.users.schemas import UserEditRequestSchema
 from app.features.users.models import Users
+from app.core.utils import hash_password
 
 class UserService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_user_details(self, email: str | None = None, user_id: UUID | None = None):
+    async def get_user_details(self, email: EmailStr | None = None, user_id: UUID | None = None):
         if not email and not user_id:
             raise HTTPException(status_code=400, detail="Either email or user_id must be provided")
-        
-        if user_id:
-            query = select(Users).where(Users.user_id == user_id, Users.is_deleted.is_(False))
-        elif email is not None:
-            query = select(Users).where(Users.email == email, Users.is_deleted.is_(False))
+        elif email and user_id:
+            query = select(Users).where(Users.user_id == user_id, Users.email == email, Users.is_deleted.is_(False)).limit(1)
+        elif user_id and not email:
+            query = select(Users).where(Users.user_id == user_id, Users.is_deleted.is_(False)).limit(1)
+        elif not user_id and email:
+            query = select(Users).where(Users.email == email, Users.is_deleted.is_(False)).limit(1)
+        else:
+            raise HTTPException(status_code=400, detail="Invalid request parameters")
 
         user = (await self.db.execute(query)).scalar_one_or_none()
     
@@ -25,42 +31,26 @@ class UserService:
                 raise HTTPException(status_code=404, detail="User not found")
         return user
 
-    # only for reference
 
-    #     async def edit_user(
-    #         user_id: UUID,
-    #         email: EmailStr | None,
-    #         password: str | None,
-    #         db: AsyncSession
-    #     ):
-    #         user = await get_user_by_id(user_id, db)
+    async def edit_user(self, user_data: UserEditRequestSchema):
+        user = await self.get_user_details(user_id= user_data.user_id)
 
-    #         if email:
-    #             user.email = email
+        if user_data.email:
+            user.email = user_data.email
+        if user_data.password:
+            user.password = hash_password(user_data.password)
+        if user_data.profile_img:
+            user.profile_img = user_data.profile_img
 
-    #         if password:
-    #             user.hashed_pswd = hash_password(password)
-
-    #         user.updated_by = user.user_id
-
-    #         await db.commit()
-    #         await db.refresh(user)
-    #         return user
+        await self.db.commit()
+        return user
 
 
-    #     async def deactivate_user(user_id: UUID, db: AsyncSession):
-    #         user = await get_user_by_id(user_id, db)
+    async def deactivate_user(self, user_id: UUID):
+        user = await self.get_user_details(user_id=user_id)
 
-    #         user.is_deleted = True
-    #         user.deleted_at = datetime.now(timezone.utc)
+        user.is_deleted = True
+        user.deleted_at = datetime.now(timezone.utc)
 
-    #         await db.commit()
-    #         return
-
-
-    #     async def delete_user(user_id: UUID, db: AsyncSession):
-    #         user = await get_user_by_id(user_id, db)
-
-    #         await db.delete(user)
-    #         await db.commit()
-    #         return
+        await self.db.commit()
+        return
