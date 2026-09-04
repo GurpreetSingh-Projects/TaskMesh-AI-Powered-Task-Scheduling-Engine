@@ -48,10 +48,11 @@ class UserService:
 
 
     async def deactivate_user(self, user_id: UUID):
-        user = await self.get_user_details(user_id=user_id)
+        user = await self.get_user_details(user_id= user_id)
 
         user.is_deleted = True
         user.deleted_at = datetime.now(timezone.utc)
 
+        user.updated_by = user_id
         await self.db.commit()
         return
