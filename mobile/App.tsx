@@ -6,6 +6,7 @@ import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { Provider } from "react-redux";
 import RootNavigator from "@/navigation/RootNavigator";
 import { store } from "@/app/store";
+import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 // @ts-ignore
 import "@/global.css";
 
@@ -48,7 +49,9 @@ const App = () => {
                 <SystemBars
                   style={{ statusBar: "dark", navigationBar: "dark" }}
                 />
-                <RootNavigator />
+                <GluestackUIProvider mode="dark">
+                  <RootNavigator />
+                </GluestackUIProvider>
               </BottomSheetModalProvider>
             </KeyboardProvider>
           </SafeAreaProvider>

@@ -7,4 +7,5 @@ config.resolver.assetExts = [...config.resolver.assetExts, "lottie"];
 
 module.exports = withNativeWind(config, {
   input: "./global.css",
+  inlineRem: 16,
 });

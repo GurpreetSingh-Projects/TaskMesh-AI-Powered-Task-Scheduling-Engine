@@ -1,9 +1,25 @@
+import { getAccessToken } from "@/features/auth/utils";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import ReactNativeBlobUtil from "react-native-blob-util";
+import * as SecureStore from "expo-secure-store";
+
+const ACCESS_TOKEN_KEY = "accessToken";
 
 export const baseApi = createApi({
   reducerPath: "baseApi",
-  baseQuery: fetchBaseQuery({ baseUrl: `${process.env.EXPO_PUBLIC_API_URL}` }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: `${process.env.EXPO_PUBLIC_API_URL}`,
+    prepareHeaders: async (headers) => {
+      try {
+        const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+        if (token) headers.set("Authorization", `Bearer ${token}`);
+        return headers;
+      } catch (error) {
+        console.log(error);
+      }
+    },
+  }),
+
   endpoints: (builder) => ({
     awakeServer: builder.query<ResponseType, void>({
       query: () => "/awake",
@@ -63,6 +79,10 @@ export const baseApi = createApi({
         }
       },
     }),
+
+    onboardingQuestionnaire: builder.query<ResponseType, void>({
+      query: () => "/user-onboarding/questions",
+    }),
   }),
 });
 
@@ -70,4 +90,5 @@ export const {
   useLazyAwakeServerQuery,
   useLoginMutation,
   useRegisterMutation,
+  useLazyOnboardingQuestionnaireQuery,
 } = baseApi;

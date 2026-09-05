@@ -4,7 +4,7 @@
     "strict": false,
     "types": ["node"],
     "paths": {
-      "@/*": ["./src/*"],
+      "@/*": ["./src/*", "./*"],
       "@/assets/*": ["./assets/*"]
     }
   },

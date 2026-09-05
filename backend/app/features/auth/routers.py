@@ -14,7 +14,7 @@ async def create_user(email:EmailStr= Form(...), password: str= Form(...), profi
     user = await auth_service.create_user(email=email, password=password,  profile_img= profile_img)
     return user
 
-@router.post("/swagger-login", summary="Endpoint for dev login through swagger docs", status_code=201, description="This endpoint is used for testing purposes in Swagger UI")
+@router.post("/swagger-login", summary="Endpoint for dev login through swagger docs", description="This endpoint is used for testing purposes in Swagger UI")
 async def swagger_login(form_data: OAuth2PasswordRequestForm= Depends(), auth_service: AuthService = Depends(get_auth_service)):
     user_details = UserLoginRequestSchema(
         email= form_data.username,
