@@ -1,21 +1,26 @@
 from uuid import UUID
-from fastapi import  HTTPException
+from fastapi import  HTTPException, Depends
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi.security import OAuth2PasswordBearer
 from app.features.users.services import UserService
 from app.features.users.schemas import UserCreateRequestSchema, UserLoginRequestSchema
 from app.features.users.models import Users
 from app.features.users.enums import UserRoles
 from app.core.utils import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/create")
-
 class AuthService:
     def __init__(self, db: AsyncSession):
         self.db= db
         self.user_service= UserService(db)
-        
+
+    async def get_current_user(self, token: str):
+        payload = decode_token(token)
+        if not payload or not payload.sub:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+
+        user = await self.user_service.get_user_details(user_id= UUID(payload.sub))
+        return user
+
     async def create_user(self, user_details: UserCreateRequestSchema):
         query= insert(Users).values(
             email= user_details.email, 
