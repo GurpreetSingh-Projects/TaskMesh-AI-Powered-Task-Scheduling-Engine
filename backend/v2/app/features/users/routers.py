@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import UUID
+from pydantic import EmailStr
 from app.database import get_db
 from app.features.users.dependencies import get_user_service
 from app.features.users.schemas import UserEditRequestSchema, UserReadResponseSchema
 from app.features.users.services import UserService
-from uuid import UUID
-from pydantic import EmailStr
+from app.core.dependencies import get_current_user
 
-router = APIRouter(prefix="/users", tags=["Users"])
+router = APIRouter(prefix="/users", tags=["Users"], dependencies=[Depends(get_current_user)])
        
 @router.get("/get", response_model= UserReadResponseSchema, summary="Gets the user details", description="Gets back you the user, can be done with user_id or email")
 async def get_user(user_id: UUID | None = None, email: EmailStr | None= None, user_services: UserService = Depends(get_user_service)):
