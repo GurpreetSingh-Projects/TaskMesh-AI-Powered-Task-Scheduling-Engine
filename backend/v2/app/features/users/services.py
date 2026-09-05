@@ -35,6 +35,8 @@ class UserService:
     async def edit_user(self, user_id: UUID, user_data: UserEditRequestSchema):
         user = await self.get_user_details(user_id= user_id)
 
+        if not user_data:
+            raise HTTPException(status_code= 401, detail="Invalid input provided")
         if user_data.email:
             user.email = user_data.email
         if user_data.password:
