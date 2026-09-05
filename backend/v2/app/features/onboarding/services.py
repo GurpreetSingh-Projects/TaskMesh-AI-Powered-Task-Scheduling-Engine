@@ -38,4 +38,4 @@ class OnboardingService:
 
         await self.db.commit()
 
-        return onboarding_questions
+        return added_questions
