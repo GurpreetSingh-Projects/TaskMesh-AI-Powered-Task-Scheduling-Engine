@@ -15,10 +15,18 @@ export const images = {
     login: require("@/assets/images/onboarding/login.webp"),
     register: require("@/assets/images/onboarding/register.webp"),
   },
+  icons: {
+    cameraIcon: require("@/assets/images/icons/camera-icon.webp"),
+    galleryIcon: require("@/assets/images/icons/gallery-icon.webp"),
+  },
 };
 
 export const animations = {
   tickIcon: require("@/assets/animations/tick-icon.lottie"),
+  tickIconSimple: require("@/assets/animations/tick-icon.lottie"),
+  crossIcon: require("@/assets/animations/cross-icon.lottie"),
+  crossIconSimple: require("@/assets/animations/cross-icon.lottie"),
+  loadingIcon: require("@/assets/animations/loading-icon.lottie"),
 };
 
 export const sounds: Record<string, ImageSourcePropType> = {};

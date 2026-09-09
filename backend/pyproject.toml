@@ -1,0 +1,20 @@
+[project]
+name = "v2"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic",
+    "asyncpg",
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy[asyncio]",
+    "pydantic",
+    "pydantic-settings",
+    "passlib[argon2,bcrypt]",
+    "python-jose[cryptography]",
+    "email-validator",
+    "python-multipart",
+    "aioboto3>=15.5.0",
+]

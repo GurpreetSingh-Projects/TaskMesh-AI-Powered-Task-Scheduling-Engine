@@ -1,4 +1,4 @@
-import { useLazyAwakeServerQuery } from "@/features/baseApi";
+import { useLazyAwakeServerQuery } from "@/api/baseApi";
 
 export function useAwakeServerCall() {
   const [awakeServer] = useLazyAwakeServerQuery();

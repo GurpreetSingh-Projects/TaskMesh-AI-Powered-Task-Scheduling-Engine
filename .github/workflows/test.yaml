@@ -1,0 +1,63 @@
+name: Stage Mobile Debug APK flow
+on:
+  push:
+    branches: [dev]
+    paths:
+      - "mobile/**"
+  pull_request:
+    branches: [stage]
+    paths:
+      - "mobile/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: mobile/pnpm-lock.yaml
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Write .env
+        run: echo "${{secrets.ENV_FILE}}" > .env
+
+      - run: pnpm install -g eas-cli
+
+      - name: Build on EAS
+        run: eas build --profile debug --platform android --local --non-interactive --output mobile/taskmesh-debug.apk
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Publish GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/stage'
+
+        run: |
+          gh release create "stage-${{ github.run_number }}" \
+            taskmesh-debug.apk \
+            --title "Stage debug build #${{ github.run_number }}" \
+            --notes "Commit: ${{ github.sha }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

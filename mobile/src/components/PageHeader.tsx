@@ -13,7 +13,7 @@ const PageHeader = (props) => {
           </View>
           <View className="items-center">
             <ThemeText
-              className="!font-bold text-lg h-[40px] mt-[25px] mb-[15px] opacity-55 max-w-[72%] truncate"
+              className="font-bold! text-lg h-[40px] mt-[25px] mb-[15px] opacity-55 max-w-[72%] truncate"
               numberOfLines={1}
             >
               {props?.heading ? props?.heading : ""}
