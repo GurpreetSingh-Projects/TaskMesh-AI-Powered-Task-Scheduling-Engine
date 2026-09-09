@@ -1,67 +1,156 @@
-import { useEffect } from "react";
-import { View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Pressable, useWindowDimensions, View } from "react-native";
 import { useLazyOnboardingQuestionnaireQuery } from "@/api/baseApi";
 import LottieView from "lottie-react-native";
-import { animations } from "@/assets";
-import { themeColors } from "@/theme";
+import { animations, images } from "@/assets";
+import { primaryBorderRadius, themeColors, themeSpacing } from "@/theme";
 import ThemeText from "@/components/ThemeText";
+import ThemePage from "@/components/ThemePage";
+import {
+  Carousel,
+  CarouselItemAnimation as TAnimationStyle,
+} from "react-native-reanimated-carousel";
+import Animated, {
+  interpolate,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { Image } from "expo-image";
+import { OnboardingQuestionnaireResponse } from "../types";
 
 const OnboardingQuestionnaire = () => {
+  const { height, width } = useWindowDimensions();
+
+  const [currentQuestion, setCurrentQuestion] = useState(1);
+  const [responses, setResponses] = useState<OnboardingQuestionnaireResponse[]>(
+    [],
+  );
+
   const [onboardingQuestionnaire, { data, isLoading, isError, error }] =
     useLazyOnboardingQuestionnaireQuery();
 
+  const totalQuestions = data?.items?.length ?? 0;
+
+  const optionPressHandler = (onboarding_question_id: string, option) => {};
   useEffect(() => {
     onboardingQuestionnaire();
   }, [onboardingQuestionnaire]);
 
-  if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-red-100">
-        <LottieView
-          source={animations.loadingIcon}
-          autoPlay
-          loop={true}
-          style={{ width: 50, height: 50 }}
-          colorFilters={[{ keypath: "**", color: themeColors?.ink }]}
-        />
-      </View>
-    );
-  }
-
-  if (isError) {
-    console.log("Onboarding questionnaire error:", error);
-
-    return (
-      <View className="flex-1 items-center justify-center px-6">
-        <ThemeText className="text-center text-white">
-          Failed to load questionnaire.
-        </ThemeText>
-
-        <ThemeText
-          className="mt-4 text-white underline"
-          onPress={() => onboardingQuestionnaire()}
-        >
-          Try Again
-        </ThemeText>
-      </View>
-    );
-  }
+  console.log(JSON.stringify(data));
 
   return (
-    <View className="flex-1">
-      {data?.items?.map((question) => (
-        <View key={question.onboarding_question_id} className="mb-6">
-          <ThemeText className="text-lg font-semibold text-white">
-            {question.title}
-          </ThemeText>
+    <ThemePage className="bg-canvas" noSafeArea>
+      <View className="h-2 w-full overflow-hidden rounded-full">
+        <Animated.View
+          className="h-full rounded-full"
+          style={{
+            width: `${
+              totalQuestions > 0 ? (currentQuestion / totalQuestions) * 100 : 0
+            }%`,
+            backgroundColor: themeColors.ink,
+            transitionProperty: "width",
+            transitionDuration: "250ms",
+            transitionTimingFunction: "ease-in-out",
+          }}
+        />
+      </View>
 
-          <ThemeText className="mt-2 text-sm text-gray-400">
-            {question.description}
+      <View className="flex-1 items-center gap-10">
+        <View className="w-full pt-[30%] px-page">
+          <ThemeText
+            variant="subheading"
+            className="font-thin! text-start text-steel text-base!"
+          >
+            Tell us a little about yourself
           </ThemeText>
         </View>
-      ))}
-    </View>
+        <View className="w-full items-center justify-center px-page">
+          <Carousel
+            data={data?.items}
+            onSnapToItem={(index) => {
+              console.log(index);
+              setCurrentQuestion(index + 1);
+            }}
+            renderItem={({ item }) => {
+              return (
+                <View
+                  className="flex-1 gap-10"
+                  style={{ paddingHorizontal: themeSpacing?.page }}
+                >
+                  <View className="gap-3">
+                    <ThemeText
+                      variant="heading"
+                      style={{ color: themeColors.ink }}
+                    >
+                      {item?.title}
+                    </ThemeText>
+
+                    <ThemeText
+                      variant="body"
+                      style={{ color: themeColors.steel }}
+                    >
+                      {item?.description}
+                    </ThemeText>
+                  </View>
+
+                  <View className="gap-3">
+                    {item?.options?.map((option) => (
+                      <Pressable
+                        className="flex-row items-center rounded-2xl border px-5 py-4"
+                        style={{
+                          borderColor: themeColors.mist,
+                          backgroundColor: themeColors.canvas,
+                        }}
+                        key={option?.option_order}
+                        onPress={() =>
+                          optionPressHandler(
+                            item.onboarding_question_id,
+                            option,
+                          )
+                        }
+                      >
+                        <View
+                          className="h-6 w-6 items-center justify-center rounded-full border-2"
+                          style={{ borderColor: themeColors.steel }}
+                        />
+
+                        <View className="ml-4 flex-1 gap-1">
+                          <ThemeText
+                            variant="body"
+                            style={{ color: themeColors.ink }}
+                          >
+                            {option?.title}
+                          </ThemeText>
+
+                          {option?.description && (
+                            <ThemeText style={{ color: themeColors.steel }}>
+                              {option?.description}
+                            </ThemeText>
+                          )}
+                        </View>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              );
+            }}
+            style={{
+              width: width,
+            }}
+          />
+        </View>
+        <Image
+          source={images.illustrations.illustration1}
+          contentFit="cover"
+          style={{
+            width,
+            height: 150,
+            position: "absolute",
+            bottom: 0,
+          }}
+        />
+      </View>
+    </ThemePage>
   );
 };
-
 export default OnboardingQuestionnaire;

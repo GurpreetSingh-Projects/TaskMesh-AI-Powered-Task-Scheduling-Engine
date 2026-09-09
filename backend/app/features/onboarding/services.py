@@ -172,14 +172,14 @@ class OnboardingService:
         await self.db.commit()
         return
 
-    async def add_onboarding_questions_response(self, onboarding_questions_response: list[OnboardingQuestionnaireItemRequestSchema], user: Users):
-        if not onboarding_questions_response:
+    async def add_onboarding_questions_response(self, onboarding_questions_response: OnboardingQuestionnaireItemRequestSchema, user: Users):
+        if user.is_onboarding_completed:
+            raise HTTPException(status_code= 400, detail="Onboarding question responses already filled for this user, please try editing your responses!")
+
+        if not onboarding_questions_response.root:
             raise HTTPException(status_code= 400, detail="No onboarding question responses provided.")
         
-        question_ids = {
-            item.onboarding_question_id
-            for item in onboarding_questions_response
-        }
+        question_ids = set(onboarding_questions_response.root)
 
         questions_query = (
             select(OnboardingQuestionnaire)
@@ -195,18 +195,18 @@ class OnboardingService:
             question.onboarding_question_id: question
             for question in questions
         }
-        
+
         values_list = [
                 {
-                    "onboarding_question_id": item.onboarding_question_id,
+                    "onboarding_question_id": onboarding_question_id,
                     "user_id": user.user_id,
-                    "title": questions[item.onboarding_question_id].title,
-                    "description": questions[item.onboarding_question_id].description,
-                    "question_response": item.question_response,
+                    "title": questions[onboarding_question_id].title,
+                    "description": questions[onboarding_question_id].description,
+                    "question_response": response,
                     "created_by": user.user_id,
                     "updated_by": user.user_id,
                 }
-                for item in onboarding_questions_response 
+                for onboarding_question_id, response in onboarding_questions_response.root.items()
         ]
 
         insert_query= (
@@ -221,9 +221,12 @@ class OnboardingService:
                 Users.user_id == user.user_id,
                 Users.is_deleted.is_(False)
             )
-            .values(is_onboarding_completed= True)
+            .values(
+                is_onboarding_completed= True, 
+                updated_by = user.user_id,
+                updated_at = datetime.now(timezone.utc)
+            )
         )
-
         
         try:   
             onboarding_result = (await self.db.execute(insert_query)).scalars().all()
@@ -240,7 +243,6 @@ class OnboardingService:
         await self.db.commit()
         return onboarding_result
 
-# to continue here
     async def get_onboarding_responses(self, user: Users):
         query = (
             select(
@@ -267,14 +269,16 @@ class OnboardingService:
         response = (await self.db.execute(query)).mappings().all()
         return response
 
-    async def edit_onboarding_responses(self, edit_questions_response: list[OnboardingQuestionnaireItemRequestSchema], user: Users):
-        if not edit_questions_response:
+    async def edit_onboarding_responses(self, edit_questions_response: OnboardingQuestionnaireItemRequestSchema, user: Users):
+        if not user.is_onboarding_completed:
+            raise HTTPException(status_code= 400, detail="Onboarding question responses not filled for this user, please try add your responses first!")
+           
+        if not edit_questions_response.root:
             raise HTTPException(status_code= 400, detail="No onboarding question responses provided.")
 
-        response_ids= {
-            response.onboarding_questionnaire_response_id
-            for response in edit_questions_response
-        }
+        response_ids= set(edit_questions_response.root)
+
+        print("response_ids", response_ids)
 
         responses_query= (
             select(OnboardingQuestionnaireResponse)
@@ -290,11 +294,11 @@ class OnboardingService:
 
         values_list= [
             {
-                "oqr_id": item.onboarding_questionnaire_response_id,
-                "question_response": item.question_response,
+                "oqr_id": onboarding_questionnaire_response_id,
+                "question_response": question_response,
                 "updated_by": user.user_id
             }
-            for item in edit_questions_response
+            for onboarding_questionnaire_response_id, question_response in edit_questions_response.root.items()
         ]
 
         table = OnboardingQuestionnaireResponse.__table__
