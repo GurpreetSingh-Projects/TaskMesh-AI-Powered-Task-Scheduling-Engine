@@ -59,11 +59,12 @@ class AuthService:
                 "token_type": "bearer"
             }
 
-        except Exception as e:
+        except Exception:
+            await self.db.rollback()
             raise
         except Exception as e:
             await self.db.rollback()
-            raise HTTPException(status_code=500, detail= "Something went wrong while creating the user")   
+            raise HTTPException(status_code=500, detail= "Something went wrong while creating the user")
 
     async def login_user(self, user_details: UserLoginRequestSchema):
         user = await self.user_service.get_user_details(user_details.email)
