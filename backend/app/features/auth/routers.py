@@ -10,12 +10,12 @@ from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-@router.post("/register", response_model= UserRegisterResponseSchema, summary="New User regsitration", description="Creates a new user")
+@router.post("/register", response_model= UserRegisterResponseSchema, status_code=201, summary="New User regsitration", description="Creates a new user")
 async def create_user( user_details: UserCreateRequestSchema, auth_service: AuthService = Depends(get_auth_service)):
     user = await auth_service.create_user(user_details)
     return user
 
-@router.post("/swagger-login", summary="Endpoint for dev login through swagger docs", description="This endpoint is used for testing purposes in Swagger UI")
+@router.post("/swagger-login", summary="Endpoint for dev login through swagger docs", status_code=201, description="This endpoint is used for testing purposes in Swagger UI")
 async def swagger_login(form_data: OAuth2PasswordRequestForm= Depends(), auth_service: AuthService = Depends(get_auth_service)):
     user_details = UserLoginRequestSchema(
         email= form_data.username,
