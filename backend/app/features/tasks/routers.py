@@ -33,16 +33,16 @@ async def create_subtask(subtask_data: SubtaskCreateRequestSchema, user= Depends
     response = await task_service.create_subtask(user= user, subtask_data= subtask_data)
     return response
 
-@router.get("/subtask", response_model= SubtaskReadResponseSchema, summary="List subtasks for a given task id")
-async def get_tasks(limit: int = Query(15, ge=0, le= 500), offset:int= Query(0, ge= 0), user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
-    response= await task_service.get_tasks(user= user, limit= limit, offset= offset)
+@router.get("/subtasks", response_model= SubtaskReadResponseSchema, summary="List subtasks for a given task id")
+async def get_subtasks(task_id: UUID, limit: int = Query(15, ge=0, le= 500), offset:int= Query(0, ge= 0), user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
+    response= await task_service.get_subtasks(user= user, task_id= task_id, limit= limit, offset= offset)
     return response
 
-@router.patch("/subtask/{subtask_id}", response_model= SubtaskReadResponseItemSchema, summary="Update a task")
-async def update_task(task_id: UUID, subtask_data: SubtaskUpdateRequestSchema, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
-    response= await task_service.update_task(user= user, task_id= task_id, subtask_data= subtask_data)
+@router.patch("/subtask/{subtask_id}", response_model= SubtaskReadResponseItemSchema, summary="Update subtask by its id")
+async def update_task(subtask_id: UUID, subtask_data: SubtaskUpdateRequestSchema, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
+    response= await task_service.update_subtask(user= user, subtask_id= subtask_id, subtask_data= subtask_data)
     return response
 
 @router.patch("/subtask/deactivate/{subtask_id}/", status_code= 204, summary= "Deactivate task with its task_id")
-async def deactivate_task(task_id: UUID, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
-    await task_service.deactivate_task(user= user, task_id= task_id)
+async def deactivate_subtask(subtask_id: UUID, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
+    await task_service.deactivate_subtask(user= user, subtask_id= subtask_id)
