@@ -222,23 +222,28 @@ class TaskService:
             "total_pages": total_pages
         }
 
-    async def update_subtask(self, user: Users, task_id: UUID, task_data: TaskUpdateRequestSchema):
-        task_data = task_data.model_dump(exclude_unset= True)
+    async def update_subtask(self, user: Users, subtask_id: UUID, subtask_data: TaskUpdateRequestSchema):
+        subtask_data = subtask_data.model_dump(exclude_unset= True)
 
-        if not task_data:
+        if not subtask_data:
             raise HTTPException(status_code= 400, detail= "Invalid question data provided")
 
-        task_data["updated_by"]= user.user_id
+        subtask_data["updated_by"]= user.user_id
 
         update_query= (
-            update(Tasks)
+            update(SubTasks)
             .where(
-                Tasks.task_id == task_id, 
-                Tasks.user_id == user.user_id,
-                Tasks.is_deleted.is_(False)
+                SubTasks.subtask_id == subtask_id,
+                SubTasks.task_id.in_(
+                    select(Tasks.task_id)
+                    .where(
+                        Tasks.user_id == user.user_id,
+                        Tasks.is_deleted.is_(False)
+                    )
+                ),
             )
-            .values(**task_data)
-            .returning(Tasks)
+            .values(**subtask_data)
+            .returning(SubTasks)
         )
 
         try:
@@ -249,25 +254,30 @@ class TaskService:
             await self.db.rollback()
             raise
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"An error occurred while updating subtask: {str(e)}")
 
         await self.db.commit()
         return response
 
-    async def deactivate_task(self, user: UUID, task_id: UUID):
+    async def deactivate_subtask(self, user: UUID, subtask_id: UUID):
         deactivate_query= (
-            update(Tasks)
+            update(SubTasks)
             .where(
-                Tasks.task_id == task_id, 
-                Tasks.user_id == user.user_id,
-                Tasks.is_deleted.is_(False)
+                SubTasks.subtask_id == subtask_id, 
+                SubTasks.task_id.in_(
+                    select(Tasks.task_id)
+                    .where(
+                        Tasks.user_id == user.user_id,
+                        Tasks.is_deleted.is_(False)
+                    )
+                ),
             )
             .values(
                 is_deleted= True,
                 deleted_at= datetime.now(timezone.utc),
                 updated_by= user.user_id
             )
-            .returning(Tasks)
+            .returning(SubTasks)
         )
 
         try:

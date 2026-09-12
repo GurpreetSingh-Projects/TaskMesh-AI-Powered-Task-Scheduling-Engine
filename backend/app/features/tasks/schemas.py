@@ -60,5 +60,5 @@ class SubtaskReadResponseSchema(BaseModel):
 class SubtaskCreateRequestSchema(TaskCreateRequestSchema):
     task_id: UUID
 
-class SubtaskUpdateRequestSchema(SubtaskCreateRequestSchema):
+class SubtaskUpdateRequestSchema(TaskCreateRequestSchema):
     pass
