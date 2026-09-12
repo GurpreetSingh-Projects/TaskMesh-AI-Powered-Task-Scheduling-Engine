@@ -22,10 +22,9 @@ async def update_onboarding_question(question_id: UUID, question_data: Onboardin
     updated_question= await onboarding_service.edit_onboarding_question(question_id, question_data, user)
     return updated_question
     
-@router.patch("/question/deactivate/{question_id}", summary="Delete Onboarding Question", description="Delete an existing onboarding question")
+@router.patch("/question/deactivate/{question_id}", status_code=204, summary="Delete Onboarding Question", description="Delete an existing onboarding question")
 async def deactivate_onboarding_question(question_id: UUID, user= Depends(get_current_user), onboarding_service: OnboardingService = Depends(get_onboarding_service)):
     await onboarding_service.deactivate_onboarding_question(question_id, user)
-    return {"detail": "Onboarding question deactivated successfully"}
 
 @router.post("/responses", status_code=201, summary="Add Onboarding Responses for user", description="Submit the onboarding responses")
 async def add_onboarding_questions_response(onboarding_questions_response: list[OnboardingQuestionnaireItemRequestSchema],user=Depends(get_current_user), onboarding_service: OnboardingService = Depends(get_onboarding_service)):
