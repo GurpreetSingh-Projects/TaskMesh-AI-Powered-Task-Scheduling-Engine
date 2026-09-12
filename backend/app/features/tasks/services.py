@@ -2,9 +2,10 @@ from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from sqlalchemy import select, insert, func, update
+import math
+from datetime import datetime, timezone
 from app.features.users.models import Users
 from app.features.tasks.models import Tasks
-import math
 from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateRequestSchema, TaskReadResponseItemSchema, TaskReadResponseSchema
 
 class TaskService:
@@ -41,7 +42,10 @@ class TaskService:
     async def get_tasks(self, user: Users, limit: int= 1, offset: int= 0):
         query= (
             select(Tasks)
-            .where(Tasks.user_id == user.user_id)
+            .where(
+                Tasks.user_id == user.user_id,
+                Tasks.is_deleted.is_(False)
+            )
             .order_by(
                 Tasks.created_at.desc(),
                 Tasks.updated_at.desc()
@@ -54,7 +58,10 @@ class TaskService:
 
         count_query = (
             select(func.count(Tasks.task_id))
-            .where(Tasks.user_id == user.user_id)
+            .where(
+                Tasks.user_id == user.user_id,
+                Tasks.is_deleted.is_(False)
+            )
         )
 
         total_tasks_count = (await self.db.execute(count_query)).scalar_one_or_none()
@@ -85,7 +92,8 @@ class TaskService:
             update(Tasks)
             .where(
                 Tasks.task_id == task_id, 
-                Tasks.user_id == user.user_id
+                Tasks.user_id == user.user_id,
+                Tasks.is_deleted.is_(False)
             )
             .values(**task_data)
             .returning(Tasks)
@@ -100,5 +108,35 @@ class TaskService:
             raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
+
         await self.db.commit()
         return response
+
+    async def deactivate_task(self, user: UUID, task_id: UUID):
+        deactivate_query= (
+            update(Tasks)
+            .where(
+                Tasks.task_id == task_id, 
+                Tasks.user_id == user.user_id,
+                Tasks.is_deleted.is_(False)
+            )
+            .values(
+                is_deleted= True,
+                deleted_at= datetime.now(timezone.utc),
+                updated_by= user.user_id
+            )
+            .returning(Tasks)
+        )
+
+        try:
+            response = (await self.db.execute(deactivate_query)).scalar_one_or_none()
+            if response is None:
+                raise HTTPException(status_code= 400, detail= "No task found with the given id")
+        except HTTPException:
+            await self.db.rollback()
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
+        
+        await self.db.commit()
+        return
