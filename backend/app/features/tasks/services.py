@@ -1,10 +1,10 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert
+from sqlalchemy import select, insert, func
 from app.features.users.models import Users
 from app.features.tasks.models import Tasks
-from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateRequestSchema, TaskReadResponseSchema
-
+from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateRequestSchema, TaskReadResponseItemSchema, TaskReadResponseSchema
+import math
 
 class TaskService:
     def __init__(self, db:AsyncSession):
@@ -29,22 +29,45 @@ class TaskService:
         )
         try:
             response = (await self.db.execute(insert_query)).scalar_one_or_none()
-
         except HTTPException:
             await self.db.rollback()
             raise
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"An error occurred while adding onboarding questions: {str(e)}")
+        await self.db.commit()
         return response
 
-    # async def get_task(self, user: Users, task_id: UUID): 
-    #     pass
+    async def get_tasks(self, user: Users, limit: int, offset: int):
+        query= (
+            select(Tasks)
+            .where(Tasks.user_id == user.user_id)
+            .order_by(
+                Tasks.created_at.desc(),
+                Tasks.updated_at.desc()
+            )
+            .offset(offset)
+            .limit(limit)
+        )
 
-    # async def list_tasks(self, user: Users, limit: int, offset: int): 
-    #     pass
+        tasks = (await self.db.execute(query)).scalars().all()
 
-    # async def update_task(self, user: Users, task_id: UUID, task_data: TaskUpdateSchema): 
-    #     pass
+        count_query = (
+            select(func.count(Tasks.task_id))
+            .where(Tasks.user_id == user.user_id)
+        )
 
-    # async def delete_task(self, user: Users, task_id: UUID): 
-    #     pass
+        total_tasks_count = (await self.db.execute(count_query)).scalar_one_or_none()
+
+        has_more = offset + len(tasks) < total_tasks_count
+        page = (offset // limit) + 1
+        total_pages = (math.ceil(total_tasks_count/ limit))
+        
+        return {
+            "items": tasks,
+            "limit": limit,
+            "offset": offset,
+            "has_more": has_more,
+            "total_tasks": total_tasks_count,
+            "page": page,
+            "total_pages": total_pages
+        }
