@@ -22,7 +22,6 @@ async def update_task(task_id: UUID, task_data: TaskUpdateRequestSchema, user= D
     response= await task_service.update_task(user= user, task_id= task_id, task_data= task_data)
     return response
 
-@router.patch("/deactivate/{task_id}", status_code= 204, summary= "Delete a task")
-async def delete_task(task_id: UUID, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
-    response =  await task_service.delete_task(user_id= user.user_id, task_id= task_id)
-    return response
+@router.patch("/deactivate/{task_id}", status_code= 204, summary= "Deactivate task with its task_id")
+async def deactivate_task(task_id: UUID, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
+    await task_service.deactivate_task(user= user, task_id= task_id)
