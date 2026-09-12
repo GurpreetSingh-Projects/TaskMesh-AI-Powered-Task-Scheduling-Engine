@@ -23,4 +23,4 @@ async def edit_user( user_data: UserEditRequestSchema, user= Depends(get_current
 @router.patch("/deactivate", summary="Deactivates the current user", description="Deactivates the current user")
 async def deactivate_user(user= Depends(get_current_user), user_services: UserService = Depends(get_user_service)):
     await user_services.deactivate_user(user.user_id)
-    return {"detail": "User deactivated successfully"}
+    return
