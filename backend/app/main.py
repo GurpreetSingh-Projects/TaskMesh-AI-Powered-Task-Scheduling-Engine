@@ -16,9 +16,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title='TaskMesh Api v2', version='2.0.0', lifespan=lifespan)
 
-@app.get("/")
+@app.get("/health", summary="Health for checking api availability and server status")
 def read_root():
-    return "TaskMesh - AI Powered Task Scheduling Engine"
+    return {
+        "messsage": "TaskMesh - AI Powered Task Scheduling Engine is online"
+    }
 
 app.include_router(auth_router)
 app.include_router(user_router)
