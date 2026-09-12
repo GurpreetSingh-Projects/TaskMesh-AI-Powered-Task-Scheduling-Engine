@@ -2,7 +2,10 @@ import { getAccessToken } from "@/features/auth/utils";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import ReactNativeBlobUtil from "react-native-blob-util";
 import * as SecureStore from "expo-secure-store";
-import { OnboardingQuestionnaireResponse } from "@/features/onboarding/types";
+import {
+  OnboardingQuestionnaireResponse,
+  OnboardingQuestionsAnswersRequest,
+} from "@/features/onboarding/types";
 
 const ACCESS_TOKEN_KEY = "accessToken";
 
@@ -22,7 +25,7 @@ export const baseApi = createApi({
   }),
 
   endpoints: (builder) => ({
-    awakeServer: builder.query<ResponseType, void>({
+    awakeServer: builder.query<void, void>({
       query: () => "/awake",
     }),
 
@@ -81,11 +84,29 @@ export const baseApi = createApi({
       },
     }),
 
+    refreshToken: builder.mutation({
+      query: (refreshToken) => ({
+        url: `/auth/refresh?refresh_token=${refreshToken}`,
+        method: "POST",
+      }),
+    }),
+
     onboardingQuestionnaire: builder.query<
       OnboardingQuestionnaireResponse,
       void
     >({
       query: () => "/user-onboarding/questions",
+    }),
+
+    createOnboardingQuestionnaireResponses: builder.mutation<
+      OnboardingQuestionnaireResponse,
+      OnboardingQuestionsAnswersRequest
+    >({
+      query: (body) => ({
+        url: "/user-onboarding/responses",
+        method: "POST",
+        body,
+      }),
     }),
   }),
 });
@@ -94,5 +115,7 @@ export const {
   useLazyAwakeServerQuery,
   useLoginMutation,
   useRegisterMutation,
+  useRefreshTokenMutation,
   useLazyOnboardingQuestionnaireQuery,
+  useCreateOnboardingQuestionnaireResponsesMutation,
 } = baseApi;

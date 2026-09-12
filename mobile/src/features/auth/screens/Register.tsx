@@ -89,9 +89,7 @@ const Register = () => {
         reset();
       }, 2500);
     } catch (error) {
-      console.log("Register api error:", error);
-
-      setDrawerMsg(getAuthMessage(error?.status));
+      setDrawerMsg(getAuthMessage(error?.status_code));
       setDrawerMode("fail");
       registerDrawerRef?.current?.present();
 
@@ -303,7 +301,7 @@ const Register = () => {
             }}
           />
         ) : (
-          <View className="h-full w-full flex-1 items-center justify-center gap-3">
+          <View className="h-full w-full flex-1 items-center justify-center gap-3 z-10">
             <LottieView
               source={
                 drawerMode === "success"
@@ -313,8 +311,8 @@ const Register = () => {
               autoPlay
               loop={false}
               style={{
-                width: 100,
-                height: 100,
+                width: 75,
+                height: 75,
               }}
             />
 
@@ -328,6 +326,19 @@ const Register = () => {
               </ThemeText>
             </View>
           </View>
+        )}
+        {drawerMode === "success" && (
+          <Image
+            source={images.illustrations.illustration2}
+            contentFit="cover"
+            style={{
+              width,
+              height: 150,
+              position: "absolute",
+              bottom: 0,
+              opacity: 0.25,
+            }}
+          />
         )}
       </ThemeDrawer>
     </ThemePage>
