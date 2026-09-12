@@ -1,10 +1,11 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, insert, func
+from uuid import UUID
+from sqlalchemy import select, insert, func, update
 from app.features.users.models import Users
 from app.features.tasks.models import Tasks
-from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateRequestSchema, TaskReadResponseItemSchema, TaskReadResponseSchema
 import math
+from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateRequestSchema, TaskReadResponseItemSchema, TaskReadResponseSchema
 
 class TaskService:
     def __init__(self, db:AsyncSession):
@@ -37,7 +38,7 @@ class TaskService:
         await self.db.commit()
         return response
 
-    async def get_tasks(self, user: Users, limit: int, offset: int):
+    async def get_tasks(self, user: Users, limit: int= 1, offset: int= 0):
         query= (
             select(Tasks)
             .where(Tasks.user_id == user.user_id)
@@ -71,3 +72,33 @@ class TaskService:
             "page": page,
             "total_pages": total_pages
         }
+
+    async def update_task(self, user: Users, task_id: UUID, task_data: TaskUpdateRequestSchema):
+        task_data = task_data.model_dump(exclude_unset= True)
+
+        if not task_data:
+            raise HTTPException(status_code= 400, detail= "Invalid question data provided")
+
+        task_data["updated_by"]= user.user_id
+
+        update_query= (
+            update(Tasks)
+            .where(
+                Tasks.task_id == task_id, 
+                Tasks.user_id == user.user_id
+            )
+            .values(**task_data)
+            .returning(Tasks)
+        )
+
+        try:
+            response = (await self.db.execute(update_query)).scalar_one_or_none()
+            if response is None:
+                raise HTTPException(status_code= 400, detail= "No task found with the given id")
+        except HTTPException:
+            await self.db.rollback()
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
+        await self.db.commit()
+        return response
