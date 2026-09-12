@@ -3,7 +3,7 @@ from datetime import datetime
 from uuid import UUID
 from app.features.tasks.enums import TaskStatus, TaskPriority
 
-class TaskReadResponseSchema(BaseModel):
+class TaskReadResponseItemSchema(BaseModel):
     task_id: UUID
     user_id: UUID
     title: str
@@ -18,6 +18,15 @@ class TaskReadResponseSchema(BaseModel):
     updated_at: datetime
     created_at: datetime
 
+class TaskReadResponseSchema(BaseModel):
+    items: list[TaskReadResponseItemSchema]
+    limit: int
+    offset: int
+    has_more: bool
+    total_tasks: int
+    page: int
+    total_pages: int
+    
 class TaskCreateRequestSchema(BaseModel):
     title: str
     description: str | None
