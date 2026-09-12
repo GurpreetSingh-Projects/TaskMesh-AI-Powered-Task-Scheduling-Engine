@@ -13,23 +13,16 @@ async def create_task(task_data: TaskCreateRequestSchema, user= Depends(get_curr
     return response
 
 @router.get("", response_model= TaskReadResponseSchema, summary="List your tasks")
-async def get_tasks(limit: int = Query(5,ge=0, le= 500), offset:int= Query(0, ge= 0), user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
+async def get_tasks(limit: int = Query(15, ge=0, le= 500), offset:int= Query(0, ge= 0), user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
     response= await task_service.get_tasks(user= user, limit= limit, offset= offset)
     return response
 
-# note: return all subtasks as well for both get endpoints
-@router.get("/{task_id}", response_model=TaskReadResponseItemSchema, summary="Get a task by id")
-async def get_task(task_id: UUID, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
-    response = await task_service.get_task(user=user, task_id=task_id)
-    return response
-
-
 @router.patch("/{task_id}", response_model=TaskReadResponseItemSchema, summary="Update a task")
 async def update_task(task_id: UUID, task_data: TaskUpdateRequestSchema, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
-    response= await task_service.update_task(user_id=user.user_id, task_id=task_id, task_data=task_data)
+    response= await task_service.update_task(user= user, task_id= task_id, task_data= task_data)
     return response
 
-@router.delete("/{task_id}", status_code=204, summary="Delete a task")
+@router.patch("/deactivate/{task_id}", status_code= 204, summary= "Delete a task")
 async def delete_task(task_id: UUID, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
-    response = await task_service.delete_task(user_id=user.user_id, task_id=task_id)
+    response =  await task_service.delete_task(user_id= user.user_id, task_id= task_id)
     return response
