@@ -4,9 +4,8 @@ from uuid import UUID
 from app.features.tasks.enums import TaskStatus, TaskPriority
 
 # Tasks
-class TaskReadResponseItemSchema(BaseModel):
-    task_id: UUID
-    user_id: UUID
+
+class TaskBaseResponse(BaseModel):
     title: str
     description: str | None
     image_url: str | None
@@ -18,6 +17,10 @@ class TaskReadResponseItemSchema(BaseModel):
     created_by: UUID | None
     updated_at: datetime
     created_at: datetime
+
+class TaskReadResponseItemSchema(TaskBaseResponse):
+    task_id: UUID
+    user_id: UUID
 
 class TaskReadResponseSchema(BaseModel):
     items: list[TaskReadResponseItemSchema]
@@ -41,7 +44,8 @@ class TaskUpdateRequestSchema(TaskCreateRequestSchema):
     pass
 
 # Subtasks
-class SubtaskReadResponseItemSchema(TaskReadResponseItemSchema):
+class SubtaskReadResponseItemSchema(TaskBaseResponse):
+    task_id: UUID
     subtask_id: UUID
 
 class SubtaskReadResponseSchema(BaseModel):
