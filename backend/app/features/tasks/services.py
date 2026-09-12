@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
-from sqlalchemy import select, insert, func, update
+from sqlalchemy import select, insert, func, update, and_
 import math
 from datetime import datetime, timezone
 from app.features.users.models import Users
@@ -141,12 +141,11 @@ class TaskService:
         await self.db.commit()
         return
 
-    async def create_subtask(self, user: Users, subtask_data: TaskCreateRequestSchema):
+    async def create_subtask(self, user: Users, subtask_data: SubtaskCreateRequestSchema):
          insert_query= (
              insert(SubTasks)
              .values(
                  task_id= subtask_data.task_id,
-                 user_id= user.user_id,
                  title= subtask_data.title,
                  description= subtask_data.description,
                  image_url= subtask_data.image_url,
@@ -169,43 +168,56 @@ class TaskService:
          await self.db.commit()
          return response
  
-    async def get_SubTasks(self, user: Users, limit: int= 1, offset: int= 0):
+    async def get_subtasks(self, user: Users, task_id: UUID, limit: int= 1, offset: int= 0):
         query= (
             select(SubTasks)
+            .join(
+                Tasks,
+                and_(Tasks.task_id == SubTasks.task_id)
+            )
             .where(
+                SubTasks.task_id == task_id,
+                SubTasks.is_deleted.is_(False),
                 Tasks.user_id == user.user_id,
-                Tasks.is_deleted.is_(False)
+                Tasks.is_deleted.is_(False),
             )
             .order_by(
-                Tasks.created_at.desc(),
-                Tasks.updated_at.desc()
+                SubTasks.created_at.desc(),
+                SubTasks.updated_at.desc()
             )
             .offset(offset)
             .limit(limit)
         )
 
-        tasks = (await self.db.execute(query)).scalars().all()
+        subtasks = (await self.db.execute(query)).scalars().all()
 
         count_query = (
-            select(func.count(Tasks.task_id))
+            select(func.count(SubTasks.subtask_id))
+            .join(
+                Tasks,
+                and_(Tasks.task_id == SubTasks.task_id)
+            )
             .where(
+                SubTasks.task_id == task_id,
+                SubTasks.is_deleted.is_(False),
                 Tasks.user_id == user.user_id,
-                Tasks.is_deleted.is_(False)
+                Tasks.is_deleted.is_(False),
             )
         )
 
-        total_tasks_count = (await self.db.execute(count_query)).scalar_one_or_none()
 
-        has_more = offset + len(tasks) < total_tasks_count
+        total_subtasks_count = (await self.db.execute(count_query)).scalar_one()
+
+        has_more = offset + len(subtasks) < total_subtasks_count
         page = (offset // limit) + 1
-        total_pages = (math.ceil(total_tasks_count/ limit))
+        total_pages = (math.ceil(total_subtasks_count/ limit))
         
         return {
-            "items": tasks,
+            "items": subtasks,
             "limit": limit,
             "offset": offset,
             "has_more": has_more,
-            "total_tasks": total_tasks_count,
+            "total_tasks": total_subtasks_count,
             "page": page,
             "total_pages": total_pages
         }
