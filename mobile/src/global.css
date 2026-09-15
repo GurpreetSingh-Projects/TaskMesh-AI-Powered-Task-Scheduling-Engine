@@ -39,4 +39,11 @@
   --radius-base: 24px;
   --radius-lg: 28px;
   --radius-xl: 30px;
+
+  --font-sans: "Inter_400Regular";
+  --font-medium: "Inter_500Medium";
+  --font-semibold: "Inter_600SemiBold";
+  --font-bold: "Inter_700Bold";
+  --font-extrabold: "Inter_800ExtraBold";
+  --font-black: "Inter_900Black";
 }
