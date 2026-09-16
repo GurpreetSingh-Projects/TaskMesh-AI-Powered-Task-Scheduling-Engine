@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { Keyboard, View } from "react-native";
 import ThemeButton from "@/components/ThemeButton";
 import ThemeText from "@/components/ThemeText";
 import ThemePage from "@/components/ThemePage";
@@ -15,9 +15,10 @@ import { useSignInMutation } from "@/api/baseApi";
 import OrSeparator from "@/components/OrSeparator";
 import { Link } from "@react-navigation/native";
 import ThemeDrawer from "@/components/ThemeDrawer";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import LottieView from "lottie-react-native";
+import { DrawerMode } from "../types";
 
 const loginSchema = z.object({
   email: z.email(),
@@ -27,8 +28,10 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 const Login = () => {
-  const [signIn, { isSuccess, isError, error }] = useSignInMutation();
+  const [signIn, { isLoading, isSuccess, isError, reset }] =
+    useSignInMutation();
   const loginDrawerRef = useRef<BottomSheetModal>(null);
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>("default");
 
   const {
     control,
@@ -50,22 +53,19 @@ const Login = () => {
         password: values.password,
       }).unwrap();
       console.log(response);
+      setDrawerMode("success");
     } catch (error) {
       console.error("Login api error:", error);
+      setDrawerMode("fail");
     }
-  };
-
-  useEffect(() => {
     loginDrawerRef?.current?.present();
-  }, []);
+    setTimeout(() => {
+      loginDrawerRef?.current?.dismiss();
+    }, 2500);
+  };
 
   return (
     <ThemePage className="bg-canvas" noSafeArea isScrollable>
-      {/* <KeyboardAvoidingView
-        behavior={"height"}
-        className="h-full"
-        // keyboardVerticalOffset={150}
-      > */}
       <View className="flex-1 items-center">
         <OnboardingBg className="h-1/2 relative items-center justify-start">
           {/* <BackButton goBack /> */}
@@ -81,20 +81,20 @@ const Login = () => {
           />
         </OnboardingBg>
         <View
-          className="flex-1 w-full pt-5 bg-canvas px-page"
+          className="flex-1 w-full pt-5 bg-canvas px-page gap-3"
           style={{ zIndex: 99999 }}
         >
           <View className="gap-1">
-            <ThemeText className="font-medium text-3xl text-start">
+            <ThemeText variant="heading" className="text-start">
               Welcome back
             </ThemeText>
-            <ThemeText className="font-normal! text-graphite!">
+            <ThemeText className="text-sm font-normal! text-graphite!">
               Sign in to continue managing your day
             </ThemeText>
           </View>
 
-          <View className="w-full pt-5">
-            <View className="pb-5">
+          <View className="w-full pt-5 gap-5">
+            <View className="">
               <Controller
                 control={control}
                 name="email"
@@ -111,6 +111,7 @@ const Login = () => {
                         stroke={themeColors?.steel}
                       />
                     }
+                    autoFocus
                   />
                 )}
               />
@@ -120,7 +121,7 @@ const Login = () => {
                 </ThemeText>
               )}
             </View>
-            <View className="pb-5">
+            <View className="">
               <Controller
                 control={control}
                 name="password"
@@ -153,7 +154,19 @@ const Login = () => {
               className="bg-ink mx-default! rounded-full"
               textColor="text-white!"
               text="GET STARTED"
-              onPress={handleSubmit(submitHandler)}
+              status={
+                isLoading
+                  ? "loading"
+                  : isSuccess
+                    ? "success"
+                    : isError
+                      ? "error"
+                      : "default"
+              }
+              onPress={() => {
+                Keyboard.dismiss();
+                handleSubmit(submitHandler);
+              }}
             />
             <>
               <OrSeparator />
@@ -173,7 +186,7 @@ const Login = () => {
       </View>
       {/* </KeyboardAvoidingView> */}
       <ThemeDrawer ref={loginDrawerRef} snapPoints={["30%"]} closable={false}>
-        <View className="h-full w-full flex-1 items-center justify-center bg-red-300">
+        <View className="h-full w-full flex-1 items-center justify-center">
           <LottieView
             source={animations?.tickIcon}
             autoPlay
@@ -184,10 +197,10 @@ const Login = () => {
             }}
           />
           <View className="gap-3 py-3">
-            <ThemeText className="font-medium text-2xl text-start">
-              Login successfull
+            <ThemeText variant="heading" className="text-center">
+              Login successfull!!
             </ThemeText>
-            <ThemeText className="text-sm font-normal! text-graphite!">
+            <ThemeText className="text-sm font-normal! text-graphite! gap-2">
               Preparing your workspace
             </ThemeText>
           </View>
