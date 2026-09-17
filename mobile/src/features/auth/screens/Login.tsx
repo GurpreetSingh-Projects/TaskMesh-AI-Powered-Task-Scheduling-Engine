@@ -165,7 +165,7 @@ const Login = () => {
               }
               onPress={() => {
                 Keyboard.dismiss();
-                handleSubmit(submitHandler);
+                handleSubmit(submitHandler)();
               }}
             />
             <>
