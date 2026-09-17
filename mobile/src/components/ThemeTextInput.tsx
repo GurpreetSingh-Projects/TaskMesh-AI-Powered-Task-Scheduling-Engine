@@ -1,13 +1,18 @@
-import { Pressable, View } from "react-native";
+import { Pressable, TextInputProps, View } from "react-native";
 import React, { memo, useState } from "react";
 import { TextInput } from "react-native-gesture-handler";
 import { themeColors } from "@/theme";
 import ThemeText from "./ThemeText";
 import { HideVisibilityIcon, VisibilityIcon } from "@/Icon";
 
-const ThemeTextInput = memo((props: any) => {
+type ThemeTextInputProps = TextInputProps & {
+  icon?: React.ReactNode;
+  secure?: boolean;
+};
+
+const ThemeTextInput = memo((props: ThemeTextInputProps) => {
   const [isFocussed, setIsFocussed] = useState<boolean>(false);
-  const [isSecure, setIsSecure] = useState<boolean>(props?.secure ?? false);
+  const [isSecure, setIsSecure] = useState<boolean>(true);
 
   const { onChangeText, ...rest } = props;
 
@@ -25,8 +30,10 @@ const ThemeTextInput = memo((props: any) => {
 
       <TextInput
         {...rest}
+        keyboardType={props?.keyboardType ? props?.keyboardType : "default"}
         onChangeText={changeHandler}
         maxLength={props?.maxLength ?? 255}
+        value={props?.value}
         onFocus={() => {
           setIsFocussed(true);
         }}
@@ -34,12 +41,13 @@ const ThemeTextInput = memo((props: any) => {
           setIsFocussed(false);
         }}
         style={{
-          width: props?.secure || props?.icon ? "85%" : "100%",
+          width: isSecure || props?.icon ? "85%" : "100%",
           height: "100%",
+          color: themeColors?.ash,
         }}
         placeholderTextColor={themeColors?.steel}
         cursorColor={themeColors?.obsidian}
-        secureTextEntry={props?.secure}
+        secureTextEntry={isSecure}
         textAlignVertical={props?.textAlignVertical}
       />
 
