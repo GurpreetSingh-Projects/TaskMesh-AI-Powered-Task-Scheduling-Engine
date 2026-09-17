@@ -1,10 +1,9 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
-// import { userSlice } from "../features/profile/slice/user";
 import { baseApi } from "../api/baseApi";
 import { createMMKV } from "react-native-mmkv";
-import userProfileReducer from "@/features/profile/slice/user";
 import { persistReducer, persistStore } from "redux-persist";
 import { useDispatch, useSelector } from "react-redux";
+import { userReducer } from "@/features/profile/slice/user";
 
 export const mmkvStorage = createMMKV({
   id: "taskmesh-ai",
@@ -26,7 +25,8 @@ export const mmkvReduxStorage = {
 };
 
 const appReducer = combineReducers({
-  userProfile: userProfileReducer,
+  // authReducer: authReducer.
+  userProfile: userReducer,
   [baseApi.reducerPath]: baseApi.reducer,
 });
 
