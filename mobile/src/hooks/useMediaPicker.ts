@@ -2,6 +2,7 @@ import * as ImagePicker from "expo-image-picker";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { Alert } from "react-native";
 import { useAppSelector } from "@/app/store";
+import { FileType } from "@/features/auth/types";
 
 const formatImgTypes: Record<string, SaveFormat> = {
   "image/webp": SaveFormat.WEBP,
@@ -15,7 +16,7 @@ export function useMediaPicker() {
 
   const processImage = async (
     unprocessedImage: ImagePicker.ImagePickerAsset,
-  ) => {
+  ): Promise<FileType | null> => {
     const context = ImageManipulator.manipulate(unprocessedImage?.uri).resize({
       width: settings?.max_image_width,
     });

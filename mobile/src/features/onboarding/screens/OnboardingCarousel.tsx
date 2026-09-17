@@ -44,7 +44,7 @@ const OnboardingCarousel = () => {
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
   return (
-    <ThemePage className="bg-canvas" noSafeArea>
+    <ThemePage noSafeArea>
       <View className="flex-1 gap-default items-center justify-center">
         <OnboardingBg className="relative">
           <Carousel
@@ -83,22 +83,12 @@ const OnboardingCarousel = () => {
             <ThemeText className="font-bold!">AI</ThemeText>
           </ThemeText>
           <View className="w-full absolute bottom-5">
-            {/* <ThemeButton
-              className="bg-ink mx-default! rounded-full"
-              textColor="text-white!"
-              text="GET STARTED"
-              onPress={() => {
-                navigation.navigate("Login");
-              }}
-            /> */}
             <ThemeButton
-              className="bg-ink mx-default! rounded-full items-center justify-center"
+              className="my-3"
+              variant="primary"
+              text="GET STARTED"
               onPress={() => navigation.navigate("Login")}
-            >
-              <ThemeText className="font-bold text-white text-center text-base">
-                GET STARTED
-              </ThemeText>
-            </ThemeButton>
+            />
           </View>
         </View>
       </View>

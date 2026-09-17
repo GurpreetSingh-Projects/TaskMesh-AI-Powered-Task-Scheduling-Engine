@@ -1,9 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Pressable, useWindowDimensions, View } from "react-native";
-import {
-  useCreateOnboardingQuestionnaireResponsesMutation,
-  useLazyOnboardingQuestionnaireQuery,
-} from "@/api/baseApi";
 import LottieView from "lottie-react-native";
 import { animations, images } from "@/assets";
 import { primaryBorderRadius, themeColors, themeSpacing } from "@/theme";
@@ -33,8 +29,15 @@ import { AnimatedImage } from "@/utils";
 import ThemeDrawer from "@/components/ThemeDrawer";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { getOnboardingMessage } from "../utils";
-import { setIsProfileCompleted } from "@/features/profile/slice/user";
+import {
+  setIsOnboardingCompleted,
+  setIsProfileCompleted,
+} from "@/features/profile/slice/user";
 import { useAppDispatch } from "@/app/store";
+import {
+  useCreateOnboardingQuestionnaireResponsesMutation,
+  useLazyOnboardingQuestionnaireQuery,
+} from "../onboardingApi";
 
 const OnboardingQuestionnaire = () => {
   const { height, width } = useWindowDimensions();
@@ -166,15 +169,16 @@ const OnboardingQuestionnaire = () => {
       console.log(response);
 
       setDrawerMsg({
-        title: "Account Created!!",
-        description: "Registered successfully, setting up...",
+        title: "Thank you!!",
+        description: "Your response were submitted successfully!!",
       });
 
       setDrawerMode("success");
       onboardingQuestionnaireDrawerRef?.current?.present();
-      dispatch(setIsProfileCompleted(true));
+
       setTimeout(() => {
         onboardingQuestionnaireDrawerRef?.current?.dismiss();
+        dispatch(setIsOnboardingCompleted(true));
       }, 2500);
     } catch (error) {
       console.log(JSON.stringify(error));
@@ -182,9 +186,10 @@ const OnboardingQuestionnaire = () => {
       setDrawerMsg(getOnboardingMessage(error?.status_code));
       setDrawerMode("fail");
       onboardingQuestionnaireDrawerRef?.current?.present();
-      dispatch(setIsProfileCompleted(false));
+
       setTimeout(() => {
         onboardingQuestionnaireDrawerRef?.current?.dismiss();
+        dispatch(setIsOnboardingCompleted(false));
       }, 2500);
     }
   };
@@ -198,7 +203,7 @@ const OnboardingQuestionnaire = () => {
   }, [responses]);
 
   return (
-    <ThemePage className="bg-canvas">
+    <ThemePage>
       <View className="h-2 w-full overflow-hidden rounded-full">
         <Animated.View
           className="h-full rounded-full"
@@ -369,14 +374,11 @@ const OnboardingQuestionnaire = () => {
             style={submitButtonStyle}
           >
             <ThemeButton
-              disabled={!isSubmitButtonEnabled}
-              className="bg-ink mx-default! rounded-full items-center justify-center"
+              className="mx-default! my-3"
+              text="SUBMIT"
+              status={isSubmitOnboardingFormLoading ? "loading" : "default"}
               onPress={submitHandler}
-            >
-              <ThemeText className="font-bold text-white text-center text-base">
-                SUBMIT
-              </ThemeText>
-            </ThemeButton>
+            />
           </Animated.View>
         </View>
       </View>

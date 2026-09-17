@@ -6,29 +6,22 @@ import OnboardingBg from "@/features/onboarding/components/OnboardingBg";
 import { Image } from "expo-image";
 import { animations, images } from "@/assets";
 import ThemeTextInput from "@/components/ThemeTextInput";
-import {
-  CameraIcon,
-  EmailIcon,
-  GalleryIcon,
-  LockIcon,
-  UserRoundIcon,
-} from "@/Icon";
+import { EmailIcon, LockIcon } from "@/Icon";
 import { themeColors } from "@/theme";
 import { Controller, useForm } from "react-hook-form";
-import { email, z } from "zod/v4";
+import { z } from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRegisterMutation } from "@/api/baseApi";
 import OrSeparator from "@/components/OrSeparator";
 import { useNavigation } from "@react-navigation/native";
 import ThemeDrawer from "@/components/ThemeDrawer";
 import { useRef, useState } from "react";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import LottieView from "lottie-react-native";
-import { DrawerMode } from "../types";
+import { DrawerMode, FileType } from "../types";
 import { getAuthMessage, setAuth } from "../utils";
-import MediaPicker from "@/components/MediaPicker";
-import { profile } from "node:console";
+import ProfileImagePicker from "@/components/ProfileImagePicker";
 import { useWindowDimensions } from "react-native-keyboard-controller";
+import { useRegisterMutation } from "../authApi";
 
 const registerSchema = z.object({
   email: z.email(),
@@ -39,20 +32,13 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 const Register = () => {
   const { width, height } = useWindowDimensions();
-
-  const BG_CAROUSEL_HEIGHT = height * 0.375;
   const IMG_HEIGHT = height * 0.125;
-  const badgeSize = Math.round(IMG_HEIGHT * 0.35);
 
   const [register, { isLoading, reset }] = useRegisterMutation();
   const registerDrawerRef = useRef<BottomSheetModal>(null);
   const [drawerMode, setDrawerMode] = useState<DrawerMode>("default");
-  const [drawerMsg, setDrawerMsg] = useState({
-    title: "",
-    description: "",
-  });
-
-  const [profileImg, setProfileImg] = useState(null);
+  const [drawerMsg, setDrawerMsg] = useState({ title: "", description: "" });
+  const [profileImg, setProfileImg] = useState<FileType>(null);
 
   const {
     control,
@@ -60,10 +46,7 @@ const Register = () => {
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
   const navigation = useNavigation();
@@ -100,96 +83,32 @@ const Register = () => {
   };
 
   return (
-    <ThemePage className="bg-canvas" noSafeArea isScrollable>
-      <View className="flex-1 items-center">
-        <OnboardingBg
-          className="relative items-center justify-start"
-          style={{
-            height: "37.5%",
-            width,
-          }}
-        >
-          <Image
-            style={{
-              height: "100%",
-              width: "100%",
-              zIndex: 0,
-            }}
-            source={images?.onboarding?.register}
-            contentFit="cover"
-            allowDownscaling={false}
-          />
-        </OnboardingBg>
-
+    <ThemePage
+      noSafeArea
+      isScrollable
+      footer={
         <View
-          className="flex-1 w-full pt-5 bg-canvas px-page gap-3"
+          className="w-full pt-5 bg-canvas px-page gap-3"
           style={{ zIndex: 99999 }}
         >
           <View className="gap-1">
             <ThemeText variant="heading" className="text-start">
               Create Account
             </ThemeText>
-
-            <ThemeText className="text-sm font-normal! text-graphite!">
+            <ThemeText className="text-sm font-normal! text-steel!">
               Setup your profile and start planning your day
             </ThemeText>
           </View>
 
-          <View className="w-full gap-5 faj">
+          <View className="w-full py-3 gap-5 faj">
             <View className="items-center justify-center">
-              <Pressable
-                onPress={() => {
-                  setDrawerMode("mediaSelection");
-                  registerDrawerRef.current?.present();
-                }}
-                style={{
-                  width: IMG_HEIGHT,
-                  height: IMG_HEIGHT,
-                  borderRadius: IMG_HEIGHT / 2,
-                }}
-                className="items-center justify-center bg-neutral-100 border border-neutral-200"
-              >
-                {profileImg ? (
-                  <Image
-                    style={{
-                      height: "100%",
-                      width: "100%",
-                      borderRadius: 9999,
-                      zIndex: 0,
-                    }}
-                    source={profileImg?.uri}
-                    contentFit="cover"
-                    allowDownscaling={false}
-                  />
-                ) : (
-                  <UserRoundIcon
-                    width={IMG_HEIGHT * 0.65}
-                    height={IMG_HEIGHT * 0.65}
-                    stroke={themeColors?.steel}
-                    fill="transparent"
-                  />
-                )}
-
-                <View
-                  style={{
-                    position: "absolute",
-                    bottom: 0,
-                    right: 0,
-                    width: badgeSize,
-                    height: badgeSize,
-                    borderRadius: badgeSize / 2,
-                  }}
-                  className="bg-ink items-center justify-center border-2 border-white"
-                >
-                  <CameraIcon
-                    width={badgeSize * 0.5}
-                    height={badgeSize * 0.5}
-                    stroke="#fff"
-                    fill="transparent"
-                  />
-                </View>
-              </Pressable>
+              <ProfileImagePicker
+                image_path={profileImg}
+                onChange={setProfileImg}
+                size={IMG_HEIGHT}
+              />
             </View>
+
             <View>
               <Controller
                 control={control}
@@ -211,7 +130,6 @@ const Register = () => {
                   />
                 )}
               />
-
               {errors?.email?.message && (
                 <ThemeText className="mt-1 text-xs text-red-500">
                   {errors.email.message}
@@ -240,7 +158,6 @@ const Register = () => {
                   />
                 )}
               />
-
               {errors?.password?.message && (
                 <ThemeText className="mt-1 text-xs text-red-500">
                   {errors.password.message}
@@ -249,8 +166,7 @@ const Register = () => {
             </View>
 
             <ThemeButton
-              className="bg-ink mx-default! rounded-full"
-              textColor="text-white!"
+              className="my-3"
               text="REGISTER NOW"
               status={isLoading ? "loading" : "default"}
               onPress={() => {
@@ -259,74 +175,69 @@ const Register = () => {
               }}
             />
 
-            <>
-              <OrSeparator />
-
-              <View className="flex-row w-full items-center justify-center mt-5">
-                <Pressable
-                  onPress={() => {
-                    if (navigation.canGoBack()) {
-                      navigation.goBack();
-                    }
-                  }}
-                  className="flex-row items-center justify-center gap-1"
-                >
-                  <ThemeText className="text-sm text-steel">
-                    Already have an account ?
-                  </ThemeText>
-
-                  <ThemeText className="font-bold! text-sm text-ink">
-                    Login Now
-                  </ThemeText>
-                </Pressable>
-              </View>
-            </>
+            <OrSeparator />
+            <View className="flex-row w-full items-center justify-center">
+              <Pressable
+                onPress={() => {
+                  if (navigation.canGoBack()) navigation.goBack();
+                }}
+                className="flex-row items-center justify-center gap-1"
+              >
+                <ThemeText className="text-sm text-steel">
+                  Already have an account ?
+                </ThemeText>
+                <ThemeText className="font-bold! text-sm text-ink">
+                  Login Now
+                </ThemeText>
+              </Pressable>
+            </View>
           </View>
         </View>
+      }
+      keyboardOffsetClosed={-(height * 0.075)}
+      keyboardOffsetOpened={0}
+    >
+      <View className="items-center">
+        <OnboardingBg
+          className="relative items-center justify-start"
+          style={{ height: height * 0.375, width }}
+        >
+          <Image
+            style={{ height: "100%", width: "100%", zIndex: 0 }}
+            source={images?.onboarding?.register}
+            contentFit="cover"
+            allowDownscaling={false}
+          />
+        </OnboardingBg>
       </View>
 
       <ThemeDrawer
         ref={registerDrawerRef}
-        snapPoints={drawerMode === "mediaSelection" ? ["25%"] : ["30%"]}
-        closable={drawerMode === "mediaSelection"}
-        backdropPressBehavior={
-          drawerMode === "mediaSelection" ? "close" : "none"
-        }
+        snapPoints={["30%"]}
+        closable={false}
+        backdropPressBehavior="none"
       >
-        {drawerMode == "mediaSelection" ? (
-          <MediaPicker
-            onMediaSelected={(file) => {
-              setProfileImg(file);
-              registerDrawerRef?.current?.dismiss();
-            }}
+        <View className="h-full w-full flex-1 items-center justify-center gap-3 z-10">
+          <LottieView
+            source={
+              drawerMode === "success"
+                ? animations?.tickIcon
+                : animations?.crossIcon
+            }
+            autoPlay
+            loop={false}
+            style={{ width: 75, height: 75 }}
           />
-        ) : (
-          <View className="h-full w-full flex-1 items-center justify-center gap-3 z-10">
-            <LottieView
-              source={
-                drawerMode === "success"
-                  ? animations?.tickIcon
-                  : animations?.crossIcon
-              }
-              autoPlay
-              loop={false}
-              style={{
-                width: 75,
-                height: 75,
-              }}
-            />
-
-            <View className="gap-3 py-3">
-              <ThemeText variant="subheading" className="text-center">
-                {drawerMsg.title}
-              </ThemeText>
-
-              <ThemeText className="text-graphite! text-center">
-                {drawerMsg.description}
-              </ThemeText>
-            </View>
+          <View className="gap-3 py-3">
+            <ThemeText variant="subheading" className="text-center">
+              {drawerMsg.title}
+            </ThemeText>
+            <ThemeText className="text-graphite! text-center">
+              {drawerMsg.description}
+            </ThemeText>
           </View>
-        )}
+        </View>
+
         {drawerMode === "success" && (
           <Image
             source={images.illustrations.illustration2}

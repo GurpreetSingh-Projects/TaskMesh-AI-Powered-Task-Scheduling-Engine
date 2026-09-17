@@ -100,6 +100,8 @@ class UserService:
 
         if password is not None:
             user_data["hashed_pswd"]= hash_password(password)
+
+        user_data["is_profile_completed"] = bool(user.profile_img and user.is_onboarding_completed and user.email and user.full_name)
             
         user_data["updated_by"]= user.user_id
 

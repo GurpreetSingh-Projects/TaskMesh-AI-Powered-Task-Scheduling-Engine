@@ -14,6 +14,7 @@ const initialState: UserState = {
   updated_by: null,
   created_at: null,
   updated_at: null,
+  isProfileCompletionSkipped: false,
 };
 
 export const userSlice = createSlice({
@@ -53,6 +54,9 @@ export const userSlice = createSlice({
     setUpdatedAt: (state, action: PayloadAction<string>) => {
       state.updated_at = action.payload;
     },
+    setIsProfileCompletionSkipped: (state, action: PayloadAction<boolean>) => {
+      state.isProfileCompletionSkipped = action.payload;
+    },
     clearUser: () => initialState,
   },
 });
@@ -70,6 +74,7 @@ export const {
   setUpdatedBy,
   setUpdatedAt,
   clearUser,
+  setIsProfileCompletionSkipped,
 } = userSlice.actions;
 
 export const userReducer = userSlice.reducer;
