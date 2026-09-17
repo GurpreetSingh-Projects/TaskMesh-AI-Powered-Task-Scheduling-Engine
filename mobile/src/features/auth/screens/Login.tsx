@@ -28,7 +28,7 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 const Login = () => {
-  const [signIn, { isLoading, isSuccess, isError, reset }] =
+  const [signIn, { isLoading, isSuccess, isError, error, reset }] =
     useSignInMutation();
   const loginDrawerRef = useRef<BottomSheetModal>(null);
   const [drawerMode, setDrawerMode] = useState<DrawerMode>("default");
@@ -47,7 +47,6 @@ const Login = () => {
 
   const submitHandler = async (values: LoginForm) => {
     try {
-      console.log(values);
       const response = await signIn({
         email: values.email,
         password: values.password,
@@ -55,13 +54,13 @@ const Login = () => {
       console.log(response);
       setDrawerMode("success");
     } catch (error) {
-      console.error("Login api error:", error);
+      console.log("Login api error:", error);
       setDrawerMode("fail");
     }
     loginDrawerRef?.current?.present();
     setTimeout(() => {
       loginDrawerRef?.current?.dismiss();
-    }, 2500);
+    }, 3500);
   };
 
   return (
@@ -104,6 +103,7 @@ const Login = () => {
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
+                    keyboardType="email-address"
                     icon={
                       <EmailIcon
                         height={22.5}
@@ -131,7 +131,6 @@ const Login = () => {
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
-                    keyboardType="email-address"
                     icon={
                       <LockIcon
                         height={22.5}
@@ -186,9 +185,13 @@ const Login = () => {
       </View>
       {/* </KeyboardAvoidingView> */}
       <ThemeDrawer ref={loginDrawerRef} snapPoints={["30%"]} closable={false}>
-        <View className="h-full w-full flex-1 items-center justify-center">
+        <View className="h-full w-full flex-1 items-center justify-center gap-3">
           <LottieView
-            source={animations?.tickIcon}
+            source={
+              drawerMode == "success"
+                ? animations?.tickIcon
+                : animations?.crossIcon
+            }
             autoPlay
             loop={false}
             style={{
@@ -197,11 +200,12 @@ const Login = () => {
             }}
           />
           <View className="gap-3 py-3">
-            <ThemeText variant="heading" className="text-center">
-              Login successfull!!
+            <ThemeText variant="subheading" className="text-center">
+              {drawerMode === "success" ? "Login Successfull" : "Login Failed"}
+              !!
             </ThemeText>
-            <ThemeText className="text-sm font-normal! text-graphite! gap-2">
-              Preparing your workspace
+            <ThemeText className="text-graphite! text-center">
+              {error?.data?.detail}
             </ThemeText>
           </View>
         </View>
