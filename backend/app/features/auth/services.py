@@ -7,6 +7,8 @@ from app.features.users.schemas import UserCreateRequestSchema, UserLoginRequest
 from app.features.users.models import Users
 from app.features.users.enums import UserRoles
 from app.core.utils import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
+from datetime import datetime, timezone, timedelta
+from app.config import settings
 
 class AuthService:
     def __init__(self, db: AsyncSession):
@@ -55,7 +57,10 @@ class AuthService:
                 "message": "User created successfully",
                 "user": result,
                 "access_token": access_token,
+                "access_token_expires_at": datetime.now(timezone.utc) + timedelta(minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES),
                 "refresh_token": refresh_token,
+                  "user_settings": "",
+                "refresh_token_expires_at": datetime.now(timezone.utc) + timedelta(days= settings.REFRESH_TOKEN_EXPIRE_DAYS),
                 "token_type": "bearer"
             }
 
@@ -75,8 +80,11 @@ class AuthService:
         return {
             "message": "User logged in successfully",
             "user": user,
+            "user_settings": "",
             "access_token": create_access_token(user.user_id),
+            "access_token_expires_at": datetime.now(timezone.utc) + timedelta(minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES),
             "refresh_token": create_refresh_token(user.user_id),
+            "refresh_token_expires_at": datetime.now(timezone.utc) + timedelta(days= settings.REFRESH_TOKEN_EXPIRE_DAYS),
             "token_type": "bearer"
         }
 
@@ -90,7 +98,10 @@ class AuthService:
         return {
             "message": "User token refreshed successfully",
             "user": user,
+            "user_settings": "",
             "access_token": create_access_token(user.user_id),
+            "access_token_expires_at": datetime.now(timezone.utc) + timedelta(minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES),
             "refresh_token": refresh_token,
+            "refresh_token_expires_at": datetime.now(timezone.utc) + timedelta(days= settings.REFRESH_TOKEN_EXPIRE_DAYS),
             "token_type": "bearer"
         }
