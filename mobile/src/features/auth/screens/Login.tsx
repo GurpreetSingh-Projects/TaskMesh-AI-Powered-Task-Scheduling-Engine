@@ -11,11 +11,11 @@ import { themeColors } from "@/theme";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSignInMutation } from "@/api/baseApi";
+import { useLoginMutation } from "@/api/baseApi";
 import OrSeparator from "@/components/OrSeparator";
-import { Link } from "@react-navigation/native";
+import { Link, useNavigation } from "@react-navigation/native";
 import ThemeDrawer from "@/components/ThemeDrawer";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import LottieView from "lottie-react-native";
 import { DrawerMode } from "../types";
@@ -29,8 +29,8 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 const Login = () => {
-  const [signIn, { isLoading, isSuccess, isError, error, reset }] =
-    useSignInMutation();
+  const [login, { isLoading, isSuccess, isError, error, reset }] =
+    useLoginMutation();
   const loginDrawerRef = useRef<BottomSheetModal>(null);
   const [drawerMode, setDrawerMode] = useState<DrawerMode>("default");
 
@@ -46,9 +46,11 @@ const Login = () => {
     },
   });
 
+  const navigation = useNavigation();
+
   const submitHandler = async (values: LoginForm) => {
     try {
-      const response = await signIn({
+      const response = await login({
         email: values.email,
         password: values.password,
       }).unwrap();
@@ -90,7 +92,7 @@ const Login = () => {
               Welcome back
             </ThemeText>
             <ThemeText className="text-sm font-normal! text-graphite!">
-              Sign in to continue managing your day
+              Login to continue managing your day
             </ThemeText>
           </View>
 
