@@ -177,3 +177,57 @@ export function ChevronRightIcon(props: IconProps) {
     </Svg>
   );
 }
+
+export function ChevronDownIcon(props: IconProps) {
+  return (
+    <Svg
+      fill={props?.fill ?? "none"}
+      strokeWidth={props?.strokeWidth ?? 1.5}
+      stroke={props?.stroke ?? themeColors?.ink}
+      viewBox="0 0 24 24"
+      style={{ width: props?.width, height: props?.height }}
+    >
+      <Path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="m19.5 8.25-7.5 7.5-7.5-7.5"
+      />
+    </Svg>
+  );
+}
+
+export function MenuIcon(props: IconProps) {
+  return (
+    <Svg
+      fill={props?.fill ?? "none"}
+      strokeWidth={props?.strokeWidth ?? 1.5}
+      stroke={props?.stroke ?? themeColors?.ink}
+      viewBox="0 0 24 24"
+      style={{ width: props?.width, height: props?.height }}
+    >
+      <Path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+      />
+    </Svg>
+  );
+}
+
+export function TickIcon(props: IconProps) {
+  return (
+    <Svg
+      fill={props?.fill ?? "none"}
+      strokeWidth={props?.strokeWidth ?? 1.5}
+      stroke={props?.stroke ?? themeColors?.ink}
+      viewBox="0 0 24 24"
+      style={{ width: props?.width, height: props?.height }}
+    >
+      <Path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="m4.5 12.75 6 6 9-13.5"
+      />
+    </Svg>
+  );
+}

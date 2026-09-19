@@ -44,9 +44,7 @@ const ThemePage = (props: ThemePageProps) => {
             paddingBottom: footerHeight,
           }}
           bottomOffset={footerHeight * 1.25}
-          // mode="layout"
           mode="insets"
-          // showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           {content}

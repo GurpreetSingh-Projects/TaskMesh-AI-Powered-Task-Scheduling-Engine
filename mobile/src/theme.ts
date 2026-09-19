@@ -39,12 +39,15 @@ export const themeSpacing = {
   16: "16px",
   14: "14px",
   12: "12px",
+  "2xs": "14px",
   xs: "18px",
   sm: "22px",
   base: "24px",
   lg: "28px",
   xl: "30px",
+  "2xl": "36px",
 };
+
 export const primaryBorderRadius = {
   default: 15,
   drawerRadius: themeSpacing?.default,
