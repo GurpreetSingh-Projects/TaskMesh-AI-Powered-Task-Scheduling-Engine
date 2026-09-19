@@ -19,6 +19,7 @@ import { useEffect, useRef, useState } from "react";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import LottieView from "lottie-react-native";
 import { DrawerMode } from "../types";
+import { setAuth } from "../utils";
 
 const loginSchema = z.object({
   email: z.email(),
@@ -52,6 +53,7 @@ const Login = () => {
         password: values.password,
       }).unwrap();
       console.log(response);
+      await setAuth(response);
       setDrawerMode("success");
     } catch (error) {
       console.log("Login api error:", error);
