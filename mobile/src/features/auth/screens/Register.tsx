@@ -1,9 +1,9 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import React from "react";
+import { Keyboard, Pressable, View } from "react-native";
+import React, { useRef, useState } from "react";
 import ThemePage from "@/components/ThemePage";
 import OnboardingBg from "@/features/onboarding/components/OnboardingBg";
 import { Image } from "expo-image";
-import { images } from "@/assets";
+import { animations, images } from "@/assets";
 import ThemeText from "@/components/ThemeText";
 import { Controller, useForm } from "react-hook-form";
 import ThemeTextInput from "@/components/ThemeTextInput";
@@ -14,7 +14,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigation } from "@react-navigation/native";
 import ThemeButton from "@/components/ThemeButton";
 import OrSeparator from "@/components/OrSeparator";
-import BackButton from "@/components/BackButton";
+import ThemeDrawer from "@/components/ThemeDrawer";
+import { useRegisterMutation } from "@/api/baseApi";
+import type { BottomSheetModal } from "@gorhom/bottom-sheet";
+import LottieView from "lottie-react-native";
+import { DrawerMode } from "../types";
+import { setAuth } from "../utils";
 
 const registerSchema = z.object({
   email: z.email(),
@@ -24,6 +29,11 @@ const registerSchema = z.object({
 type RegisterForm = z.infer<typeof registerSchema>;
 
 const Register = () => {
+  const [register, { isLoading, isSuccess, isError, error }] =
+    useRegisterMutation();
+  const registerDrawerRef = useRef<BottomSheetModal>(null);
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>("default");
+
   const {
     control,
     handleSubmit,
@@ -37,14 +47,27 @@ const Register = () => {
   });
 
   const navigation = useNavigation();
+
+  const submitHandler = async (values: RegisterForm) => {
+    try {
+      const response = await register({
+        email: values.email,
+        password: values.password,
+      }).unwrap();
+      await setAuth(response);
+      setDrawerMode("success");
+    } catch (error) {
+      console.log("Register api error:", error);
+      setDrawerMode("fail");
+    }
+    registerDrawerRef?.current?.present();
+    setTimeout(() => {
+      registerDrawerRef?.current?.dismiss();
+    }, 3500);
+  };
+
   return (
     <ThemePage className="bg-canvas" noSafeArea isScrollable>
-      {/* <KeyboardAvoidingView
-            behavior={"height"}
-            className="h-full"
-            // keyboardVerticalOffset={150}
-          > */}
-      {/* <BackButton goBack /> */}
       <View className="flex-1 items-center">
         <OnboardingBg className="h-1/2 relative items-center justify-start">
           <Image
@@ -71,8 +94,8 @@ const Register = () => {
             </ThemeText>
           </View>
 
-          <View className="w-full pt-5">
-            <View className="pb-5">
+          <View className="w-full pt-5 gap-5">
+            <View className="">
               <Controller
                 control={control}
                 name="email"
@@ -89,6 +112,7 @@ const Register = () => {
                         stroke={themeColors?.steel}
                       />
                     }
+                    autoFocus
                   />
                 )}
               />
@@ -131,7 +155,19 @@ const Register = () => {
               className="bg-ink mx-default! rounded-full"
               textColor="text-white!"
               text="REGISTER NOW"
-              onPress={() => {}}
+              status={
+                isLoading
+                  ? "loading"
+                  : isSuccess
+                    ? "success"
+                    : isError
+                      ? "error"
+                      : "default"
+              }
+              onPress={() => {
+                Keyboard.dismiss();
+                handleSubmit(submitHandler)();
+              }}
             />
             <>
               <OrSeparator />
@@ -152,10 +188,40 @@ const Register = () => {
         </View>
       </View>
       {/* </KeyboardAvoidingView> */}
+      <ThemeDrawer
+        ref={registerDrawerRef}
+        snapPoints={["30%"]}
+        closable={false}
+      >
+        <View className="h-full w-full flex-1 items-center justify-center gap-3">
+          <LottieView
+            source={
+              drawerMode == "success"
+                ? animations?.tickIcon
+                : animations?.crossIcon
+            }
+            autoPlay
+            loop={false}
+            style={{
+              width: 100,
+              height: 100,
+            }}
+          />
+          <View className="gap-3 py-3">
+            <ThemeText variant="subheading" className="text-center">
+              {drawerMode === "success"
+                ? "Registration Successful"
+                : "Registration Failed"}
+              !!
+            </ThemeText>
+            <ThemeText className="text-graphite! text-center">
+              {error?.data?.detail}
+            </ThemeText>
+          </View>
+        </View>
+      </ThemeDrawer>
     </ThemePage>
   );
 };
 
 export default Register;
-
-const styles = StyleSheet.create({});
