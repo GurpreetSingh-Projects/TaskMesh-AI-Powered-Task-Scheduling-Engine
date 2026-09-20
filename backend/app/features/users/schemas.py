@@ -14,9 +14,11 @@ class UserLoginRequestSchema(BaseModel):
 
 class UserReadResponseSchema(BaseModel):
     user_id: UUID
+    full_name: str | None = None
     email: EmailStr
     profile_img: str | None = None
     role: str
+    is_onboarding_completed: bool
     is_deleted: bool
     deleted_at: datetime | None = None
     created_by: UUID | None = None
@@ -40,3 +42,4 @@ class UserEditRequestSchema(BaseModel):
     email: EmailStr | None = None
     password: str | None = None
     profile_img: str | None = None
+    full_name: str | None = None
