@@ -19,7 +19,7 @@ import { useRef, useState } from "react";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import LottieView from "lottie-react-native";
 import { DrawerMode } from "../types";
-import { setAuth } from "../utils";
+import { getAuthMessage, setAuth } from "../utils";
 
 const loginSchema = z.object({
   email: z.email(),
@@ -33,6 +33,10 @@ const Login = () => {
     useLoginMutation();
   const loginDrawerRef = useRef<BottomSheetModal>(null);
   const [drawerMode, setDrawerMode] = useState<DrawerMode>("default");
+  const [drawerMsg, setDrawerMsg] = useState({
+    title: "",
+    description: "",
+  });
 
   const {
     control,
@@ -56,14 +60,21 @@ const Login = () => {
       }).unwrap();
       console.log(response);
       await setAuth(response);
+      setDrawerMsg({
+        title: "Welcome back!!",
+        description: "Logged in successfully, setting up...",
+      });
       setDrawerMode("success");
     } catch (error) {
       console.log("Login api error:", error);
+      setDrawerMsg(getAuthMessage(error?.status));
       setDrawerMode("fail");
     }
+
     loginDrawerRef?.current?.present();
     setTimeout(() => {
       loginDrawerRef?.current?.dismiss();
+      reset();
     }, 3500);
   };
 
@@ -115,7 +126,7 @@ const Login = () => {
                         stroke={themeColors?.steel}
                       />
                     }
-                    autoFocus
+                    // autoFocus
                   />
                 )}
               />
@@ -157,15 +168,7 @@ const Login = () => {
               className="bg-ink mx-default! rounded-full"
               textColor="text-white!"
               text="GET STARTED"
-              status={
-                isLoading
-                  ? "loading"
-                  : isSuccess
-                    ? "success"
-                    : isError
-                      ? "error"
-                      : "default"
-              }
+              status={isLoading ? "loading" : "default"}
               onPress={() => {
                 Keyboard.dismiss();
                 handleSubmit(submitHandler)();
@@ -205,11 +208,10 @@ const Login = () => {
           />
           <View className="gap-3 py-3">
             <ThemeText variant="subheading" className="text-center">
-              {drawerMode === "success" ? "Login Successfull" : "Login Failed"}
-              !!
+              {drawerMsg?.title}
             </ThemeText>
             <ThemeText className="text-graphite! text-center">
-              {error?.data?.detail}
+              {drawerMsg?.description}
             </ThemeText>
           </View>
         </View>
