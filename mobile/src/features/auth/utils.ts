@@ -63,3 +63,25 @@ export const setAuth = async (authResponse: AuthResponse) => {
     }),
   );
 };
+
+const AUTH_MESSAGES: Record<number, { title: string; description: string }> = {
+  404: { title: "Oops!!", description: "Invalid email id or password" },
+  409: {
+    title: "Already Registered",
+    description: "This email address is already in use",
+  },
+  500: {
+    title: "Something went wrong!!",
+    description: "Please try again later",
+  },
+};
+
+export const getAuthMessage = (statusCode: number) => {
+  if (AUTH_MESSAGES[statusCode]) {
+    return AUTH_MESSAGES[statusCode];
+  }
+  return {
+    title: "Oops!!",
+    description: "Something went wrong. Please try again later",
+  };
+};
