@@ -16,4 +16,5 @@ dependencies = [
     "python-jose[cryptography]",
     "email-validator",
     "python-multipart",
+    "aioboto3>=15.5.0",
 ]
