@@ -13,7 +13,7 @@ class UserService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_user_details(self, email: EmailStr | None = None, user_id: UUID | None = None):
+    async def get_user_details(self, email: EmailStr | None = None, user_id: UUID | None = None, silent_mode: bool= False):
         if not email and not user_id:
             raise HTTPException(status_code=400, detail="Either email or user_id must be provided")
         elif email and user_id:
@@ -27,8 +27,8 @@ class UserService:
 
         user = (await self.db.execute(query)).scalar_one_or_none()
     
-        if not user:
-                raise HTTPException(status_code=404, detail="User not found")
+        if not user and not silent_mode:
+            raise HTTPException(status_code=404, detail="User not found")
         return user
 
 
