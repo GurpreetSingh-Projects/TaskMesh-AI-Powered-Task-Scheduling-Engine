@@ -42,7 +42,10 @@ class UserService:
 
         update_query= (
             update(Users)
-            .where(Users.user_id == user.user_id)
+            .where(
+                Users.user_id == user.user_id,
+                Users.is_deleted.is_(False)
+            )
             .values(**user_data)
             .returning(Users)
         )
