@@ -17,11 +17,15 @@ class UserService:
         if not email and not user_id:
             raise HTTPException(status_code=400, detail="Either email or user_id must be provided")
         elif email and user_id:
-            query = select(Users).where(Users.user_id == user_id, Users.email == email, Users.is_deleted.is_(False)).limit(1)
+            query = (
+                select(Users)
+                .where(Users.user_id == user_id, Users.email == email)
+                .limit(1)
+            )
         elif user_id and not email:
-            query = select(Users).where(Users.user_id == user_id, Users.is_deleted.is_(False)).limit(1)
+            query = select(Users).where(Users.user_id == user_id).limit(1)
         elif not user_id and email:
-            query = select(Users).where(Users.email == email, Users.is_deleted.is_(False)).limit(1)
+            query = select(Users).where(Users.email == email).limit(1)
         else:
             raise HTTPException(status_code=400, detail="Invalid request parameters")
 
