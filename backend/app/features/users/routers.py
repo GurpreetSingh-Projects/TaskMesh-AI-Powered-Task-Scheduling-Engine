@@ -13,6 +13,8 @@ router = APIRouter(prefix="/users", tags=["Users"], dependencies=[Depends(get_cu
 @router.get("/get", response_model= UserReadResponseSchema, summary="Gets the user details", description="Gets back you the user, can be done with user_id or email")
 async def get_user(user= Depends(get_current_user), user_services: UserService = Depends(get_user_service)):
     user = await user_services.get_user_details(user_id=user.user_id)
+    if user.is_deleted and user.deleted_at is not None:
+        raise HTTPException(status_code=404, detail="User not found")
     return user
 
 @router.patch("/edit", response_model=UserReadResponseSchema, summary="Edit user details", description="Patch endpoint to edit user details like email, password")

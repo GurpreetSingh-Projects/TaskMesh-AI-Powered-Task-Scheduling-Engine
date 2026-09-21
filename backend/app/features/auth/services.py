@@ -28,7 +28,7 @@ class AuthService:
         user = await self.user_service.get_user_details(user_details.email, silent_mode= True)
 
         if user:
-            if user.is_deleted and user.deleted_at is not None:
+            if not user.is_deleted and user.deleted_at is None:
                 raise HTTPException(status_code = 409, detail= "User with this email already exists, please try logging in")
             raise HTTPException(status_code = 410, detail= "This user was deleted, please try reactivating your account")
 
@@ -77,6 +77,10 @@ class AuthService:
     async def login_user(self, user_details: UserLoginRequestSchema):
         user = await self.user_service.get_user_details(user_details.email)
 
+        if user.is_deleted and user.deleted_at is not None:
+            raise HTTPException(status_code = 410, detail= "This user was deleted, please try reactivating your account")
+        
+        
         if not user.is_deleted and not verify_password(user_details.password, user.hashed_pswd):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
@@ -109,16 +113,24 @@ class AuthService:
             "token_type": "bearer"
         }
 
-    async def reactivate_user(self, user_id: UUID):
+    async def reactivate_user(self, user_details: UserLoginRequestSchema):
+        user = await self.user_service.get_user_details(user_details.email, silent_mode= True)
+
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found, please create a new account")
+        
+        if not user.is_deleted and user.deleted_at is None:
+            raise HTTPException(status_code=409, detail="Existing user, please try logging in ")
+
         reactivate_query= (
             update(Users)
             .where(
-                Users.user_id == user_id
+                Users.user_id == user.user_id
             )
             .values(
                 is_deleted= False,
                 deleted_at= None,
-                updated_by= user_id
+                updated_by= user.user_id
             )
             .returning(Users)
         )
