@@ -25,8 +25,14 @@ class AuthService:
         return user
 
     async def create_user(self, user_details: UserCreateRequestSchema):
-        
-        query= insert(Users).values(
+        user = await self.user_service.get_user_details(user_details.email, silent_mode= True)
+
+        if user:
+            if user.is_deleted and user.deleted_at is not None:
+                raise HTTPException(status_code = 409, detail= "User with this email already exists, please try logging in")
+            raise HTTPException(status_code = 410, detail= "This user was deleted, please try reactivating your account")
+
+        insert_query= insert(Users).values(
             email= user_details.email, 
             hashed_pswd= hash_password(user_details.password), 
             role= UserRoles.USER,
@@ -35,12 +41,12 @@ class AuthService:
             deleted_at= None
         )
 
-        query = query.on_conflict_do_nothing(
+        insert_query = insert_query.on_conflict_do_nothing(
             index_elements=[Users.email],
         ).returning(Users)
 
         try:
-            result= (await self.db.execute(query)).scalar_one_or_none()
+            result= (await self.db.execute(insert_query)).scalar_one_or_none()
             
             if result is None:
                 await self.db.rollback()

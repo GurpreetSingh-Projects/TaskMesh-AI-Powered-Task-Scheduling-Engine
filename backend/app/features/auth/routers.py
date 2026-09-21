@@ -32,6 +32,6 @@ async def refresh_token(refresh_token: str, auth_service: AuthService = Depends(
     user = await auth_service.refresh_token(refresh_token)
     return user
 
-@router.patch("/reactivate", status_code=204, summary="Reactivates the current user", description="Reactivates the current user")
+@router.post("/reactivate", status_code=204, summary="Reactivates the current user", description="Reactivates the current user")
 async def reactivate_user(user_details: UserLoginRequestSchema, auth_services: AuthService = Depends(get_auth_service)):
     return await auth_services.reactivate_user(user_details)
