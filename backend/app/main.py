@@ -18,7 +18,7 @@ app = FastAPI(title='TaskMesh Api v2', version='2.0.0', lifespan=lifespan)
 
 health_router = APIRouter(tags=["Health"])
 
-@health_router.head("/awake", summary="Health endpoint for checking api availability and server status")
+@health_router.api_route("/awake", summary="Health endpoint for checking api availability and server status", methods=["GET", "HEAD"])
 def awake():
     return {
         "messsage": "TaskMesh - AI Powered Task Scheduling Engine is online"
