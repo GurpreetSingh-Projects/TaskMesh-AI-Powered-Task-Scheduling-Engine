@@ -1,5 +1,5 @@
+from sqlalchemy import ForeignKey, String, Enum as SAEnum, DateTime, Boolean, Integer, JSON, text, CheckConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey, String, Enum as SAEnum, DateTime, Boolean, Integer, JSON, text, CheckConstraint
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from datetime import datetime
@@ -10,12 +10,19 @@ from app.core.enums import ActivationStatus, DeliveryStatus
 
 class Tasks(Base):
     __tablename__= "tasks"
+    __table_args__ = (
+        Index(
+            "unique_task", "user_id", "title", "due_at",
+            unique=True,
+            postgresql_where= text("deleted_at IS NULL")
+        ),
+    )
     
     task_id: Mapped[uuid.UUID]= mapped_column(PG_UUID(as_uuid= True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"), nullable=False)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"))
     title: Mapped[str]= mapped_column(String(100), nullable=False)
     description: Mapped[str | None]= mapped_column(String(500), nullable=True)
-    image_url: Mapped[str]= mapped_column(String(1000), nullable=True)
+    file_storage_id: Mapped[uuid.UUID]= mapped_column(ForeignKey("file_storage.file_storage_id"), nullable=True)
     status: Mapped[TaskStatus] = mapped_column(SAEnum(TaskStatus, name="task_status", native_enum= True), nullable=False, default=TaskStatus.PENDING, server_default="PENDING")
     completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -29,12 +36,19 @@ class Tasks(Base):
     
 class SubTasks(Base):
     __tablename__= "subtasks"
+    __table_args__ = (
+            Index(
+                "unique_subtask", "task_id", "title", "due_at",
+                unique=True,
+                postgresql_where= text("deleted_at IS NULL")
+            ),
+        )
     
     subtask_id: Mapped[uuid.UUID]= mapped_column(PG_UUID(as_uuid= True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"), nullable=False)
     task_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tasks.task_id", ondelete="CASCADE"))
     title: Mapped[str]= mapped_column(String(100), nullable=False)
     description: Mapped[str | None]= mapped_column(String(500), nullable=True)
-    image_url: Mapped[str]= mapped_column(String(1000), nullable=True)
+    file_storage_id: Mapped[uuid.UUID]= mapped_column(ForeignKey("file_storage.file_storage_id"), nullable=True)
     status: Mapped[TaskStatus] = mapped_column(SAEnum(TaskStatus, name="task_status", native_enum= True), nullable=False, default=TaskStatus.PENDING, server_default="PENDING")
     completed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     due_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -77,6 +91,6 @@ class TaskReminderActivity(Base):
     retry_remaining: Mapped[int]= mapped_column(Integer, default=3, nullable=False)
     title: Mapped[str]= mapped_column(String(100), nullable=False)
     description: Mapped[str | None]= mapped_column(String(500), nullable=True)
-    image_url: Mapped[str]= mapped_column(String(1000), nullable=True)
+    file_storage_id: Mapped[uuid.UUID]= mapped_column(ForeignKey("file_storage.file_storage_id"), nullable=True)
     reated_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id"), default=None, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=func.now(), server_default=func.now(), nullable=True)

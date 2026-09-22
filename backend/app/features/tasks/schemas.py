@@ -8,6 +8,7 @@ from app.features.tasks.enums import TaskStatus, TaskPriority
 class TaskBaseResponse(BaseModel):
     title: str
     description: str | None
+    file_storage_id: UUID | None
     image_url: str | None
     status: TaskStatus
     completed_at: datetime | None
@@ -34,14 +35,18 @@ class TaskReadResponseSchema(BaseModel):
 class TaskCreateRequestSchema(BaseModel):
     title: str
     description: str | None
-    image_url: str | None
     status: TaskStatus
     priority: TaskPriority
     completed_at: datetime | None
     due_at: datetime | None
 
 class TaskUpdateRequestSchema(TaskCreateRequestSchema):
-    pass
+    title: str | None
+    description: str | None
+    status: TaskStatus | None
+    priority: TaskPriority | None
+    completed_at: datetime | None
+    due_at: datetime | None
 
 # Subtasks
 class SubtaskReadResponseItemSchema(TaskBaseResponse):
@@ -53,12 +58,12 @@ class SubtaskReadResponseSchema(BaseModel):
     limit: int
     offset: int
     has_more: bool
-    total_tasks: int
+    total_subtasks: int
     page: int
     total_pages: int
     
 class SubtaskCreateRequestSchema(TaskCreateRequestSchema):
     task_id: UUID
 
-class SubtaskUpdateRequestSchema(TaskCreateRequestSchema):
+class SubtaskUpdateRequestSchema(TaskUpdateRequestSchema):
     pass
