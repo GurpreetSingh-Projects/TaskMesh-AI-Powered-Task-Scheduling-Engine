@@ -113,17 +113,28 @@ class StorageService:
             "detail": "File uploaded successfully"
         }
 
-    async def get_file_details(self, file_storage_id: str, user) -> FileStorage:
-        query= (
+    async def get_file_details(
+        self,
+        file_storage_id: str,
+        entity_type: FileStorageEntity = None,
+        entity_id: str = None,
+    ) -> FileStorage:
+        
+        entity_type = entity_type or FileStorageEntity.OTHER
+        query = (
             select(FileStorage)
             .where(
-                FileStorage.file_storage_id == file_storage_id
+                FileStorage.file_storage_id == file_storage_id,
+                FileStorage.entity_type == entity_type,
+                FileStorage.is_deleted.is_(False),
+                FileStorage.deleted_at is not None
             )
         )
+
         file = (await self.db.execute(query)).scalar_one_or_none()
 
         if file is None:
-            raise HTTPException(status_code=404,detail="File not found")
+            raise HTTPException(status_code=404, detail="File not found")
 
         try:
             async with self._session.client(**self._client_kwargs) as s3:
@@ -143,3 +154,31 @@ class StorageService:
                 detail=f"Failed to generate file URL: {str(e)}",
             )
         return file
+
+    async def deactivate_file(self, file_storage_id, user):
+        deactivate_query = (
+            update(FileStorage)
+            .where(
+                FileStorage.file_storage_id == file_storage_id,
+                FileStorage.is_deleted.is_(False),
+            )
+            .values(
+                is_deleted=True,
+                deleted_at=datetime.now(timezone.utc),
+                updated_by=user.user_id,
+            )
+            .returning(FileStorage)
+        )
+
+        try:
+            response = (await self.db.execute(deactivate_query)).scalar_one_or_none()
+            if response is None:
+                raise HTTPException(status_code=404, detail="No file found with the given id")
+        except HTTPException:
+            await self.db.rollback()
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred while updating file: {str(e)}")
+
+        await self.db.commit()
+        return
