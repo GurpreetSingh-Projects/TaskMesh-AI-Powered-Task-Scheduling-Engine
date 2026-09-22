@@ -21,7 +21,7 @@ async def get_file(file_storage_id: str, user=Depends(get_current_user), storage
     file_record = await storage_service.get_file_details(file_storage_id=file_storage_id, user=user)
     return file_record
 
-@router.delete("/delete/{file_storage_id}", status_code=204, summary="Delete a file", description="Soft-deletes a file record and removes the object from storage")
+@router.patch("/deactivate/{file_storage_id}", status_code=204, summary="Deactivate a file with its file storage id", description="Deactivates file record without permanently deleting it")
 async def delete_file(file_storage_id: str, user=Depends(get_current_user), storage_service: StorageService = Depends(get_storage_service)):
-    await storage_service.delete_file(file_storage_id=file_storage_id, user=user)
+    await storage_service.deactivate_file(file_storage_id=file_storage_id, user=user)
     return
