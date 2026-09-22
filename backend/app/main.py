@@ -5,6 +5,7 @@ from app.features.auth.routers import router as auth_router
 from app.features.users.routers import router as user_router
 from app.features.onboarding.routers import router as onboarding_router
 from app.features.tasks.routers import router as task_router
+from app.features.storage.routers import router as storage_router
 from app.database import Base
 from app import features
 
@@ -29,3 +30,4 @@ app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(onboarding_router)
 app.include_router(task_router)
+app.include_router(storage_router)
