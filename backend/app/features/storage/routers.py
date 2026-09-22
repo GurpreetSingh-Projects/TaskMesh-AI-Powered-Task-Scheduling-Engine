@@ -17,8 +17,8 @@ async def upload_file(
     return file_record
 
 @router.get("/get/{file_storage_id}", response_model=FileReadResponseItemSchema, summary="Get file details", description="Gets file metadata and a temporary download URL")
-async def get_file(file_storage_id: str, user=Depends(get_current_user), storage_service: StorageService = Depends(get_storage_service)):
-    file_record = await storage_service.get_file_details(file_storage_id=file_storage_id, user=user)
+async def get_file(file_storage_id: str, storage_service: StorageService = Depends(get_storage_service)):
+    file_record = await storage_service.get_file_details(file_storage_id=file_storage_id)
     return file_record
 
 @router.patch("/deactivate/{file_storage_id}", status_code=204, summary="Deactivate a file with its file storage id", description="Deactivates file record without permanently deleting it")
