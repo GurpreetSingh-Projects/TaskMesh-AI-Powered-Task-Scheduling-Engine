@@ -14,7 +14,7 @@ class Users(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"), default=uuid.uuid4, nullable=False)
     full_name: Mapped[str] = mapped_column(String(100), nullable=True)
     email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-    profile_img: Mapped[str] = mapped_column(String, unique=True, nullable=True)
+    profile_img: Mapped[uuid.UUID | None] = mapped_column(PG_UUID(as_uuid=True), nullable=True)
     hashed_pswd: Mapped[str]= mapped_column(String(255), nullable=False)
     role: Mapped[UserRoles] = mapped_column(SAEnum( UserRoles, name= "user_role", native_enum = True ), default=UserRoles.USER, server_default="USER")
     is_onboarding_completed: Mapped[bool] = mapped_column(Boolean, default= False, server_default=text("false"))

@@ -12,7 +12,7 @@ class UserReadResponseSchema(BaseModel):
     user_id: UUID
     full_name: str | None = None
     email: EmailStr
-    profile_img: str | None = None
+    profile_img: str | UUID | None = None
     role: str
     is_onboarding_completed: bool
     created_by: UUID | None = None

@@ -82,7 +82,6 @@ class AuthService:
             await self.db.rollback()
             raise HTTPException(status_code=500, detail= "Something went wrong while creating the user")
 
-
     async def get_current_user(self, token: str):
         payload = decode_token(token)
         if not payload or not payload.sub:
