@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, Form, File
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import EmailStr
 from app.database import get_db
-from app.features.users.schemas import UserCreateRequestSchema, UserLoginRequestSchema, UserLoginResponseSchema, UserRegisterResponseSchema
+from app.features.users.schemas import UserLoginRequestSchema, UserLoginResponseSchema, UserRegisterResponseSchema
 from app.features.auth.services import AuthService
 from app.features.auth.dependencies import get_auth_service
 from app.core.dependencies import get_current_user
@@ -9,8 +10,8 @@ from app.core.dependencies import get_current_user
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @router.post("/register", response_model= UserRegisterResponseSchema, status_code=201, summary="New User regsitration", description="Creates a new user")
-async def create_user( user_details: UserCreateRequestSchema, auth_service: AuthService = Depends(get_auth_service)):
-    user = await auth_service.create_user(user_details)
+async def create_user(email:EmailStr= Form(...), password: str= Form(...), profile_img_uri: UploadFile | None = File(None), auth_service: AuthService = Depends(get_auth_service)):
+    user = await auth_service.create_user(email=email, password=password,  profile_img= profile_img_uri)
     return user
 
 @router.post("/swagger-login", summary="Endpoint for dev login through swagger docs", status_code=201, description="This endpoint is used for testing purposes in Swagger UI")
