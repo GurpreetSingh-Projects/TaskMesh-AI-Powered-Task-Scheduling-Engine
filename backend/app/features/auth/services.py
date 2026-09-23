@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.features.users.services import UserService
 from app.features.storage.services import StorageService
-from app.features.users.schemas import UserCreateRequestSchema, UserLoginRequestSchema, UserEditRequestSchema
+from app.features.users.schemas import UserLoginRequestSchema, UserEditRequestSchema
 from app.features.users.models import Users
 from app.features.users.enums import UserRoles
 from app.core.utils import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
@@ -62,6 +62,7 @@ class AuthService:
 
             access_token = create_access_token(user.user_id)
             refresh_token = create_refresh_token(user.user_id)
+            user.profile_img= await self.storage_service.get_signed_asset_url(file_record["item"].storage_key)
 
             return {
                 "message": "User created successfully",
