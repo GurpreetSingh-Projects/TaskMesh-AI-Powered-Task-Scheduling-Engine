@@ -4,6 +4,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     SECRET_KEY: str
     ALGORITHM: str
+    FILE_HASH_ALGORITHM: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     ASSET_TOKEN_EXPIRY_SECONDS: int
     REFRESH_TOKEN_EXPIRE_DAYS: int
