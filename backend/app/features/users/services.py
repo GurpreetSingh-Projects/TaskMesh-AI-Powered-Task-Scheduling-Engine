@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from uuid import UUID
-from sqlalchemy import select, update
+from types import SimpleNamespace
+from sqlalchemy import select, update, and_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import EmailStr
@@ -8,31 +9,69 @@ from datetime import datetime, timezone
 from app.features.users.schemas import UserEditRequestSchema
 from app.features.users.models import Users
 from app.core.utils import hash_password
+from app.features.storage.models import FileStorage
+from app.features.storage.enums import FileStorageEntity
+from app.features.storage.services import StorageService
 
 class UserService:
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.storage_service= StorageService(db)
 
     async def get_user_details(self, email: EmailStr | None = None, user_id: UUID | None = None, silent_mode: bool= False):
         if not email and not user_id:
             raise HTTPException(status_code=400, detail="Either email or user_id must be provided")
-        elif email and user_id:
-            query = (
-                select(Users)
-                .where(Users.user_id == user_id, Users.email == email)
-                .limit(1)
-            )
-        elif user_id and not email:
-            query = select(Users).where(Users.user_id == user_id).limit(1)
-        elif not user_id and email:
-            query = select(Users).where(Users.email == email).limit(1)
-        else:
-            raise HTTPException(status_code=400, detail="Invalid request parameters")
 
-        user = (await self.db.execute(query)).scalar_one_or_none()
-    
-        if not user and not silent_mode:
-            raise HTTPException(status_code=404, detail="User not found")
+        conditions = []
+        if user_id:
+            conditions.append(Users.user_id == user_id)
+        if email:
+            conditions.append(Users.email == email)
+
+        query = (
+            select(
+                Users.user_id,
+                Users.full_name,
+                Users.email,
+                Users.profile_img,
+                Users.hashed_pswd,
+                Users.role,
+                Users.is_onboarding_completed,
+                Users.is_deleted,
+                Users.deleted_at,
+                Users.created_by,
+                Users.updated_by,
+                Users.created_at,
+                Users.updated_at,
+                Users.version_number,
+                FileStorage.storage_key
+            )
+            .outerjoin(
+                FileStorage,
+                and_(
+                    Users.profile_img == FileStorage.file_storage_id,
+                    Users.user_id == FileStorage.entity_id,
+                    FileStorage.entity_type == FileStorageEntity.PROFILE_IMG,
+                )
+            )
+            .where(
+                *conditions
+            )
+            .limit(1)
+        )
+
+        user = (await self.db.execute(query)).mappings().one_or_none()
+
+        if not user:
+            if not silent_mode:
+                raise HTTPException(status_code=404, detail="User not found")
+            return None
+
+        user = SimpleNamespace(**user)
+
+        if user.storage_key:
+            user.profile_img = await self.storage_service.get_signed_asset_url(user.storage_key)
+
         return user
 
 
