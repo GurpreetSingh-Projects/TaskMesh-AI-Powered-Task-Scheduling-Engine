@@ -27,55 +27,49 @@ class StorageService:
         self.bucket = settings.B2_BUCKET_NAME
 
     async def upload_file(self, user, file: UploadFile, entity_type: FileStorageEntity, entity_id: str) -> FileStorage:
-        entity_type = entity_type or FileStorageEntity.OTHER
-        entity_id = entity_id or uuid.uuid4()
-
         if file.content_type not in settings.ALLOWED_CONTENT_TYPES:
             raise HTTPException(status_code=400, detail=("Unsupported file type. " f"Supported file formats: {', '.join(settings.ALLOWED_CONTENT_TYPES)}"
             ),
         )
         
         file_bytes = await file.read()
+
         if len(file_bytes) > settings.MAX_FILE_SIZE:
             raise HTTPException(status_code=400, detail="File too large")
 
-        md5_checksum = hashlib.md5(file_bytes).hexdigest()
+        # checksum = hashlib.md5(file_bytes).hexdigest()
+        checksum = hashlib.new(settings.FILE_HASH_ALGORITHM, file_bytes).hexdigest()
 
-        existing_query = (
+        existing_file_query = (
             select(FileStorage)
             .where(
-                FileStorage.md5_checksum == md5_checksum
+                FileStorage.checksum == checksum
             )
             .limit(1)
         )
 
-        existing_file = (await self.db.execute(existing_query)).scalar_one_or_none()
+        existing_file = (await self.db.execute(existing_file_query)).scalar_one_or_none()
 
         if existing_file:
-            if not existing_file.is_deleted:
-                return {
-                    "item": existing_file,
-                    "detail": "Existing file uploaded, returning the existing file details",
-                }
-            await self.reactivate_file(user=user, file_storage_id=existing_file.file_storage_id)
-
-        storage_key = f"{settings.B2_BUCKET_NAME}/{uuid.uuid4()}"
-
-        try:
-            async with self._session.client(**self._client_kwargs) as s3:
-                await s3.put_object(
-                    Bucket=self.bucket, 
-                    Key=storage_key, 
-                    Body=file_bytes, 
-                    ContentType=file.content_type
+            storage_key = existing_file.storage_key
+        else:
+            storage_key = f"{uuid.uuid4()}"
+        
+            try:
+                async with self._session.client(**self._client_kwargs) as s3:
+                    await s3.put_object(
+                        Bucket=self.bucket, 
+                        Key=storage_key, 
+                        Body=file_bytes, 
+                        ContentType=file.content_type
+                    )
+            except HTTPException:
+                raise
+            except Exception as e:
+                raise HTTPException(
+                    status_code=502,
+                    detail=f"File upload failed: {str(e)}",
                 )
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(
-                status_code=502,
-                detail=f"File upload failed: {str(e)}",
-            )
 
         insert_query = (
             insert(FileStorage)
@@ -88,7 +82,8 @@ class StorageService:
                 entity_type=entity_type,
                 storage_key=storage_key,
                 bucket_name=self.bucket,
-                md5_checksum=md5_checksum,
+                checksum_type= settings.FILE_HASH_ALGORITHM.upper(),
+                checksum=checksum,
                 created_by=user.user_id,
                 updated_by=user.user_id,
             )
