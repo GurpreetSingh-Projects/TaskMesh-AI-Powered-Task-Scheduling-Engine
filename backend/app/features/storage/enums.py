@@ -9,3 +9,7 @@ class FileStorageEntity(str, Enum):
     TASK_REMINDER = "TASK_REMINDER"
     NOTIFICATION = "NOTIFICATION"
     OTHER= "OTHER"
+
+class ChecksumType(str, Enum):
+    MD5 = "MD5"
+    SHA256 = "SHA256"
