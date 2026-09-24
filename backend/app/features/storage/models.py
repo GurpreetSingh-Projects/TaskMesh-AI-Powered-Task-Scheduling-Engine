@@ -22,7 +22,7 @@ class FileStorage(Base):
     storage_key: Mapped[str] = mapped_column(String(1000), nullable=False)
     bucket_name: Mapped[str] = mapped_column(String(100), nullable=False)
     checksum_type: Mapped[ChecksumType] = mapped_column(SAEnum(ChecksumType, name="checksum_type", native_enum= True), default= ChecksumType.SHA256.value, nullable= False)
-    checksum: Mapped[str] = mapped_column(String(32), nullable=False)
+    checksum: Mapped[str] = mapped_column(String(64), nullable=False)
     is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id"), nullable=False)
