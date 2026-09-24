@@ -75,12 +75,16 @@ class UserService:
 
         return user
 
-    async def edit_user(self, user: Users, user_data: UserEditRequestSchema, profile_img: UploadFile | None = None):
+    async def edit_user(self, user: Users, user_data: UserEditRequestSchema | None = None, profile_img: UploadFile | None = None):
         file_record= None
-        user_data= user_data.model_dump(exclude_unset= True, exclude_none= True)
+
+        if user_data is not None: 
+            user_data= user_data.model_dump(exclude_unset= True, exclude_none= True)
 
         if not user_data and not profile_img:
             raise HTTPException(status_code= 400, detail= "Invalid update user details provided")
+        else:
+            user_data= {}
 
         if profile_img is not None:
             file_record = await self.storage_service.upload_file(
