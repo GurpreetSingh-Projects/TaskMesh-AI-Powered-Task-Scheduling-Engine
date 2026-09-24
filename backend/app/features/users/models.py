@@ -17,6 +17,7 @@ class Users(Base):
     profile_img: Mapped[uuid.UUID | None] = mapped_column(PG_UUID(as_uuid=True), nullable=True)
     hashed_pswd: Mapped[str]= mapped_column(String(255), nullable=False)
     role: Mapped[UserRoles] = mapped_column(SAEnum( UserRoles, name= "user_role", native_enum = True ), default=UserRoles.USER, server_default="USER")
+    is_profile_completed: Mapped[bool] = mapped_column(Boolean, default= False, server_default=text("false"))
     is_onboarding_completed: Mapped[bool] = mapped_column(Boolean, default= False, server_default=text("false"))
     is_deleted: Mapped[bool] = mapped_column( Boolean, default= False, server_default= text("false"))
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
