@@ -1,9 +1,10 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile, File
 from uuid import UUID
 from types import SimpleNamespace
 from sqlalchemy import select, update, and_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from pydantic import EmailStr
 from datetime import datetime, timezone
 from app.features.users.schemas import UserEditRequestSchema
@@ -74,13 +75,26 @@ class UserService:
 
         return user
 
+    async def edit_user(self, user: Users, user_data: UserEditRequestSchema, profile_img: UploadFile | None = None):
+        user_data= user_data.model_dump(exclude_unset= True, exclude_none= True)
 
-    async def edit_user(self, user: Users, user_data: UserEditRequestSchema):
-        user_data= user_data.model_dump(exclude_unset= True)
-
-        if not user_data:
+        if not user_data and not profile_img:
             raise HTTPException(status_code= 400, detail= "Invalid update user details provided")
 
+        if profile_img is not None:
+            file_record = await self.storage_service.upload_file(
+                user=user,
+                file=profile_img,
+                entity_type=FileStorageEntity.PROFILE_IMG,
+                entity_id=str(user.user_id),
+            )
+            user_data["profile_img"]=str(file_record["item"].file_storage_id)
+
+        password = user_data.pop("password", None)
+
+        if password is not None:
+            user_data["hashed_pswd"]= hash_password(user_data["password"])
+            
         user_data["updated_by"]= user.user_id
 
         update_query= (
@@ -92,19 +106,27 @@ class UserService:
             .values(**user_data)
             .returning(Users)
         )
-
+        
         try:
-            response = (await self.db.execute(update_query)).scalar_one_or_none()
-            if response is None:
+            updated_user = (await self.db.execute(update_query)).scalar_one_or_none()
+            if updated_user is None:
                 raise HTTPException(status_code= 400, detail= "No user found with the given id")
         except HTTPException:
             await self.db.rollback()
             raise
+        except IntegrityError as e:
+            await self.db.rollback()
+            raise HTTPException(status_code = 409, detail=f"An error occurred while updating user: {str(e)}")
         except Exception as e:
+            await self.db.rollback()
             raise HTTPException(status_code=500, detail=f"An error occurred while updating user: {str(e)}")
 
+        if file_record:
+            self.db.expunge(updated_user)
+            updated_user.profile_img= await self.storage_service.get_signed_asset_url(file_record["item"].storage_key)
+
         await self.db.commit()
-        return response
+        return updated_user
 
     async def deactivate_user(self, user_id: UUID):
         deactivate_query= (
