@@ -1,4 +1,4 @@
-import { Keyboard, Pressable, View } from "react-native";
+import { Keyboard, Pressable, useWindowDimensions, View } from "react-native";
 import ThemeButton from "@/components/ThemeButton";
 import ThemeText from "@/components/ThemeText";
 import ThemePage from "@/components/ThemePage";
@@ -6,7 +6,13 @@ import OnboardingBg from "@/features/onboarding/components/OnboardingBg";
 import { Image } from "expo-image";
 import { animations, images } from "@/assets";
 import ThemeTextInput from "@/components/ThemeTextInput";
-import { EmailIcon, LockIcon } from "@/Icon";
+import {
+  CameraIcon,
+  EmailIcon,
+  GalleryIcon,
+  LockIcon,
+  UserRoundIcon,
+} from "@/Icon";
 import { themeColors } from "@/theme";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod/v4";
@@ -29,12 +35,15 @@ const registerSchema = z.object({
 type RegisterForm = z.infer<typeof registerSchema>;
 
 const Register = () => {
+  const { width, height } = useWindowDimensions();
+
+  const BG_CAROUSEL_HEIGHT = height * 0.375;
+  const IMG_HEIGHT = height * 0.125;
+  const badgeSize = Math.round(IMG_HEIGHT * 0.35);
+
   const [register, { isLoading, reset }] = useRegisterMutation();
-
   const registerDrawerRef = useRef<BottomSheetModal>(null);
-
   const [drawerMode, setDrawerMode] = useState<DrawerMode>("default");
-
   const [drawerMsg, setDrawerMsg] = useState({
     title: "",
     description: "",
@@ -87,11 +96,17 @@ const Register = () => {
   return (
     <ThemePage className="bg-canvas" noSafeArea isScrollable>
       <View className="flex-1 items-center">
-        <OnboardingBg className="h-1/2 relative items-center justify-start">
+        <OnboardingBg
+          className="relative items-center justify-start"
+          style={{
+            height: BG_CAROUSEL_HEIGHT,
+            width,
+          }}
+        >
           <Image
             style={{
-              height: 450,
-              width: 450,
+              height: "100%",
+              width: "100%",
               zIndex: 0,
             }}
             source={images?.onboarding?.register}
@@ -114,7 +129,54 @@ const Register = () => {
             </ThemeText>
           </View>
 
-          <View className="w-full pt-5 gap-5">
+          <View className="w-full pt-5 gap-5 faj">
+            <View className="items-center justify-center">
+              <View
+                style={{
+                  width: IMG_HEIGHT,
+                  height: IMG_HEIGHT,
+                  borderRadius: IMG_HEIGHT / 2,
+                }}
+                className="w-full items-center justify-center bg-neutral-100 border border-neutral-200"
+              >
+                {/* {imageUri ? (
+      <Image
+        source={{ uri: imageUri }}
+        style={{
+          width: 100,
+          height: 100,
+          borderRadius: 100 / 2,
+        }}
+      />
+    ) : ( */}
+                <UserRoundIcon
+                  width={IMG_HEIGHT * 0.65}
+                  height={IMG_HEIGHT * 0.65}
+                  stroke={themeColors?.steel}
+                  fill="transparent"
+                />
+                {/* )} */}
+
+                <View
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    right: 0,
+                    width: badgeSize,
+                    height: badgeSize,
+                    borderRadius: badgeSize / 2,
+                  }}
+                  className="bg-ink items-center justify-center border-2 border-white"
+                >
+                  <CameraIcon
+                    width={badgeSize * 0.5}
+                    height={badgeSize * 0.5}
+                    stroke="#fff"
+                    fill="transparent"
+                  />
+                </View>
+              </View>
+            </View>
             <View>
               <Controller
                 control={control}
@@ -133,7 +195,6 @@ const Register = () => {
                         stroke={themeColors?.steel}
                       />
                     }
-                    autoFocus
                   />
                 )}
               />
@@ -188,18 +249,19 @@ const Register = () => {
             <>
               <OrSeparator />
 
-              <View className="flex-row w-full items-center justify-center gap-1 mt-5">
-                <ThemeText className="text-sm text-steel">
-                  Already have an account ?
-                </ThemeText>
-
+              <View className="flex-row w-full items-center justify-center mt-5">
                 <Pressable
                   onPress={() => {
                     if (navigation.canGoBack()) {
                       navigation.goBack();
                     }
                   }}
+                  className="flex-row items-center justify-center gap-1"
                 >
+                  <ThemeText className="text-sm text-steel">
+                    Already have an account ?
+                  </ThemeText>
+
                   <ThemeText className="font-bold! text-sm text-ink">
                     Login Now
                   </ThemeText>
