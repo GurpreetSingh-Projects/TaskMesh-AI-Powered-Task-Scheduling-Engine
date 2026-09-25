@@ -26,6 +26,7 @@ import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import LottieView from "lottie-react-native";
 import { DrawerMode } from "../types";
 import { getAuthMessage, setAuth } from "../utils";
+import MediaPicker from "@/components/MediaPicker";
 
 const registerSchema = z.object({
   email: z.email(),
@@ -131,31 +132,24 @@ const Register = () => {
 
           <View className="w-full pt-5 gap-5 faj">
             <View className="items-center justify-center">
-              <View
+              <Pressable
+                onPress={() => {
+                  setDrawerMode("mediaSelection");
+                  registerDrawerRef.current?.present();
+                }}
                 style={{
                   width: IMG_HEIGHT,
                   height: IMG_HEIGHT,
                   borderRadius: IMG_HEIGHT / 2,
                 }}
-                className="w-full items-center justify-center bg-neutral-100 border border-neutral-200"
+                className="items-center justify-center bg-neutral-100 border border-neutral-200"
               >
-                {/* {imageUri ? (
-      <Image
-        source={{ uri: imageUri }}
-        style={{
-          width: 100,
-          height: 100,
-          borderRadius: 100 / 2,
-        }}
-      />
-    ) : ( */}
                 <UserRoundIcon
                   width={IMG_HEIGHT * 0.65}
                   height={IMG_HEIGHT * 0.65}
                   stroke={themeColors?.steel}
                   fill="transparent"
                 />
-                {/* )} */}
 
                 <View
                   style={{
@@ -175,7 +169,7 @@ const Register = () => {
                     fill="transparent"
                   />
                 </View>
-              </View>
+              </Pressable>
             </View>
             <View>
               <Controller
@@ -274,34 +268,41 @@ const Register = () => {
 
       <ThemeDrawer
         ref={registerDrawerRef}
-        snapPoints={["30%"]}
-        closable={false}
+        snapPoints={drawerMode === "mediaSelection" ? ["25%"] : ["30%"]}
+        closable={drawerMode === "mediaSelection"}
+        backdropPressBehavior={
+          drawerMode === "mediaSelection" ? "close" : "none"
+        }
       >
-        <View className="h-full w-full flex-1 items-center justify-center gap-3">
-          <LottieView
-            source={
-              drawerMode === "success"
-                ? animations?.tickIcon
-                : animations?.crossIcon
-            }
-            autoPlay
-            loop={false}
-            style={{
-              width: 100,
-              height: 100,
-            }}
-          />
+        {drawerMode == "mediaSelection" ? (
+          <MediaPicker />
+        ) : (
+          <View className="h-full w-full flex-1 items-center justify-center gap-3">
+            <LottieView
+              source={
+                drawerMode === "success"
+                  ? animations?.tickIcon
+                  : animations?.crossIcon
+              }
+              autoPlay
+              loop={false}
+              style={{
+                width: 100,
+                height: 100,
+              }}
+            />
 
-          <View className="gap-3 py-3">
-            <ThemeText variant="subheading" className="text-center">
-              {drawerMsg.title}
-            </ThemeText>
+            <View className="gap-3 py-3">
+              <ThemeText variant="subheading" className="text-center">
+                {drawerMsg.title}
+              </ThemeText>
 
-            <ThemeText className="text-graphite! text-center">
-              {drawerMsg.description}
-            </ThemeText>
+              <ThemeText className="text-graphite! text-center">
+                {drawerMsg.description}
+              </ThemeText>
+            </View>
           </View>
-        </View>
+        )}
       </ThemeDrawer>
     </ThemePage>
   );
