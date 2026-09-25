@@ -6,7 +6,7 @@ export type AuthStackParamList = {
   Register: undefined;
 };
 
-export type DrawerMode = "default" | "success" | "fail";
+export type DrawerMode = "default" | "success" | "fail" | "mediaSelection";
 
 export type AuthResponse = {
   access_token: string;

@@ -15,6 +15,10 @@ export const images = {
     login: require("@/assets/images/onboarding/login.webp"),
     register: require("@/assets/images/onboarding/register.webp"),
   },
+  icons: {
+    cameraIcon: require("@/assets/images/icons/camera-icon.webp"),
+    galleryIcon: require("@/assets/images/icons/gallery-icon.webp"),
+  },
 };
 
 export const animations = {
