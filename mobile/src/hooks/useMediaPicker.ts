@@ -3,6 +3,13 @@ import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { Alert } from "react-native";
 import { useAppSelector } from "@/app/store";
 
+const formatImgTypes: Record<string, SaveFormat> = {
+  "image/webp": SaveFormat.WEBP,
+  "image/jpg": SaveFormat.JPEG,
+  "image/jpeg": SaveFormat.JPEG,
+  "image/png": SaveFormat.PNG,
+};
+
 export function useMediaPicker() {
   const settings = useAppSelector((state) => state?.settings);
 
@@ -16,7 +23,8 @@ export function useMediaPicker() {
     try {
       const result = await image.saveAsync({
         compress: settings?.image_quality,
-        format: SaveFormat?.WEBP,
+        format:
+          formatImgTypes[settings?.image_conversion_format] ?? SaveFormat?.WEBP,
       });
       return result.uri;
     } catch (error) {
