@@ -4,22 +4,23 @@ import { SettingsState } from "../types";
 const initialState: SettingsState = {
   user_settings_id: "",
   needs_reminders: false,
-  timezone: null,
-  notification_enabled: null,
-  preferred_lang: [],
-  available_lang: [],
-  theme: "",
-  supported_media_types: [],
-  max_image_dimension: null,
-  image_conversion_format: null,
-  image_quality: null,
+  timezone: "Asia/Kolkata",
+  notification_enabled: true,
+  preferred_lang: ["en"],
+  available_lang: ["en"],
+  theme: "light",
+  supported_media_types: ["image/jpeg", "image/png", "image/webp"],
+  max_image_width: 720,
+  max_media_size: 5120,
+  image_conversion_format: "webp",
+  image_quality: 0.75,
 };
 
-export const SettingsSlice = createSlice({
+export const settingsSlice = createSlice({
   name: "settings",
   initialState,
   reducers: {
-    setUserSettings: (state, action: PayloadAction<SettingsState>) => {
+    setSettings: (state, action: PayloadAction<SettingsState>) => {
       Object.assign(state, action.payload);
     },
 
@@ -47,39 +48,19 @@ export const SettingsSlice = createSlice({
       state.theme = action.payload;
     },
 
-    setSupportedImageFormats: (state, action: PayloadAction<string[]>) => {
-      state.supported_media_types = action.payload;
-    },
-
-    setMaxImageDimension: (state, action: PayloadAction<number | null>) => {
-      state.max_image_dimension = action.payload;
-    },
-
-    setImageConversionFormat: (state, action: PayloadAction<string | null>) => {
-      state.image_conversion_format = action.payload;
-    },
-
-    setImageQuality: (state, action: PayloadAction<number | null>) => {
-      state.image_quality = action.payload;
-    },
-
-    clearUserSettings: () => initialState,
+    clearSettings: () => initialState,
   },
 });
 
 export const {
-  setUserSettings,
+  setSettings,
   setNeedsReminders,
   setTimezone,
   setNotificationEnabled,
   setPreferredLang,
   setAvailableLang,
   setTheme,
-  setSupportedImageFormats,
-  setMaxImageDimension,
-  setImageConversionFormat,
-  setImageQuality,
-  clearUserSettings,
-} = SettingsSlice.actions;
+  clearSettings,
+} = settingsSlice.actions;
 
-export const userSettingsReducer = SettingsSlice.reducer;
+export const settingsReducer = settingsSlice.reducer;
