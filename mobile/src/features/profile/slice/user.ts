@@ -1,17 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
-export type UserState = {
-  user_id: string;
-  email: string;
-  profile_img: string | null;
-  role: string;
-  is_deleted: boolean;
-  deleted_at: string | null;
-  created_by: string | null;
-  updated_by: string | null;
-  created_at: string;
-  updated_at: string;
-};
+import { UserState } from "../types";
 
 const initialState: UserState = {
   user_id: "",
@@ -31,16 +19,7 @@ export const userSlice = createSlice({
   initialState,
   reducers: {
     setUserInfo: (state, action: PayloadAction<UserState>) => {
-      state.user_id = action.payload.user_id;
-      state.email = action.payload.email;
-      state.profile_img = action.payload.profile_img;
-      state.role = action.payload.role;
-      state.is_deleted = action.payload.is_deleted;
-      state.deleted_at = action.payload.deleted_at;
-      state.created_by = action.payload.created_by;
-      state.updated_by = action.payload.updated_by;
-      state.created_at = action.payload.created_at;
-      state.updated_at = action.payload.updated_at;
+      Object.assign(state, action.payload);
     },
     setUserId: (state, action: PayloadAction<string>) => {
       state.user_id = action.payload;
