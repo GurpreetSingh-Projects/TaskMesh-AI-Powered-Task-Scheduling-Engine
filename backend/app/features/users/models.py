@@ -47,7 +47,7 @@ class UserSettings(Base):
     available_lang: Mapped[list]= mapped_column(JSON, default=["en"])
     theme: Mapped[str]= mapped_column(String(25), default='light')
     supported_media_types: Mapped[list] = mapped_column(JSON, default=["image/jpeg", "image/png", "image/webp"])
-    max_image_dimension: Mapped[int] = mapped_column(Integer, default=720, server_default=text("720"), nullable=True)
+    max_image_width: Mapped[int] = mapped_column(Integer, default=720, server_default=text("720"), nullable=True)
     image_conversion_format: Mapped[str] = mapped_column(String(10), default="webp", server_default=text("'webp'"), nullable=True)
     image_quality: Mapped[float] = mapped_column(Float, default=0.75, server_default=text("0.75"), nullable=True)
     is_deleted: Mapped[bool] = mapped_column( Boolean, default= False, server_default= text("false"))
