@@ -39,14 +39,8 @@ export const userSlice = createSlice({
     setDeletedAt: (state, action: PayloadAction<string | null>) => {
       state.deleted_at = action.payload;
     },
-    setCreatedBy: (state, action: PayloadAction<string | null>) => {
-      state.created_by = action.payload;
-    },
     setUpdatedBy: (state, action: PayloadAction<string | null>) => {
       state.updated_by = action.payload;
-    },
-    setCreatedAt: (state, action: PayloadAction<string>) => {
-      state.created_at = action.payload;
     },
     setUpdatedAt: (state, action: PayloadAction<string>) => {
       state.updated_at = action.payload;
@@ -69,4 +63,5 @@ export const {
   setUpdatedAt,
   clearUser,
 } = userSlice.actions;
+
 export const userReducer = userSlice.reducer;
