@@ -1,44 +1,80 @@
 import * as ImagePicker from "expo-image-picker";
+import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { Alert } from "react-native";
+import { useAppSelector } from "@/app/store";
 
 export function useMediaPicker() {
-  const pickFromLibrary = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const settings = useAppSelector((state) => state?.settings);
 
-    if (!permissionResult.granted) {
-      Alert.alert(
-        "Permission required",
-        "Permission to access the media library is required.",
-      );
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
-      quality: 1,
+  const processImage = async (uri: string) => {
+    const context = ImageManipulator.manipulate(uri).resize({
+      width: settings?.max_image_width,
     });
 
-    console.log(result);
-    return result.canceled ? null : result.assets[0].uri;
+    const image = await context.renderAsync();
+
+    try {
+      const result = await image.saveAsync({
+        compress: settings?.image_quality,
+        format: SaveFormat?.WEBP,
+      });
+      return result.uri;
+    } catch (error) {
+      console.log("Image compression error:", error);
+    } finally {
+      context.release();
+      image.release();
+    }
+    return null;
+  };
+
+  const pickFromLibrary = async () => {
+    try {
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permissionResult.granted) {
+        return null;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 1,
+      });
+
+      if (result.canceled) {
+        return null;
+      }
+
+      return await processImage(result.assets[0].uri);
+    } catch (error) {
+      console.error("Failed to pick library image:", error);
+      return null;
+    }
   };
 
   const pickFromCamera = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    try {
+      const permissionResult =
+        await ImagePicker.requestCameraPermissionsAsync();
 
-    if (!permissionResult.granted) {
-      Alert.alert(
-        "Permission required",
-        "Permission to access the camera is required.",
-      );
-      return;
+      if (!permissionResult.granted) {
+        return null;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 1,
+      });
+
+      if (result.canceled) {
+        return null;
+      }
+
+      return await processImage(result.assets[0].uri);
+    } catch (error) {
+      console.error("Failed to pick camera image:", error);
+      return null;
     }
-
-    let result = await ImagePicker.launchCameraAsync({
-      quality: 1,
-    });
-    console.log(result);
-    return result.canceled ? null : result.assets[0].uri;
   };
 
   return { pickFromLibrary, pickFromCamera };
