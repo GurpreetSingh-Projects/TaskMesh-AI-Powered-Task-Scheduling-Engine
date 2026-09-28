@@ -4,21 +4,31 @@ import { images } from "@/assets";
 import ThemeText from "./ThemeText";
 import { useMediaPicker } from "@/hooks/useMediaPicker";
 
-const MediaPicker = () => {
+type MediaPickerProps = {
+  onMediaSelected: (uri: string) => void;
+};
+
+const MediaPicker = ({ onMediaSelected }: MediaPickerProps) => {
   const { pickFromGallery, pickFromCamera } = useMediaPicker();
 
   const handlePick = async (source: "gallery" | "camera") => {
-    if (source == "gallery") {
-      let uri = await pickFromGallery();
-      console.log(uri);
-    } else {
-      let uri = await pickFromCamera();
-      console.log(uri);
+    try {
+      const uri =
+        source === "gallery" ? await pickFromGallery() : await pickFromCamera();
+
+      console.log(uri, "uri");
+
+      if (uri) {
+        onMediaSelected(uri);
+      }
+    } catch (error) {
+      console.log("Media picker error:", error);
     }
   };
+
   return (
     <View className="px-default gap-3">
-      <View className="gap-default-half">
+      <View className="gap-1">
         <ThemeText variant="heading" className="text-start">
           Add Profile Photo
         </ThemeText>
@@ -51,9 +61,9 @@ const MediaPicker = () => {
             Camera
           </ThemeText>
 
-          <ThemeText className="mt-1 text-xs text-steel">
+          {/* <ThemeText className="mt-1 text-xs text-steel">
             Take a photo
-          </ThemeText>
+          </ThemeText> */}
         </Pressable>
 
         <Pressable
@@ -79,9 +89,9 @@ const MediaPicker = () => {
             Gallery
           </ThemeText>
 
-          <ThemeText className="mt-1 text-xs text-steel">
+          {/* <ThemeText className="mt-1 text-xs text-steel">
             Choose existing
-          </ThemeText>
+          </ThemeText> */}
         </Pressable>
       </View>
     </View>
