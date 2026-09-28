@@ -1,4 +1,4 @@
-name: Stage Mobile Debug apk script
+name: Stage Mobile Debug Apk Script
 on:
   push:
     branches: [dev]
