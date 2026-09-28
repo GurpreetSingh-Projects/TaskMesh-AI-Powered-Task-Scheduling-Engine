@@ -1,7 +1,7 @@
 name: Stage Mobile Debug apk script
 on:
   push:
-    branches: [stage]
+    branches: [dev]
     paths:
       - "mobile/**"
   pull_request:
