@@ -4,9 +4,10 @@ on:
     branches: [stage]
     paths:
       - "mobile/**"
-
-    pull_request:
-      branches: [stage]
+  pull_request:
+    branches: [stage]
+    paths:
+      - "mobile/**"
 
 jobs:
   build:
