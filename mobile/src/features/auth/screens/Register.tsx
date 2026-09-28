@@ -50,6 +50,8 @@ const Register = () => {
     description: "",
   });
 
+  const [profileImg, setProfileImg] = useState<string | null>(null);
+
   const {
     control,
     handleSubmit,
@@ -67,8 +69,8 @@ const Register = () => {
   const submitHandler = async (values: RegisterForm) => {
     try {
       const response = await register({
-        email: values.email,
-        password: values.password,
+        email: values?.email,
+        password: values?.password,
       }).unwrap();
 
       await setAuth(response);
@@ -130,7 +132,7 @@ const Register = () => {
             </ThemeText>
           </View>
 
-          <View className="w-full pt-5 gap-5 faj">
+          <View className="w-full gap-5 faj">
             <View className="items-center justify-center">
               <Pressable
                 onPress={() => {
@@ -144,12 +146,26 @@ const Register = () => {
                 }}
                 className="items-center justify-center bg-neutral-100 border border-neutral-200"
               >
-                <UserRoundIcon
-                  width={IMG_HEIGHT * 0.65}
-                  height={IMG_HEIGHT * 0.65}
-                  stroke={themeColors?.steel}
-                  fill="transparent"
-                />
+                {profileImg ? (
+                  <Image
+                    style={{
+                      height: "100%",
+                      width: "100%",
+                      borderRadius: 9999,
+                      zIndex: 0,
+                    }}
+                    source={profileImg}
+                    contentFit="cover"
+                    allowDownscaling={false}
+                  />
+                ) : (
+                  <UserRoundIcon
+                    width={IMG_HEIGHT * 0.65}
+                    height={IMG_HEIGHT * 0.65}
+                    stroke={themeColors?.steel}
+                    fill="transparent"
+                  />
+                )}
 
                 <View
                   style={{
@@ -275,7 +291,12 @@ const Register = () => {
         }
       >
         {drawerMode == "mediaSelection" ? (
-          <MediaPicker />
+          <MediaPicker
+            onMediaSelected={(uri) => {
+              setProfileImg(uri);
+              registerDrawerRef?.current?.dismiss();
+            }}
+          />
         ) : (
           <View className="h-full w-full flex-1 items-center justify-center gap-3">
             <LottieView
