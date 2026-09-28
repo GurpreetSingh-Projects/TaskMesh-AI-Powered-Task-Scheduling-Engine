@@ -5,8 +5,8 @@ on:
     paths:
       - "mobile/**"
 
-  pull_request:
-    branches: [stage]
+    pull_request:
+      branches: [stage]
 
 jobs:
   build:
@@ -46,8 +46,11 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Publish GitHub Release
-        run: gh release create "stage-${{ github.run_number }}" \
-            android/app/build/outputs/apk/debug/app-debug.apk \
+        if: github.event_name == 'push' && github.ref == 'refs/heads/stage'
+
+         run: |
+          gh release create "stage-${{ github.run_number }}" \
+            taskmesh-debug.apk \
             --title "Stage debug build #${{ github.run_number }}" \
             --notes "Commit: ${{ github.sha }}"
         env:
