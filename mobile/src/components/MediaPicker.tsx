@@ -2,14 +2,19 @@ import { Pressable, View } from "react-native";
 import { Image } from "expo-image";
 import { images } from "@/assets";
 import ThemeText from "./ThemeText";
+import { useMediaPicker } from "@/hooks/useMediaPicker";
 
 const MediaPicker = () => {
+  const { pickFromGallery, pickFromCamera } = useMediaPicker();
+
   const handlePick = async (source: "gallery" | "camera") => {
-    // const uri =
-    //   source === "gallery" ? await pickFromLibrary() : await pickFromCamera();
-    // drawerRef.current?.dismiss();
-    // resolveRef.current?.(uri);
-    // resolveRef.current = null;
+    if (source == "gallery") {
+      let uri = await pickFromGallery();
+      console.log(uri);
+    } else {
+      let uri = await pickFromCamera();
+      console.log(uri);
+    }
   };
   return (
     <View className="px-default gap-3">

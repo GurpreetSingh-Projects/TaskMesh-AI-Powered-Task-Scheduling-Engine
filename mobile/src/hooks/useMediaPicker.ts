@@ -36,7 +36,7 @@ export function useMediaPicker() {
     return null;
   };
 
-  const pickFromLibrary = async () => {
+  const pickFromGallery = async () => {
     try {
       const permissionResult =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -85,5 +85,5 @@ export function useMediaPicker() {
     }
   };
 
-  return { pickFromLibrary, pickFromCamera };
+  return { pickFromGallery, pickFromCamera };
 }
