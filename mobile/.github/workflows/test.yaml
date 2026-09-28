@@ -35,6 +35,7 @@ jobs:
           cache: gradle
 
       - run: npm ci
+
       - name: Write .env
         run: echo "${{secrets.ENV_FILE}}" > .env
 
@@ -48,7 +49,7 @@ jobs:
       - name: Publish GitHub Release
         if: github.event_name == 'push' && github.ref == 'refs/heads/stage'
 
-         run: |
+        run: |
           gh release create "stage-${{ github.run_number }}" \
             taskmesh-debug.apk \
             --title "Stage debug build #${{ github.run_number }}" \
