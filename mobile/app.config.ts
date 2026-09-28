@@ -49,6 +49,7 @@ const config: ExpoConfig = {
     ],
     "expo-font",
     "expo-image",
+    "expo-status-bar",
     "react-native-edge-to-edge",
   ],
   experiments: {
