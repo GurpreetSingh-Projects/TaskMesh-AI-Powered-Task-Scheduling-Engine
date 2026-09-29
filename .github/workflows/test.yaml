@@ -44,7 +44,7 @@ jobs:
       - name: Write .env
         run: echo "${{secrets.ENV_FILE}}" > .env
 
-      - run: npm install -g eas-cli
+      - run: pnpm install -g eas-cli
 
       - name: Build on EAS
         run: eas build --profile debug --platform android --local --non-interactive --output mobile/taskmesh-debug.apk
