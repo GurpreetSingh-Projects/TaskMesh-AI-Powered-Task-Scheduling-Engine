@@ -52,7 +52,7 @@ const Register = () => {
     description: "",
   });
 
-  const [profileImg, setProfileImg] = useState<string | null>(null);
+  const [profileImg, setProfileImg] = useState(null);
 
   const {
     control,
@@ -70,24 +70,13 @@ const Register = () => {
 
   const submitHandler = async (values: RegisterForm) => {
     console.log("profileImg:", profileImg);
-    const wrappedFile = {
-      uri: profileImg,
-      name: "profile.webp",
-      type: "image/webp",
-    };
 
     try {
-      const formData = new FormData();
-      formData.append("email", values?.email);
-      formData.append("password", values?.password);
-      console.log("wrappedFilew", wrappedFile);
-
-      if (profileImg) {
-        // formData.append("profile_img_uri", profileImg);
-        formData.append("profile_img_uri", wrappedFile);
-      }
-
-      const response = await register(formData).unwrap();
+      const response = await register({
+        email: values?.email,
+        password: values?.password,
+        profile_img_uri: profileImg,
+      }).unwrap();
 
       await setAuth(response);
 
@@ -308,8 +297,8 @@ const Register = () => {
       >
         {drawerMode == "mediaSelection" ? (
           <MediaPicker
-            onMediaSelected={(uri) => {
-              setProfileImg(uri);
+            onMediaSelected={(file) => {
+              setProfileImg(file);
               registerDrawerRef?.current?.dismiss();
             }}
           />
