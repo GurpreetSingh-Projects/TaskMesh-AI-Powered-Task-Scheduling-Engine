@@ -6,7 +6,6 @@ import OnboardingBg from "@/features/onboarding/components/OnboardingBg";
 import { Image } from "expo-image";
 import { animations, images } from "@/assets";
 import ThemeTextInput from "@/components/ThemeTextInput";
-import { EmailIcon, LockIcon } from "@/Icon";
 import { themeColors } from "@/theme";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod/v4";
@@ -22,6 +21,7 @@ import { getAuthMessage, setAuth } from "../utils";
 import ProfileImagePicker from "@/components/ProfileImagePicker";
 import { useWindowDimensions } from "react-native-keyboard-controller";
 import { useRegisterMutation } from "../authApi";
+import { Lock, Mail } from "lucide-react-native";
 
 const registerSchema = z.object({
   email: z.email(),
@@ -120,13 +120,7 @@ const Register = () => {
                     onChangeText={onChange}
                     onBlur={onBlur}
                     keyboardType="email-address"
-                    icon={
-                      <EmailIcon
-                        height={22.5}
-                        width={22.5}
-                        stroke={themeColors?.steel}
-                      />
-                    }
+                    icon={<Mail size={22.5} stroke={themeColors?.steel} />}
                   />
                 )}
               />
@@ -148,10 +142,11 @@ const Register = () => {
                     onChangeText={onChange}
                     onBlur={onBlur}
                     icon={
-                      <LockIcon
+                      <Lock
                         height={22.5}
                         width={22.5}
                         stroke={themeColors?.steel}
+                        strokeWidth={1.5}
                       />
                     }
                     secure

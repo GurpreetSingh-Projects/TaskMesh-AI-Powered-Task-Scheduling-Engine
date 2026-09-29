@@ -6,7 +6,6 @@ import OnboardingBg from "@/features/onboarding/components/OnboardingBg";
 import { Image } from "expo-image";
 import { animations, images } from "@/assets";
 import ThemeTextInput from "@/components/ThemeTextInput";
-import { EmailIcon, LockIcon } from "@/Icon";
 import { themeColors } from "@/theme";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod/v4";
@@ -20,13 +19,14 @@ import LottieView from "lottie-react-native";
 import { DrawerMode } from "../types";
 import { getAuthMessage, setAuth } from "../utils";
 import { useLoginMutation } from "../authApi";
+import { Lock, Mail } from "lucide-react-native";
 
 const loginSchema = z.object({
   email: z.email(),
   password: z.string().min(3, "Password is Required"),
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type LoginFormType = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const { height } = useWindowDimensions();
@@ -43,7 +43,7 @@ const Login = () => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginForm>({
+  } = useForm<LoginFormType>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -51,7 +51,7 @@ const Login = () => {
     },
   });
 
-  const submitHandler = async (values: LoginForm) => {
+  const submitHandler = async (values: LoginFormType) => {
     try {
       const response = await login({
         email: values.email,
@@ -113,10 +113,11 @@ const Login = () => {
                     onBlur={onBlur}
                     keyboardType="email-address"
                     icon={
-                      <EmailIcon
+                      <Mail
                         height={22.5}
                         width={22.5}
                         stroke={themeColors?.steel}
+                        strokeWidth={1.5}
                       />
                     }
                     // autoFocus
@@ -140,10 +141,11 @@ const Login = () => {
                     onChangeText={onChange}
                     onBlur={onBlur}
                     icon={
-                      <LockIcon
+                      <Lock
                         height={22.5}
                         width={22.5}
                         stroke={themeColors?.steel}
+                        strokeWidth={1.5}
                       />
                     }
                     secure

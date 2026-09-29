@@ -45,9 +45,6 @@ const App = () => {
           <SafeAreaProvider>
             <KeyboardProvider>
               <BottomSheetModalProvider>
-                <SystemBars
-                  style={{ statusBar: "auto", navigationBar: "auto" }}
-                />
                 <RootNavigator />
               </BottomSheetModalProvider>
             </KeyboardProvider>

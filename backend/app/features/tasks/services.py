@@ -17,7 +17,7 @@ class TaskService:
         self.db = db
         self.storage_service= StorageService(db)
 
-    async def create_task(self, user: Users, task_data, task_img: UploadFile | None):
+    async def create_task(self, user: Users, task_data: TaskCreateRequestSchema, task_img: UploadFile | None):
         file_record= None
         
         if task_data is not None: 

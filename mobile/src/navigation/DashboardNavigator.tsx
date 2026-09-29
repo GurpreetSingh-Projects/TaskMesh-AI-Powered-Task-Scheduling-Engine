@@ -6,6 +6,7 @@ import { useRefreshToken } from "@/hooks/useRefreshToken";
 import { useEffect } from "react";
 import { HomeStackParamList } from "./types";
 import { useAppSelector } from "@/app/store";
+import BottomTabs from "./BottomTabs";
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
@@ -24,7 +25,7 @@ const DashboardNavigator = () => {
   return (
     <Stack.Navigator
       id="dashboard-navigator"
-      initialRouteName="Home"
+      initialRouteName="BottomTabs"
       screenOptions={{
         gestureEnabled: true,
         fullScreenGestureEnabled: true,
@@ -40,7 +41,7 @@ const DashboardNavigator = () => {
         name="ProfileDetailsPending"
         component={ProfileDetailsPending}
       />
-      <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="BottomTabs" component={BottomTabs} />
     </Stack.Navigator>
   );
 };
