@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import ReactNativeBlobUtil from "react-native-blob-util";
 
 export const baseApi = createApi({
   reducerPath: "baseApi",
@@ -20,11 +21,45 @@ export const baseApi = createApi({
     }),
 
     register: builder.mutation({
-      query: (formData) => ({
-        url: "/auth/register",
-        method: "POST",
-        body: formData,
-      }),
+      queryFn: async (fields: {
+        email: string;
+        password: string;
+        profile_img_uri: string | null;
+      }) => {
+        try {
+          const parts = [
+            { name: "email", data: fields?.email },
+            { name: "password", data: fields?.password },
+            {
+              name: fields?.profile_img_uri,
+              data: fields?.profile_img_uri
+                ? ReactNativeBlobUtil.wrap(fields?.profile_img_uri)
+                : null,
+            },
+          ];
+
+          const response = await ReactNativeBlobUtil.fetch(
+            "POST",
+            `${process.env.EXPO_PUBLIC_API_URL}/auth/register`,
+            { "Content-Type": "multipart/form-data" },
+            parts,
+          );
+
+          const status_code = response.info().status;
+          const data = response.json();
+
+          return status_code == 201
+            ? { data }
+            : {
+                error: {
+                  status_code,
+                  data,
+                },
+              };
+        } catch (error) {
+          return { error: { status: "FETCH_ERROR", error: String(error) } };
+        }
+      },
     }),
   }),
 });
