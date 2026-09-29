@@ -1,4 +1,4 @@
-import { Keyboard, Pressable, useWindowDimensions, View } from "react-native";
+import { Keyboard, Pressable, View } from "react-native";
 import ThemeButton from "@/components/ThemeButton";
 import ThemeText from "@/components/ThemeText";
 import ThemePage from "@/components/ThemePage";
@@ -15,7 +15,7 @@ import {
 } from "@/Icon";
 import { themeColors } from "@/theme";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod/v4";
+import { email, z } from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRegisterMutation } from "@/api/baseApi";
 import OrSeparator from "@/components/OrSeparator";
@@ -27,6 +27,8 @@ import LottieView from "lottie-react-native";
 import { DrawerMode } from "../types";
 import { getAuthMessage, setAuth } from "../utils";
 import MediaPicker from "@/components/MediaPicker";
+import { profile } from "node:console";
+import { useWindowDimensions } from "react-native-keyboard-controller";
 
 const registerSchema = z.object({
   email: z.email(),
@@ -67,11 +69,25 @@ const Register = () => {
   const navigation = useNavigation();
 
   const submitHandler = async (values: RegisterForm) => {
+    console.log("profileImg:", profileImg);
+    const wrappedFile = {
+      uri: profileImg,
+      name: "profile.webp",
+      type: "image/webp",
+    };
+
     try {
-      const response = await register({
-        email: values?.email,
-        password: values?.password,
-      }).unwrap();
+      const formData = new FormData();
+      formData.append("email", values?.email);
+      formData.append("password", values?.password);
+      console.log("wrappedFilew", wrappedFile);
+
+      if (profileImg) {
+        // formData.append("profile_img_uri", profileImg);
+        formData.append("profile_img_uri", wrappedFile);
+      }
+
+      const response = await register(formData).unwrap();
 
       await setAuth(response);
 
@@ -102,7 +118,7 @@ const Register = () => {
         <OnboardingBg
           className="relative items-center justify-start"
           style={{
-            height: BG_CAROUSEL_HEIGHT,
+            height: "37.5%",
             width,
           }}
         >
