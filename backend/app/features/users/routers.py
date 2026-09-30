@@ -22,7 +22,7 @@ async def edit_user(
     email: EmailStr | None = Form(None),
     password: str | None = Form(None),
     full_name: str | None = Form(None),
-    profile_img_uri: UploadFile | None = File(None),
+    profile_img: UploadFile | None = File(None),
     user=Depends(get_current_user),
     user_services: UserService = Depends(get_user_service),
 ):
@@ -34,7 +34,7 @@ async def edit_user(
     user = await user_services.edit_user(
         user= user, 
         user_data= user_data, 
-        profile_img=profile_img_uri
+        profile_img=profile_img
     )
     return user
     
