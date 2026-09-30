@@ -32,7 +32,7 @@ class UserSettings(Base):
     __table_args__ = (
         Index(
             "unique_master_row",
-            text("1"),
+            text("(user_id IS NULL)"),
             unique=True,
             postgresql_where=text("user_id IS NULL"),
         ),
