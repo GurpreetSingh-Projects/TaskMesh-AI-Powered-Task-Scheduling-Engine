@@ -13,20 +13,27 @@ const formatImgTypes: Record<string, SaveFormat> = {
 export function useMediaPicker() {
   const settings = useAppSelector((state) => state?.settings);
 
-  const processImage = async (uri: string) => {
-    const context = ImageManipulator.manipulate(uri).resize({
+  const processImage = async (
+    unprocessedImage: ImagePicker.ImagePickerAsset,
+  ) => {
+    const context = ImageManipulator.manipulate(unprocessedImage?.uri).resize({
       width: settings?.max_image_width,
     });
 
     const image = await context.renderAsync();
 
     try {
-      const result = await image.saveAsync({
+      const compressedImgUri = await image.saveAsync({
         compress: settings?.image_quality,
         format:
           formatImgTypes[settings?.image_conversion_format] ?? SaveFormat?.WEBP,
       });
-      return result.uri;
+
+      return {
+        uri: compressedImgUri?.uri,
+        name: unprocessedImage?.fileName,
+        type: settings?.image_conversion_format ?? "image/webp",
+      };
     } catch (error) {
       console.log("Image compression error:", error);
     } finally {
@@ -54,7 +61,7 @@ export function useMediaPicker() {
         return null;
       }
 
-      return await processImage(result.assets[0].uri);
+      return await processImage(result.assets[0]);
     } catch (error) {
       console.error("Failed to pick library image:", error);
       return null;
@@ -78,7 +85,7 @@ export function useMediaPicker() {
         return null;
       }
 
-      return await processImage(result.assets[0].uri);
+      return await processImage(result.assets[0]);
     } catch (error) {
       console.error("Failed to pick camera image:", error);
       return null;
