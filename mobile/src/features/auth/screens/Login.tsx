@@ -50,32 +50,35 @@ const Login = () => {
     },
   });
 
-  const navigation = useNavigation();
-
   const submitHandler = async (values: LoginForm) => {
     try {
       const response = await login({
         email: values.email,
         password: values.password,
       }).unwrap();
-      console.log(response);
-      await setAuth(response);
+
       setDrawerMsg({
         title: "Welcome back!!",
         description: "Logged in successfully, setting up...",
       });
       setDrawerMode("success");
+      loginDrawerRef?.current?.present();
+
+      setTimeout(() => {
+        loginDrawerRef?.current?.dismiss();
+        setAuth(response);
+        reset();
+      }, 2500);
     } catch (error) {
       console.log("Login api error:", error);
       setDrawerMsg(getAuthMessage(error?.status));
       setDrawerMode("fail");
-    }
+      loginDrawerRef?.current?.present();
 
-    loginDrawerRef?.current?.present();
-    setTimeout(() => {
-      loginDrawerRef?.current?.dismiss();
-      reset();
-    }, 3500);
+      setTimeout(() => {
+        loginDrawerRef?.current?.dismiss();
+      }, 2500);
+    }
   };
 
   return (
