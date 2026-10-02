@@ -15,6 +15,7 @@ class UserReadResponseSchema(BaseModel):
     profile_img: str | UUID | None = None
     role: str
     is_onboarding_completed: bool
+    is_profile_completed: bool
     created_by: UUID | None = None
     updated_by: UUID | None = None
     created_at: datetime
