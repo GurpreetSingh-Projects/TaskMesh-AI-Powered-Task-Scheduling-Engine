@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, func, and_, bindparam
+from sqlalchemy import select, update, func, and_, bindparam, asc
 from datetime import datetime, timezone
 from uuid import UUID
 from app.features.onboarding.models import OnboardingQuestionnaire, OnboardingQuestionnaireResponse
@@ -31,7 +31,8 @@ class OnboardingService:
                     "description": question.description,
                     "question_type": question.question_type,
                     "options":  [option.model_dump(mode= "json") for option in question.options],
-                    "media_source": question.media_source,
+                    "is_required": question.is_required,
+                    "question_order": question.question_order,
                     "updated_by":  user.user_id,
                     "updated_at":  now,
                     "created_by":  user.user_id,
@@ -67,6 +68,7 @@ class OnboardingService:
         query= (
             select(OnboardingQuestionnaire)
             .where(OnboardingQuestionnaire.status == "ENABLED", OnboardingQuestionnaire.is_deleted.is_(False))
+            .order_by(asc(OnboardingQuestionnaire.question_order))
             .limit(25)
         )
 
@@ -165,8 +167,6 @@ class OnboardingService:
                     "user_id": user.user_id,
                     "title": questions[item.onboarding_question_id].title,
                     "description": questions[item.onboarding_question_id].description,
-                    "image_url": questions[item.onboarding_question_id].image_url,
-                    "media_source": questions[item.onboarding_question_id].media_source,
                     "question_response": item.question_response,
                     "created_by": user.user_id,
                     "updated_by": user.user_id,
@@ -214,16 +214,13 @@ class OnboardingService:
                 OnboardingQuestionnaireResponse.question_response,
                 OnboardingQuestionnaireResponse.title,
                 OnboardingQuestionnaireResponse.description,
-                OnboardingQuestionnaireResponse.image_url,
-                OnboardingQuestionnaireResponse.media_source,
                 OnboardingQuestionnaire.options,
                 OnboardingQuestionnaire.question_type,
+                OnboardingQuestionnaire.is_required,                            OnboardingQuestionnaire.question_order,
             )
             .outerjoin(
-                OnboardingQuestionnaireResponse,
-                    and_(
-                        OnboardingQuestionnaireResponse.onboarding_question_id == OnboardingQuestionnaire.onboarding_question_id
-                    )
+                OnboardingQuestionnaire,
+                OnboardingQuestionnaireResponse.onboarding_question_id == OnboardingQuestionnaire.onboarding_question_id
             )
             .where(OnboardingQuestionnaireResponse.user_id == user.user_id)
             .limit(25)
