@@ -7,7 +7,7 @@ class QuestionnaireOptionSchema(BaseModel):
     title: str
     description: str | None = None
     option_order: int
-    file_storage_id: str | None = None
+    file_storage_id: UUID | None = None
 
 class OnboardingQuestionnaireRequestSchema(BaseModel):
     title: str
