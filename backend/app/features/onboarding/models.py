@@ -16,7 +16,6 @@ class OnboardingQuestionnaire(Base):
     onboarding_question_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, server_default=text("gen_random_uuid()"), default=uuid.uuid4, nullable=False)
     title: Mapped[str]= mapped_column(String(100), nullable=False)
     description: Mapped[str | None]= mapped_column(String(500), nullable=True)
-    image_url: Mapped[str]= mapped_column(String(1000), nullable=True)
     status: Mapped[ActivationStatus] = mapped_column(SAEnum(ActivationStatus, name="onboarding_question_status", native_enum= True), nullable=False, default=ActivationStatus.ENABLED, server_default="ENABLED")
     question_type: Mapped[OnboardingQuestionType] = mapped_column(SAEnum(OnboardingQuestionType, name="onboarding_question_type", native_enum= True), nullable=False, default=OnboardingQuestionType.MCQ_SINGLE_SELECT, server_default="MCQ_SINGLE_SELECT")
     options: Mapped[list] = mapped_column(JSON, nullable=True)
