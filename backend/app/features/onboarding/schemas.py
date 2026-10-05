@@ -9,11 +9,7 @@ class QuestionnaireOptionSchema(BaseModel):
     option_order: int
     file_storage_id: UUID | None = None
 
-class QuestionnaireOptionReadSchema(BaseModel):
-    title: str
-    description: str | None = None
-    option_order: int
-    file_storage_id: UUID | None = None
+class QuestionnaireOptionReadSchema(QuestionnaireOptionSchema):
     image_url: str | None
 
 class OnboardingQuestionnaireRequestSchema(BaseModel):
@@ -61,7 +57,7 @@ class OnboardingResponsesSchema(BaseModel):
     description: str | None = None
     is_required: bool
     question_order: int
-    options: list[QuestionnaireOptionSchema]
+    options: list[QuestionnaireOptionReadSchema]
 
 class OnboardingeResponseItemRequestSchema(BaseModel):
     onboarding_questionnaire_response_id: UUID

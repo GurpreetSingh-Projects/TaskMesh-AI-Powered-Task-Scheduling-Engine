@@ -104,8 +104,10 @@ class OnboardingService:
 
                     if file:
                         image_url = await self.storage_service.get_signed_asset_url(storage_key= file.storage_key)
-                        print("Image url", image_url)
                         option["image_url"] = image_url
+
+                else:
+                    option["image_url"] = None
         
         count_query = (
             select(func.count(OnboardingQuestionnaire.onboarding_question_id))
@@ -238,6 +240,7 @@ class OnboardingService:
         await self.db.commit()
         return onboarding_result
 
+# to continue here
     async def get_onboarding_responses(self, user: Users):
         query = (
             select(
@@ -258,6 +261,8 @@ class OnboardingService:
             .where(OnboardingQuestionnaireResponse.user_id == user.user_id)
             .limit(25)
         )
+
+
 
         response = (await self.db.execute(query)).mappings().all()
         return response
