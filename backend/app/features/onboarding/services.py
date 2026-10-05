@@ -3,16 +3,20 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, func, and_, bindparam, asc
 from datetime import datetime, timezone
+import uuid
 from uuid import UUID
 from app.features.onboarding.models import OnboardingQuestionnaire, OnboardingQuestionnaireResponse
 from app.features.onboarding.schemas import OnboardingQuestionnaireRequestSchema, OnboardingQuestionnaireEditRequestSchema, OnboardingQuestionnaireItemRequestSchema
 from app.features.users.models import Users
+from app.features.storage.models import FileStorage, FileStorageEntity
 from app.features.users.services import UserService
+from app.features.storage.services import StorageService
 
 class OnboardingService:
     def __init__(self, db: AsyncSession):
         self.db = db
-        self.user_service= UserService
+        self.user_service= UserService(db)
+        self.storage_service = StorageService(db)
 
     async def add_onboarding_questions(self, user: Users, onboarding_questions: list[OnboardingQuestionnaireRequestSchema]):
         if not onboarding_questions:
@@ -65,15 +69,44 @@ class OnboardingService:
         }
 
     async def get_onboarding_questions(self):
-        query= (
+        questions_query= (
             select(OnboardingQuestionnaire)
             .where(OnboardingQuestionnaire.status == "ENABLED", OnboardingQuestionnaire.is_deleted.is_(False))
             .order_by(asc(OnboardingQuestionnaire.question_order))
             .limit(25)
         )
 
-        questions = (await self.db.execute(query)).scalars().all()
+        questions = (await self.db.execute(questions_query)).scalars().all()
 
+        question_ids= [question.onboarding_question_id for question in questions]
+
+        files_query  =(
+            select(FileStorage)
+            .where(
+                FileStorage.entity_type == FileStorageEntity.ONBOARDING_QUESTIONNAIRE,
+                FileStorage.entity_id.in_(question_ids),
+            )
+            .limit(25)
+        )
+
+        files = (await self.db.execute(files_query)).scalars().all()
+
+        files = { file.file_storage_id: file for file in files }
+        
+        for question in questions:
+            for option in question.options:
+                option_file_storage_id= option.get("file_storage_id")
+
+                if option_file_storage_id:
+                    option_file_storage_id= UUID(option_file_storage_id)
+                    
+                    file = files.get(option_file_storage_id)
+
+                    if file:
+                        image_url = await self.storage_service.get_signed_asset_url(storage_key= file.storage_key)
+                        print("Image url", image_url)
+                        option["image_url"] = image_url
+        
         count_query = (
             select(func.count(OnboardingQuestionnaire.onboarding_question_id))
             .where(OnboardingQuestionnaire.status == "ENABLED", OnboardingQuestionnaire.is_deleted.is_(False))
