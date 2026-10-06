@@ -221,7 +221,11 @@ class OnboardingService:
                 Users.user_id == user.user_id,
                 Users.is_deleted.is_(False)
             )
-            .values(is_onboarding_completed= True)
+            .values(
+                is_onboarding_completed= True, 
+                updated_by = user.user_id
+                updated_at = user
+            )
         )
 
         
