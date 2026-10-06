@@ -1,7 +1,7 @@
 {
   "name": "taskmesh-ai-powered-task-scheduling-engine",
   "main": "index.ts",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "scripts": {
     "start": "pnpm exec expo start -c",
     "reset-project": "node ./scripts/reset-project.js",
@@ -20,15 +20,15 @@
     "@react-navigation/native": "^7.3.18",
     "@react-navigation/native-stack": "^7.18.10",
     "@reduxjs/toolkit": "^2.12.0",
-    "expo": "57.0.18",
+    "expo": "~57.0.20",
     "expo-blur": "~57.0.2",
     "expo-constants": "~57.0.17",
     "expo-dev-client": "~57.0.18",
     "expo-device": "~57.0.1",
     "expo-font": "~57.0.3",
     "expo-image": "~57.0.4",
-    "expo-image-manipulator": "~57.0.16",
-    "expo-image-picker": "~57.0.16",
+    "expo-image-manipulator": "~57.0.14",
+    "expo-image-picker": "~57.0.14",
     "expo-keep-awake": "~57.0.1",
     "expo-linear-gradient": "~57.0.1",
     "expo-linking": "~57.0.9",
@@ -40,9 +40,10 @@
     "lottie-react-native": "^7.5.0",
     "nativewind": "5.0.0-preview.4",
     "react": "19.2.3",
-    "react-hook-form": "^7.87.0",
+    "react-hook-form": "^7.85.0",
     "react-native": "0.86.3",
     "react-native-blob-util": "^0.24.10",
+    "react-native-css": "^3.0.7",
     "react-native-device-info": "^15.0.2",
     "react-native-edge-to-edge": "^1.8.1",
     "react-native-gesture-handler": "~3.2.1",
@@ -58,7 +59,7 @@
     "react-native-worklets": "0.10.1",
     "react-redux": "^9.3.0",
     "redux-persist": "^6.0.0",
-    "zod": "^4.5.4"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.2.0",
