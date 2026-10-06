@@ -41,7 +41,7 @@ const OnboardingCarousel = () => {
     <ThemePage className="bg-canvas" noSafeArea>
       <View className="flex-1 gap-default items-center justify-center">
         <OnboardingBg className="relative">
-          <Carousel
+          {/* <Carousel
             loop={true}
             autoPlay
             width={width}
@@ -65,7 +65,7 @@ const OnboardingCarousel = () => {
               zIndex: -10,
             }}
             autoPlayInterval={2500}
-          />
+          /> */}
         </OnboardingBg>
         <View className="flex-1 w-full items-center pt-5 gap-5 z-10 px-page relative">
           <View className="gap-1">

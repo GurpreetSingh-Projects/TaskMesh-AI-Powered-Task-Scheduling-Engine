@@ -6,40 +6,27 @@ import { animations } from "@/assets";
 import { primaryBorderRadius, themeColors } from "@/theme";
 import ThemeText from "@/components/ThemeText";
 import ThemePage from "@/components/ThemePage";
-import Carousel, { TAnimationStyle } from "react-native-reanimated-carousel";
-import {
-  interpolate,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
-
+import { Carousel, CarouselItemAnimation as TAnimationStyle } from "react-native-reanimated-carousel";
+import { interpolate, useSharedValue, withTiming, } from "react-native-reanimated";
 const OnboardingQuestionnaire = () => {
-  const { height, width } = useWindowDimensions();
-  const pressAnim = useSharedValue<number>(0);
-
-  const animationStyle: TAnimationStyle = React.useCallback((value: number) => {
-    "worklet";
-
-    const zIndex = interpolate(value, [-1, 0, 1], [-1000, 0, 1000]);
-    const translateX = interpolate(value, [-1, 0, 1], [-width, 0, width]);
-
-    return {
-      transform: [{ translateX }],
-      zIndex,
-    };
-  }, []);
-
-  const [onboardingQuestionnaire, { data, isLoading, isError, error }] =
-    useLazyOnboardingQuestionnaireQuery();
-
-  useEffect(() => {
-    onboardingQuestionnaire();
-  }, [onboardingQuestionnaire]);
-
-  return (
-    <ThemePage className="bg-canvas" noSafeArea>
+    const { height, width } = useWindowDimensions();
+    const pressAnim = useSharedValue<number>(0);
+    const animationStyle: TAnimationStyle = React.useCallback((value: number) => {
+        "worklet";
+        const zIndex = interpolate(value, [-1, 0, 1], [-1000, 0, 1000]);
+        const translateX = interpolate(value, [-1, 0, 1], [-width, 0, width]);
+        return {
+            transform: [{ translateX }],
+            zIndex,
+        };
+    }, []);
+    const [onboardingQuestionnaire, { data, isLoading, isError, error }] = useLazyOnboardingQuestionnaireQuery();
+    useEffect(() => {
+        onboardingQuestionnaire();
+    }, [onboardingQuestionnaire]);
+    return (<ThemePage className="bg-canvas" noSafeArea>
       <View className="flex-1 gap-default items-center justify-center">
-        <Carousel
+        {/* <Carousel
           loop={true}
           autoPlay
           width={width}
@@ -63,10 +50,8 @@ const OnboardingQuestionnaire = () => {
             zIndex: -10,
           }}
           autoPlayInterval={2500}
-        />
+        /> */}
       </View>
-    </ThemePage>
-  );
+    </ThemePage>);
 };
-
 export default OnboardingQuestionnaire;
