@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useWindowDimensions, View } from "react-native";
+import { Pressable, useWindowDimensions, View } from "react-native";
 import { useLazyOnboardingQuestionnaireQuery } from "@/api/baseApi";
 import LottieView from "lottie-react-native";
 import { animations, images } from "@/assets";
@@ -40,8 +40,44 @@ const OnboardingQuestionnaire = () => {
             Tell us a little about yourself
           </ThemeText>
         </View>
+        <View className="w-full items-center justify-center px-page">
+          <View className="w-full gap-10">
+            <View className="gap-2">
+              <ThemeText variant="heading" style={{ color: themeColors.ink }}>
+                What best describes you?
+              </ThemeText>
 
-        <View className="w-full items-center justify-center px-page"></View>
+              <ThemeText variant="body" style={{ color: themeColors.steel }}>
+                Choose the option that best describes you.
+              </ThemeText>
+            </View>
+
+            <View className="gap-3">
+              <Pressable
+                className="w-full flex-row items-center rounded-2xl border px-5 py-4"
+                style={{
+                  borderColor: themeColors.mist,
+                  backgroundColor: themeColors.canvas,
+                }}
+              >
+                <View
+                  className="h-6 w-6 items-center justify-center rounded-full border-2"
+                  style={{ borderColor: themeColors.steel }}
+                />
+
+                <View className="ml-4 flex-1 gap-1">
+                  <ThemeText variant="body" style={{ color: themeColors.ink }}>
+                    Student
+                  </ThemeText>
+
+                  <ThemeText style={{ color: themeColors.steel }}>
+                    Currently studying
+                  </ThemeText>
+                </View>
+              </Pressable>
+            </View>
+          </View>
+        </View>
         <Image
           source={images.illustrations.illustration1}
           contentFit="cover"
