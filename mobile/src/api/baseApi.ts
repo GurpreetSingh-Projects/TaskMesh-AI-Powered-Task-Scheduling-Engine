@@ -2,6 +2,7 @@ import { getAccessToken } from "@/features/auth/utils";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import ReactNativeBlobUtil from "react-native-blob-util";
 import * as SecureStore from "expo-secure-store";
+import { OnboardingQuestionnaireResponse } from "@/features/onboarding/types";
 
 const ACCESS_TOKEN_KEY = "accessToken";
 
@@ -80,7 +81,10 @@ export const baseApi = createApi({
       },
     }),
 
-    onboardingQuestionnaire: builder.query<ResponseType, void>({
+    onboardingQuestionnaire: builder.query<
+      OnboardingQuestionnaireResponse,
+      void
+    >({
       query: () => "/user-onboarding/questions",
     }),
   }),
