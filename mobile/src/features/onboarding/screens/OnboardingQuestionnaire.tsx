@@ -16,17 +16,22 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { Image } from "expo-image";
+import { OnboardingQuestionnaireResponse } from "../types";
 
 const OnboardingQuestionnaire = () => {
   const { height, width } = useWindowDimensions();
 
   const [currentQuestion, setCurrentQuestion] = useState(1);
+  const [responses, setResponses] = useState<OnboardingQuestionnaireResponse[]>(
+    [],
+  );
 
   const [onboardingQuestionnaire, { data, isLoading, isError, error }] =
     useLazyOnboardingQuestionnaireQuery();
 
   const totalQuestions = data?.items?.length ?? 0;
 
+  const optionPressHandler = (onboarding_question_id: string, option) => {};
   useEffect(() => {
     onboardingQuestionnaire();
   }, [onboardingQuestionnaire]);
@@ -97,6 +102,12 @@ const OnboardingQuestionnaire = () => {
                           backgroundColor: themeColors.canvas,
                         }}
                         key={option?.option_order}
+                        onPress={() =>
+                          optionPressHandler(
+                            item.onboarding_question_id,
+                            option,
+                          )
+                        }
                       >
                         <View
                           className="h-6 w-6 items-center justify-center rounded-full border-2"
@@ -111,9 +122,9 @@ const OnboardingQuestionnaire = () => {
                             {option?.title}
                           </ThemeText>
 
-                          {option?.descrioptio && (
+                          {option?.description && (
                             <ThemeText style={{ color: themeColors.steel }}>
-                              {option?.descrioptio}
+                              {option?.description}
                             </ThemeText>
                           )}
                         </View>
