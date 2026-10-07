@@ -173,7 +173,10 @@ class OnboardingService:
         return
 
     async def add_onboarding_questions_response(self, onboarding_questions_response: OnboardingQuestionnaireItemRequestSchema, user: Users):
-        if not onboarding_questions_response:
+        if user.is_onboarding_completed:
+            raise HTTPException(status_code= 409, detail="Onboarding question responses already filled for this user, please try editing your responses!")
+
+        if not onboarding_questions_response.root:
             raise HTTPException(status_code= 400, detail="No onboarding question responses provided.")
         
         question_ids = set(onboarding_questions_response.root)
