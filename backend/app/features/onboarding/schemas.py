@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, RootModel
 from uuid import UUID
 from app.core.enums import ActivationStatus
 from app.features.onboarding.enums import OnboardingQuestionType
@@ -42,9 +42,8 @@ class OnboardingQuestionnaireEditRequestSchema(BaseModel):
     is_required: bool | None = None
     question_order: int | None = None
 
-class OnboardingQuestionnaireItemRequestSchema(BaseModel):
-    onboarding_question_id: UUID
-    question_response: list
+class OnboardingQuestionnaireItemRequestSchema(RootModel[dict[UUID, list]]):
+    pass
 
 class OnboardingResponsesSchema(BaseModel):
     onboarding_questionnaire_response_id: UUID

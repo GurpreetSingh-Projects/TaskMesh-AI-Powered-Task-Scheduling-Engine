@@ -27,7 +27,7 @@ async def deactivate_onboarding_question(question_id: UUID, user= Depends(get_cu
     await onboarding_service.deactivate_onboarding_question(question_id, user)
 
 @router.post("/responses", status_code=201, summary="Add Onboarding Responses for user", description="Submit the onboarding responses")
-async def add_onboarding_questions_response(onboarding_questions_response: list[OnboardingQuestionnaireItemRequestSchema],user=Depends(get_current_user), onboarding_service: OnboardingService = Depends(get_onboarding_service)):
+async def add_onboarding_questions_response(onboarding_questions_response: OnboardingQuestionnaireItemRequestSchema, user=Depends(get_current_user), onboarding_service: OnboardingService = Depends(get_onboarding_service)):
     responses = await onboarding_service.add_onboarding_questions_response(onboarding_questions_response, user)
     return responses
 
