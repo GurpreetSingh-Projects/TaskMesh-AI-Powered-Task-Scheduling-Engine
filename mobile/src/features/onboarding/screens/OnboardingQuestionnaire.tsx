@@ -10,7 +10,7 @@ import {
   Carousel,
   CarouselItemAnimation as TAnimationStyle,
 } from "react-native-reanimated-carousel";
-import {
+import Animated, {
   interpolate,
   useSharedValue,
   withTiming,
@@ -36,13 +36,16 @@ const OnboardingQuestionnaire = () => {
   return (
     <ThemePage className="bg-canvas" noSafeArea>
       <View className="h-2 w-full overflow-hidden rounded-full">
-        <View
+        <Animated.View
           className="h-full rounded-full"
           style={{
             width: `${
               totalQuestions > 0 ? (currentQuestion / totalQuestions) * 100 : 0
             }%`,
             backgroundColor: themeColors.ink,
+            transitionProperty: "width",
+            transitionDuration: "250ms",
+            transitionTimingFunction: "ease-in-out",
           }}
         />
       </View>
