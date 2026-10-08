@@ -58,6 +58,5 @@ class OnboardingResponsesSchema(BaseModel):
     question_order: int
     options: list[QuestionnaireOptionReadSchema]
 
-class OnboardingeResponseItemRequestSchema(BaseModel):
-    onboarding_questionnaire_response_id: UUID
-    question_response: list
+class OnboardingeResponseItemRequestSchema(OnboardingQuestionnaireItemRequestSchema):
+    pass
