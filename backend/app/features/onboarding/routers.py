@@ -31,13 +31,13 @@ async def add_onboarding_questions_response(onboarding_questions_response: Onboa
     responses = await onboarding_service.add_onboarding_questions_response(onboarding_questions_response, user)
     return responses
 
-@router.get("/responses", response_model= list[OnboardingResponsesSchema], summary="Get Onboarding Responses for user", description="Retrieve the onboarding responses" )
+@router.get("/responses", response_model= list[OnboardingResponsesSchema], summary="Get Onboarding Responses for user", description="Retrieve the onboarding responses")
 async def get_onboarding_responses(user= Depends(get_current_user), onboarding_service: OnboardingService= Depends(get_onboarding_service)):
     response = await onboarding_service.get_onboarding_responses(user)
     return response
 
 @router.patch("/responses/", summary="Update Onboarding Responses for user", description="Update the onboarding responses")
-async def edit_onboarding_responses(edit_questions_response: list[OnboardingeResponseItemRequestSchema], user= Depends(get_current_user), onboarding_service: OnboardingService= Depends(get_onboarding_service)):
+async def edit_onboarding_responses(edit_questions_response: OnboardingeResponseItemRequestSchema, user= Depends(get_current_user), onboarding_service: OnboardingService= Depends(get_onboarding_service)):
     await onboarding_service.edit_onboarding_responses(edit_questions_response, user)
 
     return {
