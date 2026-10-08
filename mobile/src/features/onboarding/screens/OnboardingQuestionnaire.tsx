@@ -124,37 +124,6 @@ const OnboardingQuestionnaire = () => {
           </ThemeText>
         </View>
         <View className="w-full items-center justify-center px-page">
-          <View className="w-full flex-row justify-between">
-            <Pressable
-              onPress={goPrev}
-              disabled={!canGoPrev}
-              className="h-12 w-12 items-center justify-center"
-              style={{
-                opacity: canGoPrev ? 1 : 0.5,
-              }}
-            >
-              <ChevronLeftIcon
-                width={24}
-                height={24}
-                stroke={canGoPrev ? themeColors.ink : themeColors.steel}
-              />
-            </Pressable>
-
-            <Pressable
-              onPress={goNext}
-              disabled={!canGoNext}
-              className="h-12 w-12 items-center justify-center"
-              style={{
-                opacity: canGoNext ? 1 : 0.5,
-              }}
-            >
-              <ChevronRightIcon
-                width={24}
-                height={24}
-                stroke={canGoNext ? themeColors.ink : themeColors.steel}
-              />
-            </Pressable>
-          </View>
           <Carousel
             ref={carouselRef}
             data={data?.items}
@@ -248,8 +217,40 @@ const OnboardingQuestionnaire = () => {
             }}
             style={{
               width: width,
+              height: height * 0.5,
             }}
           />
+        </View>
+        <View className="w-full flex-row justify-between px-page">
+          <Pressable
+            onPress={goPrev}
+            disabled={!canGoPrev}
+            className="h-12 w-12 items-center justify-center"
+            style={{
+              opacity: canGoPrev ? 1 : 0.5,
+            }}
+          >
+            <ChevronLeftIcon
+              width={24}
+              height={24}
+              stroke={canGoPrev ? themeColors.ink : themeColors.steel}
+            />
+          </Pressable>
+
+          <Pressable
+            onPress={goNext}
+            disabled={!canGoNext}
+            className="h-12 w-12 items-center justify-center"
+            style={{
+              opacity: canGoNext ? 1 : 0.5,
+            }}
+          >
+            <ChevronRightIcon
+              width={24}
+              height={24}
+              stroke={canGoNext ? themeColors.ink : themeColors.steel}
+            />
+          </Pressable>
         </View>
         <Image
           source={images.illustrations.illustration1}
