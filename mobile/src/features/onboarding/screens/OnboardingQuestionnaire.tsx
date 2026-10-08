@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Pressable, useWindowDimensions, View } from "react-native";
 import { useLazyOnboardingQuestionnaireQuery } from "@/api/baseApi";
 import LottieView from "lottie-react-native";
@@ -8,6 +8,7 @@ import ThemeText from "@/components/ThemeText";
 import ThemePage from "@/components/ThemePage";
 import {
   Carousel,
+  type CarouselRef,
   CarouselItemAnimation as TAnimationStyle,
 } from "react-native-reanimated-carousel";
 import Animated, {
@@ -21,9 +22,12 @@ import {
   OnboardingQuestionnaireResponse,
   OnboardingQuestionOption,
 } from "../types";
+import { ChevronLeftIcon, ChevronRightIcon } from "@/Icon";
 
 const OnboardingQuestionnaire = () => {
   const { height, width } = useWindowDimensions();
+
+  const carouselRef = useRef<CarouselRef>(null);
 
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [responses, setResponses] = useState([]);
@@ -32,6 +36,8 @@ const OnboardingQuestionnaire = () => {
     useLazyOnboardingQuestionnaireQuery();
 
   const totalQuestions = data?.items?.length ?? 0;
+  const canGoNext = currentQuestion < totalQuestions;
+  const canGoPrev = currentQuestion > 1;
 
   const areOptionsEqual = (option1, option2) =>
     JSON.stringify(option1) === JSON.stringify(option2);
@@ -75,11 +81,21 @@ const OnboardingQuestionnaire = () => {
     return result;
   };
 
+  const goNext = () => {
+    if (currentQuestion < totalQuestions) {
+      carouselRef.current?.next();
+    }
+  };
+
+  const goPrev = () => {
+    if (currentQuestion > 1) {
+      carouselRef.current?.prev();
+    }
+  };
+
   useEffect(() => {
     onboardingQuestionnaire();
   }, [onboardingQuestionnaire]);
-
-  console.log(responses);
 
   return (
     <ThemePage className="bg-canvas" noSafeArea>
@@ -108,7 +124,39 @@ const OnboardingQuestionnaire = () => {
           </ThemeText>
         </View>
         <View className="w-full items-center justify-center px-page">
+          <View className="w-full flex-row justify-between">
+            <Pressable
+              onPress={goPrev}
+              disabled={!canGoPrev}
+              className="h-12 w-12 items-center justify-center"
+              style={{
+                opacity: canGoPrev ? 1 : 0.5,
+              }}
+            >
+              <ChevronLeftIcon
+                width={24}
+                height={24}
+                stroke={canGoPrev ? themeColors.ink : themeColors.steel}
+              />
+            </Pressable>
+
+            <Pressable
+              onPress={goNext}
+              disabled={!canGoNext}
+              className="h-12 w-12 items-center justify-center"
+              style={{
+                opacity: canGoNext ? 1 : 0.5,
+              }}
+            >
+              <ChevronRightIcon
+                width={24}
+                height={24}
+                stroke={canGoNext ? themeColors.ink : themeColors.steel}
+              />
+            </Pressable>
+          </View>
           <Carousel
+            ref={carouselRef}
             data={data?.items}
             onSnapToItem={(index) => {
               setCurrentQuestion(index + 1);
