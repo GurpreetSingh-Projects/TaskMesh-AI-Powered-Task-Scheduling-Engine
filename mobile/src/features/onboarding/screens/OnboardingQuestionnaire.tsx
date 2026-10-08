@@ -23,6 +23,7 @@ import {
   OnboardingQuestionOption,
 } from "../types";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/Icon";
+import ThemeButton from "@/components/ThemeButton";
 
 const OnboardingQuestionnaire = () => {
   const { height, width } = useWindowDimensions();
@@ -31,6 +32,7 @@ const OnboardingQuestionnaire = () => {
 
   const [currentQuestion, setCurrentQuestion] = useState(1);
   const [responses, setResponses] = useState([]);
+  const [isSubmitButtonEnabled, setIsSubmitButtonEnabled] = useState(false);
 
   const [onboardingQuestionnaire, { data, isLoading, isError, error }] =
     useLazyOnboardingQuestionnaireQuery();
@@ -93,12 +95,32 @@ const OnboardingQuestionnaire = () => {
     }
   };
 
+  const responsesHandler = () => {
+    const requiredQuestions = data?.items?.filter((item) => item?.is_required);
+
+    const requiredQuesstionIds = requiredQuestions?.map(
+      (item) => item?.onboarding_question_id,
+    );
+
+    const areAllRequiredSelected = requiredQuesstionIds?.every(
+      (questionId) => responses[questionId]?.length > 0,
+    );
+
+    setIsSubmitButtonEnabled(areAllRequiredSelected);
+  };
+
+  // console.log(responses);
+
   useEffect(() => {
     onboardingQuestionnaire();
   }, [onboardingQuestionnaire]);
 
+  useEffect(() => {
+    responsesHandler();
+  }, [responses]);
+
   return (
-    <ThemePage className="bg-canvas" noSafeArea>
+    <ThemePage className="bg-canvas">
       <View className="h-2 w-full overflow-hidden rounded-full">
         <Animated.View
           className="h-full rounded-full"
@@ -113,7 +135,6 @@ const OnboardingQuestionnaire = () => {
           }}
         />
       </View>
-
       <View className="flex-1 items-center gap-10">
         <View className="w-full pt-[30%] px-page">
           <ThemeText
@@ -252,16 +273,29 @@ const OnboardingQuestionnaire = () => {
             />
           </Pressable>
         </View>
-        <Image
-          source={images.illustrations.illustration1}
-          contentFit="cover"
-          style={{
-            width,
-            height: 150,
-            position: "absolute",
-            bottom: 0,
-          }}
-        />
+      </View>
+      <View className="absolute bottom-0 w-full">
+        <View className="relative w-full">
+          <Image
+            source={images.illustrations.illustration1}
+            contentFit="cover"
+            style={{
+              width,
+              height: 150,
+              opacity: isSubmitButtonEnabled ? 0.05 : 1,
+            }}
+          />
+
+          {isSubmitButtonEnabled && (
+            <View className="absolute bottom-0 w-full z-10">
+              <ThemeButton className="bg-ink mx-default! rounded-full items-center justify-center">
+                <ThemeText className="font-bold text-white text-center text-base">
+                  SUBMIT
+                </ThemeText>
+              </ThemeButton>
+            </View>
+          )}
+        </View>
       </View>
     </ThemePage>
   );
