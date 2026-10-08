@@ -16,27 +16,70 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { Image } from "expo-image";
-import { OnboardingQuestionnaireResponse } from "../types";
+import {
+  OnboardingQuestion,
+  OnboardingQuestionnaireResponse,
+  OnboardingQuestionOption,
+} from "../types";
 
 const OnboardingQuestionnaire = () => {
   const { height, width } = useWindowDimensions();
 
   const [currentQuestion, setCurrentQuestion] = useState(1);
-  const [responses, setResponses] = useState<OnboardingQuestionnaireResponse[]>(
-    [],
-  );
+  const [responses, setResponses] = useState([]);
 
   const [onboardingQuestionnaire, { data, isLoading, isError, error }] =
     useLazyOnboardingQuestionnaireQuery();
 
   const totalQuestions = data?.items?.length ?? 0;
 
-  const optionPressHandler = (onboarding_question_id: string, option) => {};
+  const areOptionsEqual = (option1, option2) =>
+    JSON.stringify(option1) === JSON.stringify(option2);
+
+  const optionPressHandler = (
+    onboarding_question_id: string,
+    option: OnboardingQuestionOption,
+    isMultiSelect: boolean,
+  ) => {
+    setResponses((prev) => {
+      const currSelections = prev[onboarding_question_id] ?? [];
+
+      const isPreviouslySelected = currSelections.some((selections) => {
+        return areOptionsEqual(selections, option);
+      });
+
+      const selectedOptions = isMultiSelect
+        ? isPreviouslySelected
+          ? currSelections?.filter(
+              (selectedOption) => !areOptionsEqual(selectedOption, option),
+            )
+          : [...currSelections, option]
+        : [option];
+
+      return {
+        ...prev,
+        [onboarding_question_id]: selectedOptions,
+      };
+    });
+  };
+
+  const isOptionSelected = (
+    onboardingQuestionId: string,
+    option: OnboardingQuestionOption,
+  ) => {
+    const result =
+      responses[onboardingQuestionId]?.some((selectedOption) =>
+        areOptionsEqual(selectedOption, option),
+      ) ?? false;
+
+    return result;
+  };
+
   useEffect(() => {
     onboardingQuestionnaire();
   }, [onboardingQuestionnaire]);
 
-  console.log(JSON.stringify(data));
+  console.log(responses);
 
   return (
     <ThemePage className="bg-canvas" noSafeArea>
@@ -68,10 +111,9 @@ const OnboardingQuestionnaire = () => {
           <Carousel
             data={data?.items}
             onSnapToItem={(index) => {
-              console.log(index);
               setCurrentQuestion(index + 1);
             }}
-            renderItem={({ item }) => {
+            renderItem={({ item }: { item: OnboardingQuestion }) => {
               return (
                 <View
                   className="flex-1 gap-10"
@@ -94,42 +136,64 @@ const OnboardingQuestionnaire = () => {
                   </View>
 
                   <View className="gap-3">
-                    {item?.options?.map((option) => (
-                      <Pressable
-                        className="flex-row items-center rounded-2xl border px-5 py-4"
-                        style={{
-                          borderColor: themeColors.mist,
-                          backgroundColor: themeColors.canvas,
-                        }}
-                        key={option?.option_order}
-                        onPress={() =>
-                          optionPressHandler(
-                            item.onboarding_question_id,
-                            option,
-                          )
-                        }
-                      >
-                        <View
-                          className="h-6 w-6 items-center justify-center rounded-full border-2"
-                          style={{ borderColor: themeColors.steel }}
-                        />
-
-                        <View className="ml-4 flex-1 gap-1">
-                          <ThemeText
-                            variant="body"
-                            style={{ color: themeColors.ink }}
+                    {item?.options?.map((option) => {
+                      const selected = isOptionSelected(
+                        item.onboarding_question_id,
+                        option,
+                      );
+                      return (
+                        <Pressable
+                          className="flex-row items-center rounded-2xl border px-5 py-4"
+                          style={{
+                            borderColor: themeColors.mist,
+                            backgroundColor: themeColors.canvas,
+                          }}
+                          key={option?.option_order}
+                          onPress={() =>
+                            optionPressHandler(
+                              item.onboarding_question_id,
+                              option,
+                              item?.question_type == "MCQ_MULTI_SELECT",
+                            )
+                          }
+                        >
+                          <View
+                            className="h-6 w-6 items-center justify-center rounded-full border-2"
+                            style={{
+                              borderColor: selected
+                                ? themeColors.ink
+                                : themeColors.steel,
+                            }}
                           >
-                            {option?.title}
-                          </ThemeText>
+                            {selected && (
+                              <View
+                                className="h-3 w-3 rounded-full"
+                                style={{
+                                  backgroundColor: themeColors.ink,
+                                }}
+                              />
+                            )}
+                          </View>
 
-                          {option?.description && (
-                            <ThemeText style={{ color: themeColors.steel }}>
-                              {option?.description}
+                          <View className="ml-4 flex-1 gap-1">
+                            <ThemeText
+                              variant="body"
+                              style={{ color: themeColors.ink }}
+                            >
+                              {item?.options ==
+                                responses[item.onboarding_question_id]?.options}
+                              {option?.title}
                             </ThemeText>
-                          )}
-                        </View>
-                      </Pressable>
-                    ))}
+
+                            {option?.description && (
+                              <ThemeText style={{ color: themeColors.steel }}>
+                                {option?.description}
+                              </ThemeText>
+                            )}
+                          </View>
+                        </Pressable>
+                      );
+                    })}
                   </View>
                 </View>
               );
