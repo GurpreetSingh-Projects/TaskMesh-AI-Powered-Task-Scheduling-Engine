@@ -13,6 +13,7 @@ import {
 } from "react-native-reanimated-carousel";
 import Animated, {
   interpolate,
+  useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
@@ -24,6 +25,8 @@ import {
 } from "../types";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/Icon";
 import ThemeButton from "@/components/ThemeButton";
+
+const AnimatedImage = Animated.createAnimatedComponent(Image);
 
 const OnboardingQuestionnaire = () => {
   const { height, width } = useWindowDimensions();
@@ -109,7 +112,17 @@ const OnboardingQuestionnaire = () => {
     setIsSubmitButtonEnabled(areAllRequiredSelected);
   };
 
-  // console.log(responses);
+  const illustrationStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(isSubmitButtonEnabled ? 0.05 : 1, {
+      duration: 500,
+    }),
+  }));
+
+  const submitButtonStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(isSubmitButtonEnabled ? 1 : 0, {
+      duration: 500,
+    }),
+  }));
 
   useEffect(() => {
     onboardingQuestionnaire();
@@ -276,25 +289,25 @@ const OnboardingQuestionnaire = () => {
       </View>
       <View className="absolute bottom-0 w-full">
         <View className="relative w-full">
-          <Image
+          <AnimatedImage
             source={images.illustrations.illustration1}
             contentFit="cover"
-            style={{
-              width,
-              height: 150,
-              opacity: isSubmitButtonEnabled ? 0.05 : 1,
-            }}
+            style={[illustrationStyle, { width, height: 150 }]}
           />
 
-          {isSubmitButtonEnabled && (
-            <View className="absolute bottom-0 w-full z-10">
-              <ThemeButton className="bg-ink mx-default! rounded-full items-center justify-center">
-                <ThemeText className="font-bold text-white text-center text-base">
-                  SUBMIT
-                </ThemeText>
-              </ThemeButton>
-            </View>
-          )}
+          <Animated.View
+            className="w-full absolute bottom-0 z-10"
+            style={submitButtonStyle}
+          >
+            <ThemeButton
+              disabled={!isSubmitButtonEnabled}
+              className="bg-ink mx-default! rounded-full items-center justify-center"
+            >
+              <ThemeText className="font-bold text-white text-center text-base">
+                SUBMIT
+              </ThemeText>
+            </ThemeButton>
+          </Animated.View>
         </View>
       </View>
     </ThemePage>
