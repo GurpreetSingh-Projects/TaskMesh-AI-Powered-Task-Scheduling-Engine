@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Pressable, useWindowDimensions, View } from "react-native";
-import { useLazyOnboardingQuestionnaireQuery } from "@/api/baseApi";
+import {
+  useCreateOnboardingQuestionnaireResponsesMutation,
+  useLazyOnboardingQuestionnaireQuery,
+} from "@/api/baseApi";
 import LottieView from "lottie-react-native";
 import { animations, images } from "@/assets";
 import { primaryBorderRadius, themeColors, themeSpacing } from "@/theme";
@@ -22,25 +25,54 @@ import {
   OnboardingQuestion,
   OnboardingQuestionnaireResponse,
   OnboardingQuestionOption,
+  OnboardingQuestionsAnswersRequest,
 } from "../types";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/Icon";
 import ThemeButton from "@/components/ThemeButton";
-
-const AnimatedImage = Animated.createAnimatedComponent(Image);
+import { AnimatedImage } from "@/utils";
+import ThemeDrawer from "@/components/ThemeDrawer";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { getOnboardingMessage } from "../utils";
+import { setIsProfileCompleted } from "@/features/profile/slice/user";
+import { useAppDispatch } from "@/app/store";
 
 const OnboardingQuestionnaire = () => {
   const { height, width } = useWindowDimensions();
-
   const carouselRef = useRef<CarouselRef>(null);
-
+  const [responses, setResponses] = useState<OnboardingQuestionsAnswersRequest>(
+    {},
+  );
   const [currentQuestion, setCurrentQuestion] = useState(1);
-  const [responses, setResponses] = useState([]);
   const [isSubmitButtonEnabled, setIsSubmitButtonEnabled] = useState(false);
 
-  const [onboardingQuestionnaire, { data, isLoading, isError, error }] =
-    useLazyOnboardingQuestionnaireQuery();
+  const onboardingQuestionnaireDrawerRef = useRef<BottomSheetModal>(null);
+  const [drawerMode, setDrawerMode] = useState("default");
+  const [drawerMsg, setDrawerMsg] = useState({
+    title: "",
+    description: "",
+  });
 
-  const totalQuestions = data?.items?.length ?? 0;
+  const [
+    onboardingQuestionnaire,
+    {
+      data: onboardingQuestionnaireData,
+      isLoading: isOnboardingQuestionnaireLoading,
+      isError: isOnboardingQuestionnaireError,
+      error: onboardingQuestionnaireError,
+    },
+  ] = useLazyOnboardingQuestionnaireQuery();
+
+  const [
+    submitOnboardingForm,
+    {
+      data: submitOnboardingFormData,
+      isLoading: isSubmitOnboardingFormLoading,
+      isError: isSubmitOnboardingFormError,
+      error: submitOnboardingFormError,
+    },
+  ] = useCreateOnboardingQuestionnaireResponsesMutation();
+
+  const totalQuestions = onboardingQuestionnaireData?.items?.length ?? 0;
   const canGoNext = currentQuestion < totalQuestions;
   const canGoPrev = currentQuestion > 1;
 
@@ -79,7 +111,7 @@ const OnboardingQuestionnaire = () => {
     option: OnboardingQuestionOption,
   ) => {
     const result =
-      responses[onboardingQuestionId]?.some((selectedOption) =>
+      responses?.[onboardingQuestionId]?.some((selectedOption) =>
         areOptionsEqual(selectedOption, option),
       ) ?? false;
 
@@ -99,21 +131,23 @@ const OnboardingQuestionnaire = () => {
   };
 
   const responsesHandler = () => {
-    const requiredQuestions = data?.items?.filter((item) => item?.is_required);
+    const requiredQuestions = onboardingQuestionnaireData?.items?.filter(
+      (item) => item?.is_required,
+    );
 
     const requiredQuesstionIds = requiredQuestions?.map(
       (item) => item?.onboarding_question_id,
     );
 
     const areAllRequiredSelected = requiredQuesstionIds?.every(
-      (questionId) => responses[questionId]?.length > 0,
+      (questionId) => responses?.[questionId]?.length > 0,
     );
 
     setIsSubmitButtonEnabled(areAllRequiredSelected);
   };
 
   const illustrationStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(isSubmitButtonEnabled ? 0.05 : 1, {
+    opacity: withTiming(isSubmitButtonEnabled ? 0.1 : 1, {
       duration: 500,
     }),
   }));
@@ -123,6 +157,37 @@ const OnboardingQuestionnaire = () => {
       duration: 500,
     }),
   }));
+
+  const dispatch = useAppDispatch();
+
+  const submitHandler = async () => {
+    try {
+      const response = await submitOnboardingForm(responses).unwrap();
+      console.log(response);
+
+      setDrawerMsg({
+        title: "Account Created!!",
+        description: "Registered successfully, setting up...",
+      });
+
+      setDrawerMode("success");
+      onboardingQuestionnaireDrawerRef?.current?.present();
+      dispatch(setIsProfileCompleted(true));
+      setTimeout(() => {
+        onboardingQuestionnaireDrawerRef?.current?.dismiss();
+      }, 2500);
+    } catch (error) {
+      console.log(JSON.stringify(error));
+
+      setDrawerMsg(getOnboardingMessage(error?.status_code));
+      setDrawerMode("fail");
+      onboardingQuestionnaireDrawerRef?.current?.present();
+      dispatch(setIsProfileCompleted(false));
+      setTimeout(() => {
+        onboardingQuestionnaireDrawerRef?.current?.dismiss();
+      }, 2500);
+    }
+  };
 
   useEffect(() => {
     onboardingQuestionnaire();
@@ -160,7 +225,7 @@ const OnboardingQuestionnaire = () => {
         <View className="w-full items-center justify-center px-page">
           <Carousel
             ref={carouselRef}
-            data={data?.items}
+            data={onboardingQuestionnaireData?.items}
             onSnapToItem={(index) => {
               setCurrentQuestion(index + 1);
             }}
@@ -200,13 +265,16 @@ const OnboardingQuestionnaire = () => {
                             backgroundColor: themeColors.canvas,
                           }}
                           key={option?.option_order}
-                          onPress={() =>
+                          onPress={() => {
                             optionPressHandler(
                               item.onboarding_question_id,
                               option,
                               item?.question_type == "MCQ_MULTI_SELECT",
-                            )
-                          }
+                            );
+                            setTimeout(() => {
+                              goNext();
+                            }, 250);
+                          }}
                         >
                           <View
                             className="h-6 w-6 items-center justify-center rounded-full border-2"
@@ -232,7 +300,8 @@ const OnboardingQuestionnaire = () => {
                               style={{ color: themeColors.ink }}
                             >
                               {item?.options ==
-                                responses[item.onboarding_question_id]?.options}
+                                responses?.[item.onboarding_question_id]
+                                  ?.options}
                               {option?.title}
                             </ThemeText>
 
@@ -302,6 +371,7 @@ const OnboardingQuestionnaire = () => {
             <ThemeButton
               disabled={!isSubmitButtonEnabled}
               className="bg-ink mx-default! rounded-full items-center justify-center"
+              onPress={submitHandler}
             >
               <ThemeText className="font-bold text-white text-center text-base">
                 SUBMIT
@@ -310,6 +380,54 @@ const OnboardingQuestionnaire = () => {
           </Animated.View>
         </View>
       </View>
+      <ThemeDrawer
+        ref={onboardingQuestionnaireDrawerRef}
+        snapPoints={["30%"]}
+        closable={false}
+        backdropPressBehavior="none"
+      >
+        <View className="relative h-full w-full flex-1 items-center justify-center gap-3">
+          <View className="z-10 items-center justify-center gap-3">
+            <LottieView
+              source={
+                drawerMode === "success"
+                  ? animations?.tickIcon
+                  : animations?.crossIcon
+              }
+              autoPlay
+              loop={false}
+              style={{
+                width: 75,
+                height: 75,
+              }}
+            />
+
+            <View className="gap-3 py-3">
+              <ThemeText variant="subheading" className="text-center">
+                {drawerMsg.title}
+              </ThemeText>
+
+              <ThemeText className="text-graphite! text-center">
+                {drawerMsg.description}
+              </ThemeText>
+            </View>
+          </View>
+
+          {drawerMode === "success" && (
+            <Image
+              source={images.illustrations.illustration2}
+              contentFit="cover"
+              style={{
+                width,
+                height: 150,
+                position: "absolute",
+                bottom: 0,
+                opacity: 0.25,
+              }}
+            />
+          )}
+        </View>
+      </ThemeDrawer>
     </ThemePage>
   );
 };
