@@ -27,3 +27,7 @@ export type OnboardingQuestionOption = {
   file_storage_id: string | null;
   image_url: string | null;
 };
+
+export type OnboardingQuestionsAnswersRequest = {
+  [onboarding_question_id: string]: OnboardingQuestionOption[];
+};
