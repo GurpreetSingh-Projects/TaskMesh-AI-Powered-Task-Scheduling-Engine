@@ -80,8 +80,5 @@ export const getAuthMessage = (statusCode: number) => {
   if (AUTH_MESSAGES[statusCode]) {
     return AUTH_MESSAGES[statusCode];
   }
-  return {
-    title: "Oops!!",
-    description: "Something went wrong. Please try again later",
-  };
+  return AUTH_MESSAGES[500];
 };
