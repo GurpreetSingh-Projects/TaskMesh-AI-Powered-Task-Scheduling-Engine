@@ -43,7 +43,7 @@ const ThemeDrawer = (props: ThemeDrawerProps) => {
 
   const ThemeDrawerPill = () =>
     props?.closable ? (
-      <View className="h-1.5 w-1/10 rounded-full bg-cloud self-center my-3" />
+      <View className="h-1.5 w-1/10 relative self-center bg-cloud rounded-full my-3" />
     ) : (
       <></>
     );
@@ -59,7 +59,7 @@ const ThemeDrawer = (props: ThemeDrawerProps) => {
       onDismiss={props?.onDismiss}
       handleComponent={ThemeDrawerPill}
     >
-      <BottomSheetView className="h-full w-full">
+      <BottomSheetView className="h-full w-full relative">
         {props?.children}
       </BottomSheetView>
     </BottomSheetModal>
