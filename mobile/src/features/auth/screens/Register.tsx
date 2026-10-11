@@ -24,10 +24,9 @@ import ThemeDrawer from "@/components/ThemeDrawer";
 import { useRef, useState } from "react";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import LottieView from "lottie-react-native";
-import { DrawerMode } from "../types";
+import { DrawerMode, FileType } from "../types";
 import { getAuthMessage, setAuth } from "../utils";
 import MediaPicker from "@/components/MediaPicker";
-import { profile } from "node:console";
 import { useWindowDimensions } from "react-native-keyboard-controller";
 
 const registerSchema = z.object({
