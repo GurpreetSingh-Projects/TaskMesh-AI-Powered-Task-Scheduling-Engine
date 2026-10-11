@@ -1,8 +1,6 @@
-import React, { useEffect } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useAppSelector } from "@/app/store";
 import OnboardingQuestionnaire from "@/features/onboarding/screens/OnboardingQuestionnaire";
-// import ProfileCompletionScreen from "@/features/onboarding/screens/ProfileCompletionScreen";
 import Home from "@/features/home/screens/Home";
 import ProfileDetailsPending from "@/features/profile/screens/ProfileDetailsPending";
 import { useRefreshToken } from "@/hooks/useRefreshToken";
@@ -14,15 +12,9 @@ const DashboardNavigator = () => {
 
   const refreshToken = useRefreshToken();
 
-  useEffect(() => {
-    refreshToken();
-  }, []);
-
   if (!userProfile?.is_onboarding_completed) {
     return <OnboardingQuestionnaire />;
-  }
-
-  if (!userProfile?.is_profile_completed) {
+  } else if (!userProfile?.is_profile_completed) {
     return <ProfileDetailsPending />;
   }
 
