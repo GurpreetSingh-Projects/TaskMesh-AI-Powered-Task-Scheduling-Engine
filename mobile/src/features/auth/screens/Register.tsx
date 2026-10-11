@@ -52,7 +52,7 @@ const Register = () => {
     description: "",
   });
 
-  const [profileImg, setProfileImg] = useState(null);
+  const [profileImg, setProfileImg] = useState<FileType>(null);
 
   const {
     control,
@@ -140,6 +140,7 @@ const Register = () => {
               <Pressable
                 onPress={() => {
                   setDrawerMode("mediaSelection");
+                  Keyboard.dismiss();
                   registerDrawerRef.current?.present();
                 }}
                 style={{
