@@ -6,6 +6,7 @@ import {
   OnboardingQuestionnaireResponse,
   OnboardingQuestionsAnswersRequest,
 } from "@/features/onboarding/types";
+import { FileType } from "@/features/auth/types";
 
 const ACCESS_TOKEN_KEY = "accessToken";
 
@@ -44,21 +45,22 @@ export const baseApi = createApi({
       queryFn: async (fields: {
         email: string;
         password: string;
-        profile_img: string | null;
+        profile_img: FileType | null;
       }) => {
         try {
           const parts = [
             { name: "email", data: fields?.email },
             { name: "password", data: fields?.password },
-            {
+          ];
+
+          if (fields.profile_img) {
+            parts.push({
               name: "profile_img",
               filename: fields?.profile_img.name,
               type: fields?.profile_img.type,
-              data: fields?.profile_img?.uri
-                ? ReactNativeBlobUtil.wrap(fields?.profile_img?.uri)
-                : null,
-            },
-          ];
+              data: ReactNativeBlobUtil.wrap(fields?.profile_img?.uri),
+            });
+          }
 
           const response = await ReactNativeBlobUtil.fetch(
             "POST",
