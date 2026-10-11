@@ -33,3 +33,9 @@ export type AuthState = {
   accessTokenExpiresAt: Date | null;
   refreshTokenExpiresAt: Date | null;
 };
+
+export type FileType = {
+  name: string;
+  type: string;
+  uri: string;
+};
