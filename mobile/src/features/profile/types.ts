@@ -1,9 +1,3 @@
-export type AuthStackParamList = {
-  OnboardingCarousel: undefined;
-  Login: undefined;
-  Register: undefined;
-};
-
 export type UserState = {
   user_id: string;
   email: string;
