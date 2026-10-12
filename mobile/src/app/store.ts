@@ -28,7 +28,7 @@ export const mmkvReduxStorage = {
 
 const appReducer = combineReducers({
   auth: authReducer,
-  userProfile: userReducer,
+  user: userReducer,
   settings: settingsReducer,
   [baseApi.reducerPath]: baseApi.reducer,
 });
@@ -47,7 +47,7 @@ const persistConfig = {
   key: "taskmesh-ai",
   storage: mmkvReduxStorage,
   version: 1,
-  whitelist: ["auth", "userProfile", "settings"],
+  whitelist: ["auth", "user", "settings"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
