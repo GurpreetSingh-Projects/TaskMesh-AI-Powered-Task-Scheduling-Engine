@@ -4,17 +4,26 @@ import OnboardingQuestionnaire from "@/features/onboarding/screens/OnboardingQue
 import Home from "@/features/home/screens/Home";
 import ProfileDetailsPending from "@/features/profile/screens/ProfileDetailsPending";
 import { useRefreshToken } from "@/hooks/useRefreshToken";
+import { useEffect } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { HomeStackParamList } from "./types";
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<HomeStackParamList>();
 
 const DashboardNavigator = () => {
-  const userProfile = useAppSelector((state) => state?.userProfile);
-
+  const user = useAppSelector((state) => state?.user);
+  const navigation = useNavigation();
   const refreshToken = useRefreshToken();
 
-  if (!userProfile?.is_onboarding_completed) {
+  useEffect(() => {
+    refreshToken();
+  }, []);
+
+  if (!user?.is_onboarding_completed) {
     return <OnboardingQuestionnaire />;
-  } else if (!userProfile?.is_profile_completed) {
+  }
+
+  if (!user?.is_profile_completed) {
     return <ProfileDetailsPending />;
   }
 
@@ -28,6 +37,14 @@ const DashboardNavigator = () => {
         animation: "ios_from_right",
       }}
     >
+      <Stack.Screen
+        name="OnboardingQuestionnaire"
+        component={OnboardingQuestionnaire}
+      />
+      <Stack.Screen
+        name="ProfileDetailsPending"
+        component={ProfileDetailsPending}
+      />
       <Stack.Screen name="Home" component={Home} />
     </Stack.Navigator>
   );
