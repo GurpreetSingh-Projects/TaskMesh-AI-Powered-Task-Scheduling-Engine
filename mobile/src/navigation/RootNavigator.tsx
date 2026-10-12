@@ -4,8 +4,9 @@ import { useAwakeServerCall } from "@/hooks/useAwakeServer";
 import { useAppSelector } from "@/app/store";
 import DashboardNavigator from "./DashboardNavigator";
 import AuthNavigator from "./AuthNavigator";
+import { RootStackParamList } from "./types";
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const RootNavigator = () => {
   const callAwakeServer = useAwakeServerCall();
