@@ -3,6 +3,7 @@ import { UserState } from "../types";
 
 const initialState: UserState = {
   user_id: null,
+  full_name: null,
   email: null,
   profile_img: null,
   role: null,
@@ -14,6 +15,7 @@ const initialState: UserState = {
   updated_by: null,
   created_at: null,
   updated_at: null,
+  isProfileCompletionSkipped: false,
 };
 
 export const userSlice = createSlice({
@@ -25,6 +27,9 @@ export const userSlice = createSlice({
     },
     setUserId: (state, action: PayloadAction<string>) => {
       state.user_id = action.payload;
+    },
+    setFullName: (state, action: PayloadAction<string | null>) => {
+      state.full_name = action.payload;
     },
     setEmail: (state, action: PayloadAction<string>) => {
       state.email = action.payload;
@@ -53,6 +58,9 @@ export const userSlice = createSlice({
     setUpdatedAt: (state, action: PayloadAction<string>) => {
       state.updated_at = action.payload;
     },
+    setIsProfileCompletionSkipped: (state, action: PayloadAction<boolean>) => {
+      state.isProfileCompletionSkipped = action.payload;
+    },
     clearUser: () => initialState,
   },
 });
@@ -60,6 +68,7 @@ export const userSlice = createSlice({
 export const {
   setUserInfo,
   setUserId,
+  setFullName,
   setEmail,
   setProfileImg,
   setRole,
@@ -70,6 +79,7 @@ export const {
   setUpdatedBy,
   setUpdatedAt,
   clearUser,
+  setIsProfileCompletionSkipped,
 } = userSlice.actions;
 
 export const userReducer = userSlice.reducer;

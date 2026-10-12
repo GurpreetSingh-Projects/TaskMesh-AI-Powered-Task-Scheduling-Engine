@@ -27,17 +27,17 @@ async def deactivate_onboarding_question(question_id: UUID, user= Depends(get_cu
     await onboarding_service.deactivate_onboarding_question(question_id, user)
 
 @router.post("/responses", status_code=201, summary="Add Onboarding Responses for user", description="Submit the onboarding responses")
-async def add_onboarding_questions_response(onboarding_questions_response: list[OnboardingQuestionnaireItemRequestSchema],user=Depends(get_current_user), onboarding_service: OnboardingService = Depends(get_onboarding_service)):
+async def add_onboarding_questions_response(onboarding_questions_response: OnboardingQuestionnaireItemRequestSchema, user=Depends(get_current_user), onboarding_service: OnboardingService = Depends(get_onboarding_service)):
     responses = await onboarding_service.add_onboarding_questions_response(onboarding_questions_response, user)
     return responses
 
-@router.get("/responses", response_model= list[OnboardingResponsesSchema], summary="Get Onboarding Responses for user", description="Retrieve the onboarding responses" )
+@router.get("/responses", response_model= list[OnboardingResponsesSchema], summary="Get Onboarding Responses for user", description="Retrieve the onboarding responses")
 async def get_onboarding_responses(user= Depends(get_current_user), onboarding_service: OnboardingService= Depends(get_onboarding_service)):
     response = await onboarding_service.get_onboarding_responses(user)
     return response
 
 @router.patch("/responses/", summary="Update Onboarding Responses for user", description="Update the onboarding responses")
-async def edit_onboarding_responses(edit_questions_response: list[OnboardingeResponseItemRequestSchema], user= Depends(get_current_user), onboarding_service: OnboardingService= Depends(get_onboarding_service)):
+async def edit_onboarding_responses(edit_questions_response: OnboardingeResponseItemRequestSchema, user= Depends(get_current_user), onboarding_service: OnboardingService= Depends(get_onboarding_service)):
     await onboarding_service.edit_onboarding_responses(edit_questions_response, user)
 
     return {

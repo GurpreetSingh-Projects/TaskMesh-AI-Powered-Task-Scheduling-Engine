@@ -1,11 +1,8 @@
-export type AuthStackParamList = {
-  OnboardingCarousel: undefined;
-  Login: undefined;
-  Register: undefined;
-};
+import { FileType } from "../auth/types";
 
 export type UserState = {
   user_id: string;
+  full_name: string | null;
   email: string;
   profile_img: string | null;
   role: string;
@@ -17,4 +14,10 @@ export type UserState = {
   updated_by: string | null;
   created_at: string;
   updated_at: string;
+  isProfileCompletionSkipped: boolean;
+};
+
+export type ProfileFormValues = {
+  fullName: string | null;
+  profileImg: FileType | null;
 };

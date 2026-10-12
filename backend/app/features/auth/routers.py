@@ -28,7 +28,7 @@ async def login_user( user_details: UserLoginRequestSchema, auth_service: AuthSe
     user = await auth_service.login_user(user_details)
     return user
 
-@router.post("/refresh", response_model= UserLoginResponseSchema, summary="Refresh User token", description="Refreshes user token", dependencies=[Depends(get_current_user)])
+@router.post("/refresh", response_model= UserLoginResponseSchema, summary="Refresh User token", description="Refreshes user token")
 async def refresh_token(refresh_token: str, auth_service: AuthService = Depends(get_auth_service)):
     user = await auth_service.refresh_token(refresh_token)
     return user

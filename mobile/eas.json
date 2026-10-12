@@ -11,17 +11,17 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://taskmesh-ai-powered-task-scheduling.onrender.com/"
+        "EXPO_PUBLIC_API_URL": "https://taskmesh-ai.onrender.com/"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
-        "gradleCommand": ":app:assembleRelease",
+        "gradleCommand": ":app:assembleRelease -PreactNativeArchitectures=arm64-v8a",
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://taskmesh-ai-powered-task-scheduling.onrender.com/"
+        "EXPO_PUBLIC_API_URL": "https://taskmesh-ai.onrender.com/"
       }
     },
     "debug": {
@@ -32,7 +32,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://taskmesh-ai-powered-task-scheduling.onrender.com/"
+        "EXPO_PUBLIC_API_URL": "https://taskmesh-ai.onrender.com/"
       }
     }
   }

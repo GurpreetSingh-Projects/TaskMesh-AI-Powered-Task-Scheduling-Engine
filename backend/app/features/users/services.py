@@ -84,8 +84,6 @@ class UserService:
 
         if not user_data and not profile_img:
             raise HTTPException(status_code= 400, detail= "Invalid update user details provided")
-        else:
-            user_data= {}
 
         if profile_img is not None:
             file_record = await self.storage_service.upload_file(
@@ -100,6 +98,8 @@ class UserService:
 
         if password is not None:
             user_data["hashed_pswd"]= hash_password(password)
+
+        user_data["is_profile_completed"] = bool(user.profile_img and user.is_onboarding_completed and user.email and user.full_name)
             
         user_data["updated_by"]= user.user_id
 
@@ -128,9 +128,12 @@ class UserService:
             raise HTTPException(status_code=500, detail=f"An error occurred while updating user: {str(e)}")
 
         self.db.expunge(updated_user)
-        file_details = await self.storage_service.get_file_details(file_storage_id= updated_user.profile_img, entity_type= FileStorageEntity.PROFILE_IMG)
-        updated_user.profile_img= await self.storage_service.get_signed_asset_url(file_details.storage_key)
 
+        if updated_user.profile_img:
+            file_details = await self.storage_service.get_file_details(file_storage_id= updated_user.profile_img, entity_type= FileStorageEntity.PROFILE_IMG)
+            updated_user.profile_img= await self.storage_service.get_signed_asset_url(file_details.storage_key)
+        else:
+            updated_user.profile_img = ""
         await self.db.commit()
         return updated_user
 

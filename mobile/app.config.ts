@@ -3,13 +3,19 @@ import { ExpoConfig } from "expo/config";
 const config: ExpoConfig = {
   name: "TaskMesh AI",
   slug: "taskmesh-ai",
-  version: "1.0.4",
+  version: "1.0.7",
   orientation: "portrait",
   icon: "./assets/images/taskmesh-logo.png",
   scheme: "taskmesh",
   userInterfaceStyle: "automatic",
   ios: {
     icon: "./assets/images/taskmesh-logo.png",
+    infoPlist: {
+      NSCameraUsageDescription:
+        "$(PRODUCT_NAME) needs access to your Camera to capture photos and videos.",
+      NSMicrophoneUsageDescription:
+        "$(PRODUCT_NAME) needs access to your Microphone to record audio for video recordings.",
+    },
   },
   android: {
     adaptiveIcon: {
@@ -18,6 +24,10 @@ const config: ExpoConfig = {
     },
     predictiveBackGestureEnabled: false,
     package: "com.gsc_projects.taskmesh",
+    permissions: [
+      "android.permission.CAMERA",
+      "android.permission.RECORD_AUDIO",
+    ],
   },
   assetBundlePatterns: ["assets/fonts/*", "assets/images/*", "assets/sounds/*"],
   plugins: [

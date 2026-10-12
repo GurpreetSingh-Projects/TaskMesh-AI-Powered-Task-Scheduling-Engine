@@ -2,8 +2,7 @@ import { Pressable, TextInputProps, View } from "react-native";
 import React, { memo, useState } from "react";
 import { TextInput } from "react-native-gesture-handler";
 import { themeColors } from "@/theme";
-import ThemeText from "./ThemeText";
-import { HideVisibilityIcon, VisibilityIcon } from "@/Icon";
+import { Eye, EyeOff } from "lucide-react-native";
 
 type ThemeTextInputProps = TextInputProps & {
   icon?: React.ReactNode;
@@ -12,7 +11,7 @@ type ThemeTextInputProps = TextInputProps & {
 
 const ThemeTextInput = memo((props: ThemeTextInputProps) => {
   const [isFocussed, setIsFocussed] = useState<boolean>(false);
-  const [isSecure, setIsSecure] = useState<boolean>(true);
+  const [isSecure, setIsSecure] = useState<boolean>(false);
 
   const { onChangeText, ...rest } = props;
 
@@ -59,14 +58,14 @@ const ThemeTextInput = memo((props: ThemeTextInputProps) => {
           className="h-full items-center justify-center flex-1 pr-5"
         >
           {isSecure ? (
-            <VisibilityIcon
+            <Eye
               height={25}
               width={25}
               strokeWidth={1.5}
               color={themeColors?.obsidian}
             />
           ) : (
-            <HideVisibilityIcon
+            <EyeOff
               height={25}
               width={25}
               strokeWidth={1.5}

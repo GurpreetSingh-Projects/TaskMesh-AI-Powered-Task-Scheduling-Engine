@@ -1,27 +1,31 @@
-import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useAppSelector } from "@/app/store";
 import OnboardingQuestionnaire from "@/features/onboarding/screens/OnboardingQuestionnaire";
-// import ProfileCompletionScreen from "@/features/onboarding/screens/ProfileCompletionScreen";
 import Home from "@/features/home/screens/Home";
 import ProfileDetailsPending from "@/features/profile/screens/ProfileDetailsPending";
+import { useRefreshToken } from "@/hooks/useRefreshToken";
+import { useEffect } from "react";
+import { HomeStackParamList } from "./types";
+import { useAppSelector } from "@/app/store";
+import BottomTabs from "./BottomTabs";
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<HomeStackParamList>();
 
 const DashboardNavigator = () => {
-  const userProfile = useAppSelector((state) => state?.userProfile);
+  const user = useAppSelector((state) => state?.user);
+  const refreshToken = useRefreshToken();
 
-  if (!userProfile?.is_onboarding_completed) {
-    return <OnboardingQuestionnaire />;
-  }
+  useEffect(() => {
+    refreshToken();
+  }, []);
 
-  if (!userProfile?.is_profile_completed) {
+  if (!user.is_onboarding_completed) return <OnboardingQuestionnaire />;
+  if (!user.is_profile_completed && !user.isProfileCompletionSkipped)
     return <ProfileDetailsPending />;
-  }
 
   return (
     <Stack.Navigator
       id="dashboard-navigator"
+      initialRouteName="BottomTabs"
       screenOptions={{
         gestureEnabled: true,
         fullScreenGestureEnabled: true,
@@ -29,7 +33,15 @@ const DashboardNavigator = () => {
         animation: "ios_from_right",
       }}
     >
-      <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen
+        name="OnboardingQuestionnaire"
+        component={OnboardingQuestionnaire}
+      />
+      <Stack.Screen
+        name="ProfileDetailsPending"
+        component={ProfileDetailsPending}
+      />
+      <Stack.Screen name="BottomTabs" component={BottomTabs} />
     </Stack.Navigator>
   );
 };

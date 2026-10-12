@@ -1,6 +1,6 @@
 import { useLazyAwakeServerQuery } from "@/api/baseApi";
 
-export function useAwakeServerCall() {
+export const useAwakeServerCall = () => {
   const [awakeServer] = useLazyAwakeServerQuery();
 
   const callAwakeServer = async () => {
@@ -14,4 +14,4 @@ export function useAwakeServerCall() {
   };
 
   return callAwakeServer;
-}
+};

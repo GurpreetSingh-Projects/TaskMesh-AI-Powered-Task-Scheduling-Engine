@@ -1,4 +1,4 @@
-import { Keyboard, View } from "react-native";
+import { Keyboard, useWindowDimensions, View } from "react-native";
 import ThemeButton from "@/components/ThemeButton";
 import ThemeText from "@/components/ThemeText";
 import ThemePage from "@/components/ThemePage";
@@ -6,12 +6,10 @@ import OnboardingBg from "@/features/onboarding/components/OnboardingBg";
 import { Image } from "expo-image";
 import { animations, images } from "@/assets";
 import ThemeTextInput from "@/components/ThemeTextInput";
-import { EmailIcon, LockIcon } from "@/Icon";
 import { themeColors } from "@/theme";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useLoginMutation } from "@/api/baseApi";
 import OrSeparator from "@/components/OrSeparator";
 import { Link, useNavigation } from "@react-navigation/native";
 import ThemeDrawer from "@/components/ThemeDrawer";
@@ -20,15 +18,18 @@ import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import LottieView from "lottie-react-native";
 import { DrawerMode } from "../types";
 import { getAuthMessage, setAuth } from "../utils";
+import { useLoginMutation } from "../authApi";
+import { Lock, Mail } from "lucide-react-native";
 
 const loginSchema = z.object({
   email: z.email(),
   password: z.string().min(3, "Password is Required"),
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type LoginFormType = z.infer<typeof loginSchema>;
 
 const Login = () => {
+  const { height } = useWindowDimensions();
   const [login, { isLoading, isSuccess, isError, error, reset }] =
     useLoginMutation();
   const loginDrawerRef = useRef<BottomSheetModal>(null);
@@ -42,7 +43,7 @@ const Login = () => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginForm>({
+  } = useForm<LoginFormType>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -50,7 +51,7 @@ const Login = () => {
     },
   });
 
-  const submitHandler = async (values: LoginForm) => {
+  const submitHandler = async (values: LoginFormType) => {
     try {
       const response = await login({
         email: values.email,
@@ -82,30 +83,19 @@ const Login = () => {
   };
 
   return (
-    <ThemePage className="bg-canvas" noSafeArea isScrollable>
-      <View className="flex-1 items-center">
-        <OnboardingBg className="h-1/2 relative items-center justify-start">
-          {/* <BackButton goBack /> */}
-          <Image
-            style={{
-              height: 450,
-              width: 450,
-              zIndex: 0,
-            }}
-            source={images?.onboarding?.login}
-            contentFit="cover"
-            allowDownscaling={false}
-          />
-        </OnboardingBg>
+    <ThemePage
+      noSafeArea
+      isScrollable
+      footer={
         <View
-          className="flex-1 w-full pt-5 bg-canvas px-page gap-3"
+          className="w-full pt-5 bg-canvas px-page gap-3"
           style={{ zIndex: 99999 }}
         >
           <View className="gap-1">
             <ThemeText variant="heading" className="text-start">
               Welcome back
             </ThemeText>
-            <ThemeText className="text-sm font-normal! text-graphite!">
+            <ThemeText className="text-sm font-normal! text-steel!">
               Login to continue managing your day
             </ThemeText>
           </View>
@@ -123,10 +113,11 @@ const Login = () => {
                     onBlur={onBlur}
                     keyboardType="email-address"
                     icon={
-                      <EmailIcon
+                      <Mail
                         height={22.5}
                         width={22.5}
                         stroke={themeColors?.steel}
+                        strokeWidth={1.5}
                       />
                     }
                     // autoFocus
@@ -150,10 +141,11 @@ const Login = () => {
                     onChangeText={onChange}
                     onBlur={onBlur}
                     icon={
-                      <LockIcon
+                      <Lock
                         height={22.5}
                         width={22.5}
                         stroke={themeColors?.steel}
+                        strokeWidth={1.5}
                       />
                     }
                     secure
@@ -168,8 +160,7 @@ const Login = () => {
             </View>
 
             <ThemeButton
-              className="bg-ink mx-default! rounded-full"
-              textColor="text-white!"
+              className="my-3"
               text="GET STARTED"
               status={isLoading ? "loading" : "default"}
               onPress={() => {
@@ -179,7 +170,7 @@ const Login = () => {
             />
             <>
               <OrSeparator />
-              <View className="w-full items-center justify-center mt-5">
+              <View className="w-full items-center justify-center my-3">
                 <Link screen="Register">
                   <View className="flex-row items-center gap-1">
                     <ThemeText className="text-sm text-steel">
@@ -195,10 +186,33 @@ const Login = () => {
             </>
           </View>
         </View>
+      }
+      keyboardOffsetClosed={-(height * 0.075)}
+      keyboardOffsetOpened={0}
+    >
+      <View className="items-center">
+        <OnboardingBg
+          className="relative items-center justify-start"
+          style={{
+            height: height * 0.5,
+          }}
+        >
+          {/* <BackButton goBack /> */}
+          <Image
+            style={{
+              height: 450,
+              width: 450,
+              zIndex: 0,
+            }}
+            source={images?.onboarding?.login}
+            contentFit="cover"
+            allowDownscaling={false}
+          />
+        </OnboardingBg>
       </View>
       {/* </KeyboardAvoidingView> */}
       <ThemeDrawer ref={loginDrawerRef} snapPoints={["30%"]} closable={false}>
-        <View className="h-full w-full flex-1 items-center justify-center gap-3">
+        <View className="w-full flex-1 items-center justify-center gap-3">
           <LottieView
             source={
               drawerMode == "success"

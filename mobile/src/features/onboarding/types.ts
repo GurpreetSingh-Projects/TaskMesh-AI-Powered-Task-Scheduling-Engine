@@ -5,23 +5,29 @@ export type OnboardingQuestionType =
   | "IMAGE"
   | "VIDEO";
 
-export type QuestionnaireOption = {
-  title: string;
-  description: string;
-  image_url: string;
+export type OnboardingQuestionnaireResponse = {
+  items: OnboardingQuestion[];
+  total: number;
 };
 
-export type OnboardingQuestionnaireItem = {
+export type OnboardingQuestion = {
   onboarding_question_id: string;
   title: string;
   description: string;
-  image_url: string | null;
-  options: QuestionnaireOption[];
+  options: OnboardingQuestionOption[];
   question_type: OnboardingQuestionType;
-  media_source: string;
+  is_required: boolean;
+  question_order: number;
 };
 
-export type OnboardingQuestionnaireResponse = {
-  items: OnboardingQuestionnaireItem[];
-  total: number;
+export type OnboardingQuestionOption = {
+  title: string;
+  description: string;
+  option_order: number;
+  file_storage_id: string | null;
+  image_url: string | null;
+};
+
+export type OnboardingQuestionsAnswersRequest = {
+  [onboarding_question_id: string]: OnboardingQuestionOption[];
 };

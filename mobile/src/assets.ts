@@ -11,13 +11,20 @@ export const images = {
     carouselImg7: require("@/assets/images/carousel-images/carousel-image-7.webp"),
     carouselImg8: require("@/assets/images/carousel-images/carousel-image-8.webp"),
   },
+
   onboarding: {
     login: require("@/assets/images/onboarding/login.webp"),
     register: require("@/assets/images/onboarding/register.webp"),
   },
+
   icons: {
     cameraIcon: require("@/assets/images/icons/camera-icon.webp"),
     galleryIcon: require("@/assets/images/icons/gallery-icon.webp"),
+  },
+
+  illustrations: {
+    illustration1: require("@/assets/images/illustrations/illustration-1.webp"),
+    illustration2: require("@/assets/images/illustrations/illustration-2.webp"),
   },
 };
 

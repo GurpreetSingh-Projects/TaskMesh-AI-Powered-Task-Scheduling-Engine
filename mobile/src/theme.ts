@@ -30,23 +30,27 @@ export const primarySizes = {
   xl: [22, { lineHeight: "30px" }],
 };
 
-export const primarySpacing = {
+export const themeSpacing = {
   default: 16,
   "default-half": 8,
+  badge: "2px 10px",
+  btn: "8px 12px",
+  page: 25,
   16: "16px",
   14: "14px",
   12: "12px",
-  btn: "8px 12px",
+  "2xs": "14px",
   xs: "18px",
   sm: "22px",
   base: "24px",
   lg: "28px",
   xl: "30px",
+  "2xl": "36px",
 };
 
 export const primaryBorderRadius = {
   default: 15,
-  drawerRadius: primarySpacing?.default,
+  drawerRadius: themeSpacing?.default,
 };
 
 export const primaryScreens = {

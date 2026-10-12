@@ -8,10 +8,13 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import type { SharedValue } from "react-native-reanimated";
-import Carousel, { TAnimationStyle } from "react-native-reanimated-carousel";
+import {
+  Carousel,
+  type CarouselItemAnimation,
+} from "react-native-reanimated-carousel";
 import { carouselImages, images } from "@/assets";
 import { SlideItem } from "@/components/SlideItem";
-import { primaryBorderRadius } from "@/theme";
+import { primaryBorderRadius, themeColors } from "@/theme";
 import ThemeButton from "@/components/ThemeButton";
 import ThemeText from "@/components/ThemeText";
 import OnboardingBg from "@/features/onboarding/components/OnboardingBg";
@@ -22,35 +25,36 @@ import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 const OnboardingCarousel = () => {
   const { height, width } = useWindowDimensions();
   const pressAnim = useSharedValue<number>(0);
-  const animationStyle: TAnimationStyle = React.useCallback((value: number) => {
-    "worklet";
+  const animationStyle: CarouselItemAnimation = React.useCallback(
+    (value: number) => {
+      "worklet";
 
-    const zIndex = interpolate(value, [-1, 0, 1], [-1000, 0, 1000]);
-    const translateX = interpolate(value, [-1, 0, 1], [-width, 0, width]);
+      const zIndex = interpolate(value, [-1, 0, 1], [-1000, 0, 1000]);
+      const translateX = interpolate(value, [-1, 0, 1], [-width, 0, width]);
 
-    return {
-      transform: [{ translateX }],
-      zIndex,
-    };
-  }, []);
+      return {
+        transform: [{ translateX }],
+        zIndex,
+      };
+    },
+    [],
+  );
 
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
   return (
-    <ThemePage className="bg-canvas" noSafeArea>
+    <ThemePage noSafeArea>
       <View className="flex-1 gap-default items-center justify-center">
         <OnboardingBg className="relative">
           <Carousel
-            loop={true}
-            autoPlay
-            width={width}
-            height={height / 1.5}
+            loop
+            autoplay
             data={carouselImages}
             onScrollStart={() => {
               pressAnim.value = withTiming(1);
             }}
-            onScrollEnd={() => {
+            onSnapToItem={() => {
               pressAnim.value = withTiming(0);
             }}
             renderItem={({ index }) => {
@@ -58,13 +62,13 @@ const OnboardingCarousel = () => {
                 <CustomItem index={index} key={index} pressAnim={pressAnim} />
               );
             }}
-            customAnimation={animationStyle}
-            scrollAnimationDuration={1500}
+            itemAnimation={animationStyle}
             style={{
+              width,
+              height: height / 1.5,
               borderRadius: primaryBorderRadius?.default,
-              zIndex: -10,
             }}
-            autoPlayInterval={2500}
+            autoplayInterval={2500}
           />
         </OnboardingBg>
         <View className="flex-1 w-full items-center pt-5 gap-5 z-10 px-page relative">
@@ -79,22 +83,12 @@ const OnboardingCarousel = () => {
             <ThemeText className="font-bold!">AI</ThemeText>
           </ThemeText>
           <View className="w-full absolute bottom-5">
-            {/* <ThemeButton
-              className="bg-ink mx-default! rounded-full"
-              textColor="text-white!"
-              text="GET STARTED"
-              onPress={() => {
-                navigation.navigate("Login");
-              }}
-            /> */}
             <ThemeButton
-              className="bg-ink mx-default! rounded-full items-center justify-center"
+              className="my-3"
+              variant="primary"
+              text="GET STARTED"
               onPress={() => navigation.navigate("Login")}
-            >
-              <ThemeText className="font-bold text-white text-center text-base">
-                GET STARTED
-              </ThemeText>
-            </ThemeButton>
+            />
           </View>
         </View>
       </View>
@@ -121,7 +115,15 @@ const CustomItem: React.FC<ItemProps> = ({ pressAnim, index }) => {
   }, []);
 
   return (
-    <Animated.View style={[{ flex: 1, overflow: "hidden" }, animStyle]}>
+    <Animated.View
+      style={[
+        {
+          flex: 1,
+          overflow: "hidden",
+        },
+        animStyle,
+      ]}
+    >
       <SlideItem source={carouselImages[index]} index={index} />
     </Animated.View>
   );
