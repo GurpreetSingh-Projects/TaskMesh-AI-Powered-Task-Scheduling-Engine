@@ -10,6 +10,6 @@ export function SectionDivider({
   ...props
 }: SectionDividerProps) {
   return (
-    <View className={`h-px bg-border ${className}`} style={style} {...props} />
+    <View className={`h-px bg-mist ${className}`} style={style} {...props} />
   );
 }
