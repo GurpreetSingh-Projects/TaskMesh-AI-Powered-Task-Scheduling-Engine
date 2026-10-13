@@ -3,9 +3,10 @@ import { Image } from "expo-image";
 import { images } from "@/assets";
 import ThemeText from "./ThemeText";
 import { useMediaPicker } from "@/hooks/useMediaPicker";
+import { FileType } from "@/features/auth/types";
 
 type MediaPickerProps = {
-  onMediaSelected: (uri: string) => void;
+  onMediaSelected: (uri: FileType) => void;
 };
 
 const MediaPicker = ({ onMediaSelected }: MediaPickerProps) => {
@@ -13,7 +14,7 @@ const MediaPicker = ({ onMediaSelected }: MediaPickerProps) => {
 
   const handlePick = async (source: "gallery" | "camera") => {
     try {
-      const uri =
+      const uri: FileType =
         source === "gallery" ? await pickFromGallery() : await pickFromCamera();
 
       if (uri) {
@@ -26,8 +27,8 @@ const MediaPicker = ({ onMediaSelected }: MediaPickerProps) => {
 
   return (
     <View className="px-default gap-3">
-      <View className="gap-1">
-        <ThemeText variant="heading" className="text-start">
+      <View className="gap-2 mt-3">
+        <ThemeText variant="subheading" className="text-start">
           Add Profile Photo
         </ThemeText>
         <ThemeText variant="body" className="text-sm text-steel">
