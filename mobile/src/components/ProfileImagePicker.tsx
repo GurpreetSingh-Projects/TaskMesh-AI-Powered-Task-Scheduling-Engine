@@ -31,7 +31,7 @@ const ProfileImagePicker = (props: ProfileImagePickerType) => {
         style={{ width: size, height: size, borderRadius: 9999 }}
         className="items-center justify-center bg-neutral-100 border border-neutral-200"
       >
-        {props?.image_path ? (
+        {props.image_path?.uri ? (
           <Image
             style={{ height: "100%", width: "100%", borderRadius: 9999 }}
             source={props.image_path.uri}
