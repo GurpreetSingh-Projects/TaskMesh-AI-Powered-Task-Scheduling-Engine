@@ -4,6 +4,7 @@ import LottieView from "lottie-react-native";
 import { animations } from "@/assets";
 import { ReactNode } from "react";
 
+type ThemeButtonVariant = "primary" | "secondary";
 type ButtonStatus = "default" | "loading" | "success" | "error";
 
 type ThemeButtonProps = PressableProps & {
@@ -12,7 +13,13 @@ type ThemeButtonProps = PressableProps & {
   textClassName?: string;
   text?: string;
   status?: ButtonStatus;
+  variant?: ThemeButtonVariant;
   children?: ReactNode;
+};
+
+const variantClasses: Record<ThemeButtonVariant, string> = {
+  primary: "text-canvas bg-ink border border-ink",
+  secondary: "text-ink bg-canvas border-mist",
 };
 
 const ThemeButton = (props: ThemeButtonProps) => {
@@ -35,7 +42,7 @@ const ThemeButton = (props: ThemeButtonProps) => {
         props.children
       ) : props?.status == "default" ? (
         <ThemeText
-          className={`font-extrabold text-white text-center text-base ${props?.textColor} ${props?.textClassName}`}
+          className={`font-extrabold text-center text-base border mx-default! rounded-full ${variantClasses[props?.variant ?? "primary"]} ${props?.textColor} ${props?.textClassName}`}
         >
           {props?.text}
         </ThemeText>
