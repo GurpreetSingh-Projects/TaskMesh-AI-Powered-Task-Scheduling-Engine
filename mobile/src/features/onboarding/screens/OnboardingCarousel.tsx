@@ -92,13 +92,10 @@ const OnboardingCarousel = () => {
               }}
             /> */}
             <ThemeButton
-              className="bg-ink mx-default! rounded-full items-center justify-center"
+              textColor="text-white!"
+              text="GET STARTED"
               onPress={() => navigation.navigate("Login")}
-            >
-              <ThemeText className="font-bold text-white text-center text-base">
-                GET STARTED
-              </ThemeText>
-            </ThemeButton>
+            />
           </View>
         </View>
       </View>
