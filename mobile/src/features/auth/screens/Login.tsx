@@ -11,7 +11,6 @@ import { themeColors } from "@/theme";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useLoginMutation } from "@/api/baseApi";
 import OrSeparator from "@/components/OrSeparator";
 import { Link, useNavigation } from "@react-navigation/native";
 import ThemeDrawer from "@/components/ThemeDrawer";
@@ -20,6 +19,7 @@ import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import LottieView from "lottie-react-native";
 import { DrawerMode } from "../types";
 import { getAuthMessage, setAuth } from "../utils";
+import { useLoginMutation } from "../authApi";
 
 const loginSchema = z.object({
   email: z.email(),
@@ -105,7 +105,7 @@ const Login = () => {
             <ThemeText variant="heading" className="text-start">
               Welcome back
             </ThemeText>
-            <ThemeText className="text-sm font-normal! text-graphite!">
+            <ThemeText className="text-sm font-normal! text-steel!">
               Login to continue managing your day
             </ThemeText>
           </View>
@@ -168,7 +168,6 @@ const Login = () => {
             </View>
 
             <ThemeButton
-              className="bg-ink mx-default! rounded-full"
               textColor="text-white!"
               text="GET STARTED"
               status={isLoading ? "loading" : "default"}
