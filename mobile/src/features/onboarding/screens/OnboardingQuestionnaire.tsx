@@ -1,9 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Pressable, useWindowDimensions, View } from "react-native";
-import {
-  useCreateOnboardingQuestionnaireResponsesMutation,
-  useLazyOnboardingQuestionnaireQuery,
-} from "@/api/baseApi";
 import LottieView from "lottie-react-native";
 import { animations, images } from "@/assets";
 import { primaryBorderRadius, themeColors, themeSpacing } from "@/theme";
@@ -38,6 +34,10 @@ import {
   setIsProfileCompleted,
 } from "@/features/profile/slice/user";
 import { useAppDispatch } from "@/app/store";
+import {
+  useCreateOnboardingQuestionnaireResponsesMutation,
+  useLazyOnboardingQuestionnaireQuery,
+} from "../onboardingApi";
 
 const OnboardingQuestionnaire = () => {
   const { height, width } = useWindowDimensions();
