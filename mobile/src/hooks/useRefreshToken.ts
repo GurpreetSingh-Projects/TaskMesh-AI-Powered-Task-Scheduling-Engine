@@ -1,4 +1,4 @@
-import { useRefreshTokenMutation } from "@/api/baseApi";
+import { useRefreshTokenMutation } from "@/features/auth/authApi";
 import { getRefreshToken, setAuth } from "@/features/auth/utils";
 
 export const useRefreshToken = () => {
