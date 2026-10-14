@@ -8,29 +8,19 @@ import ThemeTextInput from "@/components/ThemeTextInput";
 import { FileType } from "@/features/auth/types";
 import { setAuth } from "@/features/auth/utils";
 import { useEffect, useState } from "react";
-import {
-  Keyboard,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
-import { ProfileFormValues } from "../types";
+import { Keyboard, useWindowDimensions, View } from "react-native";
 import { useUpdateProfileMutation } from "../profileApi";
 
 const ProfileDetailsPending = () => {
-  const { width, height } = useWindowDimensions();
+  const { height } = useWindowDimensions();
   const IMG_HEIGHT = height * 0.15;
 
-  const user = useAppSelector((state) => state?.user);
-  const [profileImg, setProfileImg] = useState<FileType>({
-    name: "",
-    type: "",
-    uri: null,
-  });
-  const [fullName, setFullName] = useState<string>("");
-  const [isSubmitButtonEnabled, setIsSubmitButtonEnabled] =
-    useState<boolean>(false);
+  const user = useAppSelector((state) => state.user);
+
+  const [profileImg, setProfileImg] = useState<FileType>(null);
+  const [fullName, setFullName] = useState("");
+
+  const [isSubmitButtonEnabled, setIsSubmitButtonEnabled] = useState(false);
 
   const [
     updateProfile,
@@ -43,17 +33,15 @@ const ProfileDetailsPending = () => {
   ] = useUpdateProfileMutation();
 
   const submitHandler = async () => {
-    console.log(fullName, profileImg);
-
     try {
       const response = await updateProfile({
-        fullName: fullName,
+        fullName: fullName.trim() || null,
         profile_img: profileImg,
       }).unwrap();
 
       setTimeout(() => {
         setAuth(response);
-      }, 2500);
+      }, 1500);
     } catch (error) {
       console.log(error);
     }
@@ -61,7 +49,7 @@ const ProfileDetailsPending = () => {
 
   useEffect(() => {
     setIsSubmitButtonEnabled(
-      Boolean(profileImg || fullName?.trim()?.length > 3),
+      Boolean(profileImg?.uri || fullName?.trim()?.length > 3),
     );
   }, [profileImg, fullName]);
 
@@ -69,7 +57,7 @@ const ProfileDetailsPending = () => {
     <ThemePage className="bg-canvas">
       <ThemePageHeader heading="Complete Profile" />
 
-      <View className="flex-1 w-full items-center gap-10 mt-10 px-page">
+      <View className="mt-10 w-full flex-1 items-center gap-10 px-page">
         <View className="gap-3">
           <ThemeText variant="heading" className="w-full text-start">
             Almost there!
@@ -80,6 +68,7 @@ const ProfileDetailsPending = () => {
             experience of TaskMesh for you.
           </ThemeText>
         </View>
+
         <View className="items-center justify-center">
           <ProfileImagePicker
             image_path={!profileImg?.uri && user?.profile_img}
@@ -87,32 +76,33 @@ const ProfileDetailsPending = () => {
             size={IMG_HEIGHT}
           />
         </View>
+
         <View className="w-full gap-3">
-          <ThemeText variant="title">What should we call you ?</ThemeText>
+          <ThemeText variant="title">What should we call you?</ThemeText>
+
           <ThemeTextInput
             placeholder="Your name"
             value={fullName}
             onBlur={() => Keyboard.dismiss()}
-            onChangeText={(value) => {
-              setFullName(value);
-            }}
-            keyboardType="email-address"
+            onChangeText={setFullName}
+            keyboardType="default"
           />
         </View>
       </View>
-      <View className="w-full px-page">
+
+      <View className="w-full gap-3 px-page">
         <ThemeButton
-          className="bg-canvas w-full rounded-full border border-0.25! border-steel"
           textColor="text-white!"
           text="SUBMIT"
           status={isUpdateProfileLoading ? "loading" : "default"}
           onPress={submitHandler}
         />
+
         <ThemeButton
-          textColor="text-white!"
-          text="SUBMIT"
-          status={isUpdateProfileLoading ? "loading" : "default"}
-          onPress={submitHandler}
+          className="w-full rounded-full border border-steel bg-canvas"
+          textColor="text-ink!"
+          text="I'LL SKIP FOR NOW"
+          onPress={() => setAuth(user)}
         />
       </View>
     </ThemePage>
@@ -120,5 +110,3 @@ const ProfileDetailsPending = () => {
 };
 
 export default ProfileDetailsPending;
-
-const styles = StyleSheet.create({});
