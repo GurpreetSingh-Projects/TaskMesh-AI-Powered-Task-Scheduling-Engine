@@ -26,5 +26,5 @@ export type AuthState = {
 export type FileType = {
   name: string;
   type: string;
-  uri: string;
+  uri: string | null;
 };
