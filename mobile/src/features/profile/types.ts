@@ -1,3 +1,5 @@
+import { FileType } from "../auth/types";
+
 export type UserState = {
   user_id: string;
   email: string;
@@ -11,4 +13,9 @@ export type UserState = {
   updated_by: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type ProfileFormValues = {
+  fullName: string | null;
+  profileImg: FileType | null;
 };
