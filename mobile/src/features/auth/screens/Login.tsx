@@ -168,7 +168,7 @@ const Login = () => {
             </View>
 
             <ThemeButton
-              textColor="text-white!"
+              className="my-3"
               text="GET STARTED"
               status={isLoading ? "loading" : "default"}
               onPress={() => {

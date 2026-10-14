@@ -188,7 +188,7 @@ const Register = () => {
             </View>
 
             <ThemeButton
-              textColor="text-white!"
+              className="my-3"
               text="REGISTER NOW"
               status={isLoading ? "loading" : "default"}
               onPress={() => {

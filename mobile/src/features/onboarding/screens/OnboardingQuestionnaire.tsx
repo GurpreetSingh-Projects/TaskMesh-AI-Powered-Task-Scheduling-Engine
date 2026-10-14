@@ -374,8 +374,8 @@ const OnboardingQuestionnaire = () => {
             style={submitButtonStyle}
           >
             <ThemeButton
+              className="my-3"
               className="bg-ink mx-default! rounded-full"
-              textColor="text-white!"
               text="SUBMIT"
               status={isSubmitOnboardingFormLoading ? "loading" : "default"}
               onPress={submitHandler}
