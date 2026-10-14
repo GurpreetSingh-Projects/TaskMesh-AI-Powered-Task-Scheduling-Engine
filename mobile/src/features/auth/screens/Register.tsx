@@ -11,7 +11,6 @@ import { themeColors } from "@/theme";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod/v4";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRegisterMutation } from "@/api/baseApi";
 import OrSeparator from "@/components/OrSeparator";
 import { useNavigation } from "@react-navigation/native";
 import ThemeDrawer from "@/components/ThemeDrawer";
@@ -22,6 +21,7 @@ import { DrawerMode, FileType } from "../types";
 import { getAuthMessage, setAuth } from "../utils";
 import ProfileImagePicker from "@/components/ProfileImagePicker";
 import { useWindowDimensions } from "react-native-keyboard-controller";
+import { useRegisterMutation } from "../authApi";
 
 const registerSchema = z.object({
   email: z.email(),
@@ -115,7 +115,7 @@ const Register = () => {
               Create Account
             </ThemeText>
 
-            <ThemeText className="text-sm font-normal! text-graphite!">
+            <ThemeText className="text-sm font-normal! text-steel!">
               Setup your profile and start planning your day
             </ThemeText>
           </View>
@@ -188,7 +188,6 @@ const Register = () => {
             </View>
 
             <ThemeButton
-              className="bg-ink mx-default! rounded-full"
               textColor="text-white!"
               text="REGISTER NOW"
               status={isLoading ? "loading" : "default"}
