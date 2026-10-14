@@ -71,7 +71,7 @@ const ProfileDetailsPending = () => {
 
         <View className="items-center justify-center">
           <ProfileImagePicker
-            image_path={!profileImg?.uri && user?.profile_img}
+            image_path={profileImg?.uri ? profileImg?.uri : user?.profile_img}
             onChange={setProfileImg}
             size={IMG_HEIGHT}
           />
@@ -92,17 +92,17 @@ const ProfileDetailsPending = () => {
 
       <View className="w-full gap-3 px-page">
         <ThemeButton
-          textColor="text-white!"
-          text="SUBMIT"
-          status={isUpdateProfileLoading ? "loading" : "default"}
-          onPress={submitHandler}
+          className="my-3"
+          variant="secondary"
+          text="I'LL SKIP FOR NOW"
         />
 
         <ThemeButton
-          className="w-full rounded-full border border-steel bg-canvas"
-          textColor="text-ink!"
-          text="I'LL SKIP FOR NOW"
-          onPress={() => setAuth(user)}
+          className="my-3"
+          variant="primary"
+          text="SUBMIT"
+          status={isUpdateProfileLoading ? "loading" : "default"}
+          onPress={submitHandler}
         />
       </View>
     </ThemePage>
