@@ -30,6 +30,7 @@ const DashboardNavigator = () => {
   return (
     <Stack.Navigator
       id="dashboard-navigator"
+      initialRouteName="Home"
       screenOptions={{
         gestureEnabled: true,
         fullScreenGestureEnabled: true,
