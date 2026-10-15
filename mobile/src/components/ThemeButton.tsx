@@ -17,32 +17,38 @@ type ThemeButtonProps = PressableProps & {
   children?: ReactNode;
 };
 
-const variantClasses: Record<ThemeButtonVariant, string> = {
-  primary: "text-canvas bg-ink border border-ink",
-  secondary: "text-ink bg-canvas border-mist",
+const variantClasses: Record<
+  ThemeButtonVariant,
+  { button: string; text: string }
+> = {
+  primary: { button: "bg-ink border border-ink", text: "text-canvas" },
+  secondary: { button: "bg-canvas border border-mist", text: "text-ink" },
 };
 
 const ThemeButton = (props: ThemeButtonProps) => {
+  const status = props?.status ?? "default";
+  const variant = variantClasses[props?.variant ?? "primary"];
+
   const statusAnimation =
-    props?.status === "loading"
+    status === "loading"
       ? animations.loadingIcon
-      : props?.status === "success"
+      : status === "success"
         ? animations.tickIconSimple
-        : props?.status === "error" && animations.crossIconSimple;
+        : status === "error"
+          ? animations.crossIconSimple
+          : null;
 
   return (
     <Pressable
       onPress={props?.onPress}
-      className={`p-default gap-default items-center justify-center rounded-default my-default font-semibold max-h-[50px] ${props?.className}`}
-      style={{
-        elevation: 8,
-      }}
+      className={`p-default gap-default items-center justify-center rounded-full max-h-[50px] ${variant.button} ${props?.className}`}
+      style={{ elevation: 8 }}
     >
       {props.children ? (
         props.children
-      ) : props?.status == "default" ? (
+      ) : status === "default" ? (
         <ThemeText
-          className={`font-extrabold text-center text-base border mx-default! rounded-full ${variantClasses[props?.variant ?? "primary"]} ${props?.textColor} ${props?.textClassName}`}
+          className={`font-extrabold text-center text-base mx-default! rounded-full ${variant.text} ${props?.textClassName}`}
         >
           {props?.text}
         </ThemeText>
