@@ -32,18 +32,12 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 const Register = () => {
   const { width, height } = useWindowDimensions();
-
-  const BG_CAROUSEL_HEIGHT = height * 0.375;
   const IMG_HEIGHT = height * 0.125;
 
   const [register, { isLoading, reset }] = useRegisterMutation();
   const registerDrawerRef = useRef<BottomSheetModal>(null);
   const [drawerMode, setDrawerMode] = useState<DrawerMode>("default");
-  const [drawerMsg, setDrawerMsg] = useState({
-    title: "",
-    description: "",
-  });
-
+  const [drawerMsg, setDrawerMsg] = useState({ title: "", description: "" });
   const [profileImg, setProfileImg] = useState<FileType>(null);
 
   const {
@@ -52,10 +46,7 @@ const Register = () => {
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
   const navigation = useNavigation();
@@ -92,35 +83,24 @@ const Register = () => {
   };
 
   return (
-    <ThemePage noSafeArea isScrollable>
-      <View className="flex-1 items-center">
-        <OnboardingBg
-          className="relative items-center justify-start"
-          style={{ height: "37.5%", width }}
-        >
-          <Image
-            style={{ height: "100%", width: "100%", zIndex: 0 }}
-            source={images?.onboarding?.register}
-            contentFit="cover"
-            allowDownscaling={false}
-          />
-        </OnboardingBg>
-
+    <ThemePage
+      noSafeArea
+      isScrollable
+      footer={
         <View
-          className="flex-1 w-full pt-5 bg-canvas px-page gap-3"
+          className="w-full pt-5 bg-canvas px-page gap-3"
           style={{ zIndex: 99999 }}
         >
           <View className="gap-1">
             <ThemeText variant="heading" className="text-start">
               Create Account
             </ThemeText>
-
             <ThemeText className="text-sm font-normal! text-steel!">
               Setup your profile and start planning your day
             </ThemeText>
           </View>
 
-          <View className="w-full gap-5 faj">
+          <View className="w-full py-3 gap-5 faj">
             <View className="items-center justify-center">
               <ProfileImagePicker
                 image_path={profileImg}
@@ -150,7 +130,6 @@ const Register = () => {
                   />
                 )}
               />
-
               {errors?.email?.message && (
                 <ThemeText className="mt-1 text-xs text-red-500">
                   {errors.email.message}
@@ -179,7 +158,6 @@ const Register = () => {
                   />
                 )}
               />
-
               {errors?.password?.message && (
                 <ThemeText className="mt-1 text-xs text-red-500">
                   {errors.password.message}
@@ -197,30 +175,40 @@ const Register = () => {
               }}
             />
 
-            <>
-              <OrSeparator />
-
-              <View className="flex-row w-full items-center justify-center mt-5">
-                <Pressable
-                  onPress={() => {
-                    if (navigation.canGoBack()) {
-                      navigation.goBack();
-                    }
-                  }}
-                  className="flex-row items-center justify-center gap-1"
-                >
-                  <ThemeText className="text-sm text-steel">
-                    Already have an account ?
-                  </ThemeText>
-
-                  <ThemeText className="font-bold! text-sm text-ink">
-                    Login Now
-                  </ThemeText>
-                </Pressable>
-              </View>
-            </>
+            <OrSeparator />
+            <View className="flex-row w-full items-center justify-center">
+              <Pressable
+                onPress={() => {
+                  if (navigation.canGoBack()) navigation.goBack();
+                }}
+                className="flex-row items-center justify-center gap-1"
+              >
+                <ThemeText className="text-sm text-steel">
+                  Already have an account ?
+                </ThemeText>
+                <ThemeText className="font-bold! text-sm text-ink">
+                  Login Now
+                </ThemeText>
+              </Pressable>
+            </View>
           </View>
         </View>
+      }
+      keyboardOffsetClosed={-(height * 0.075)}
+      keyboardOffsetOpened={0}
+    >
+      <View className="items-center">
+        <OnboardingBg
+          className="relative items-center justify-start"
+          style={{ height: height * 0.375, width }}
+        >
+          <Image
+            style={{ height: "100%", width: "100%", zIndex: 0 }}
+            source={images?.onboarding?.register}
+            contentFit="cover"
+            allowDownscaling={false}
+          />
+        </OnboardingBg>
       </View>
 
       <ThemeDrawer
@@ -240,12 +228,10 @@ const Register = () => {
             loop={false}
             style={{ width: 75, height: 75 }}
           />
-
           <View className="gap-3 py-3">
             <ThemeText variant="subheading" className="text-center">
               {drawerMsg.title}
             </ThemeText>
-
             <ThemeText className="text-graphite! text-center">
               {drawerMsg.description}
             </ThemeText>
