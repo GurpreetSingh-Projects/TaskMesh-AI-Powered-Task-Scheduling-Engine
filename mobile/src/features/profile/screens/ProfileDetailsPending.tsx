@@ -101,6 +101,14 @@ const ProfileDetailsPending = () => {
           className="my-3"
           variant="primary"
           text="SUBMIT"
+          status={isSubmitButtonEnabled ? "loading" : "default"}
+          onPress={submitHandler}
+        />
+
+        <ThemeButton
+          className="my-3"
+          variant="primary"
+          text="SUBMIT"
           status={isUpdateProfileLoading ? "loading" : "default"}
           onPress={submitHandler}
         />
