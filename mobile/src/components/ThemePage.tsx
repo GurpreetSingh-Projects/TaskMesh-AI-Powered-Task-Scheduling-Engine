@@ -15,15 +15,21 @@ export type ThemePageProps = {
   noSafeArea?: boolean;
   isScrollable?: boolean;
   backgroundColor?: string;
+  keyboardOffsetOpened?: number;
+  keyboardOffsetClosed?: number;
 };
 
 const ThemePage = (props: ThemePageProps) => {
   useKeepAwake();
+
   const Container = props?.noSafeArea ? View : SafeAreaView;
+
   const content = (
     <View className={`flex-1 ${props?.className}`}>{props?.children}</View>
   );
+
   const [footerHeight, setFooterHeight] = useState<number>(0);
+
   return (
     <Container
       style={{
@@ -48,9 +54,13 @@ const ThemePage = (props: ThemePageProps) => {
       ) : (
         content
       )}
+
       {props?.footer && (
         <KeyboardStickyView
-          offset={{ closed: 0, opened: 0 }}
+          offset={{
+            closed: props?.keyboardOffsetClosed ?? 0,
+            opened: props?.keyboardOffsetOpened ?? 0,
+          }}
           onLayout={(e) => setFooterHeight(e.nativeEvent.layout.height)}
         >
           {props.footer}
