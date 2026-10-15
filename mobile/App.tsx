@@ -46,7 +46,7 @@ const App = () => {
             <KeyboardProvider>
               <BottomSheetModalProvider>
                 <SystemBars
-                  style={{ statusBar: "dark", navigationBar: "dark" }}
+                  style={{ statusBar: "auto", navigationBar: "auto" }}
                 />
                 <RootNavigator />
               </BottomSheetModalProvider>
