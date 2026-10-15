@@ -82,7 +82,7 @@ const Login = () => {
   };
 
   return (
-    <ThemePage className="bg-canvas" noSafeArea isScrollable>
+    <ThemePage noSafeArea isScrollable>
       <View className="flex-1 items-center">
         <OnboardingBg className="h-1/2 relative items-center justify-start">
           {/* <BackButton goBack /> */}

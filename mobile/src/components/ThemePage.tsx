@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { View } from "react-native";
 import {
   KeyboardAwareScrollView,
@@ -6,6 +6,7 @@ import {
 } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useKeepAwake } from "expo-keep-awake";
+import { themeColors } from "@/theme";
 
 export type ThemePageProps = {
   children: ReactNode;
@@ -13,6 +14,7 @@ export type ThemePageProps = {
   className?: string;
   noSafeArea?: boolean;
   isScrollable?: boolean;
+  backgroundColor?: string;
 };
 
 const ThemePage = (props: ThemePageProps) => {
@@ -21,12 +23,23 @@ const ThemePage = (props: ThemePageProps) => {
   const content = (
     <View className={`flex-1 ${props?.className}`}>{props?.children}</View>
   );
+  const [footerHeight, setFooterHeight] = useState<number>(0);
   return (
-    <Container style={{ flex: 1 }}>
+    <Container
+      style={{
+        flex: 1,
+        backgroundColor: props?.backgroundColor ?? themeColors?.canvas,
+      }}
+    >
       {props?.isScrollable ? (
         <KeyboardAwareScrollView
-          contentContainerStyle={{ flexGrow: 1 }}
-          mode="layout"
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingBottom: footerHeight,
+          }}
+          bottomOffset={footerHeight * 1.25}
+          // mode="layout"
+          mode="insets"
           // showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -36,7 +49,10 @@ const ThemePage = (props: ThemePageProps) => {
         content
       )}
       {props?.footer && (
-        <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+        <KeyboardStickyView
+          offset={{ closed: 0, opened: 0 }}
+          onLayout={(e) => setFooterHeight(e.nativeEvent.layout.height)}
+        >
           {props.footer}
         </KeyboardStickyView>
       )}

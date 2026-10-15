@@ -44,7 +44,7 @@ const OnboardingCarousel = () => {
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
   return (
-    <ThemePage className="bg-canvas" noSafeArea>
+    <ThemePage noSafeArea>
       <View className="flex-1 gap-default items-center justify-center">
         <OnboardingBg className="relative">
           <Carousel

@@ -203,7 +203,7 @@ const OnboardingQuestionnaire = () => {
   }, [responses]);
 
   return (
-    <ThemePage className="bg-canvas">
+    <ThemePage>
       <View className="h-2 w-full overflow-hidden rounded-full">
         <Animated.View
           className="h-full rounded-full"
@@ -374,8 +374,7 @@ const OnboardingQuestionnaire = () => {
             style={submitButtonStyle}
           >
             <ThemeButton
-              className="my-3"
-              className="bg-ink mx-default! rounded-full"
+              className="mx-default! my-3"
               text="SUBMIT"
               status={isSubmitOnboardingFormLoading ? "loading" : "default"}
               onPress={submitHandler}

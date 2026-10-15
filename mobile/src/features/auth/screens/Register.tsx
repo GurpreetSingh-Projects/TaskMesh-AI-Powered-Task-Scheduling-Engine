@@ -92,7 +92,7 @@ const Register = () => {
   };
 
   return (
-    <ThemePage className="bg-canvas" noSafeArea isScrollable>
+    <ThemePage noSafeArea isScrollable>
       <View className="flex-1 items-center">
         <OnboardingBg
           className="relative items-center justify-start"
