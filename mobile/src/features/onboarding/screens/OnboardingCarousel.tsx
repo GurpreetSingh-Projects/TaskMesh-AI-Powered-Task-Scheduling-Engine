@@ -83,16 +83,9 @@ const OnboardingCarousel = () => {
             <ThemeText className="font-bold!">AI</ThemeText>
           </ThemeText>
           <View className="w-full absolute bottom-5">
-            {/* <ThemeButton
-              className="bg-ink mx-default! rounded-full"
-              textColor="text-white!"
-              text="GET STARTED"
-              onPress={() => {
-                navigation.navigate("Login");
-              }}
-            /> */}
             <ThemeButton
-              textColor="text-white!"
+              className="my-3"
+              variant="primary"
               text="GET STARTED"
               onPress={() => navigation.navigate("Login")}
             />
