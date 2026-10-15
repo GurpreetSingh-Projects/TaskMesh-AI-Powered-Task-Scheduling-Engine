@@ -1,4 +1,4 @@
-import { Keyboard, View } from "react-native";
+import { Keyboard, useWindowDimensions, View } from "react-native";
 import ThemeButton from "@/components/ThemeButton";
 import ThemeText from "@/components/ThemeText";
 import ThemePage from "@/components/ThemePage";
@@ -29,6 +29,7 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 const Login = () => {
+  const { height } = useWindowDimensions();
   const [login, { isLoading, isSuccess, isError, error, reset }] =
     useLoginMutation();
   const loginDrawerRef = useRef<BottomSheetModal>(null);
@@ -82,23 +83,12 @@ const Login = () => {
   };
 
   return (
-    <ThemePage noSafeArea isScrollable>
-      <View className="flex-1 items-center">
-        <OnboardingBg className="h-1/2 relative items-center justify-start">
-          {/* <BackButton goBack /> */}
-          <Image
-            style={{
-              height: 450,
-              width: 450,
-              zIndex: 0,
-            }}
-            source={images?.onboarding?.login}
-            contentFit="cover"
-            allowDownscaling={false}
-          />
-        </OnboardingBg>
+    <ThemePage
+      noSafeArea
+      isScrollable
+      footer={
         <View
-          className="flex-1 w-full pt-5 bg-canvas px-page gap-3"
+          className="w-full pt-5 bg-canvas px-page gap-3"
           style={{ zIndex: 99999 }}
         >
           <View className="gap-1">
@@ -178,7 +168,7 @@ const Login = () => {
             />
             <>
               <OrSeparator />
-              <View className="w-full items-center justify-center mt-5">
+              <View className="w-full items-center justify-center my-3">
                 <Link screen="Register">
                   <View className="flex-row items-center gap-1">
                     <ThemeText className="text-sm text-steel">
@@ -194,10 +184,33 @@ const Login = () => {
             </>
           </View>
         </View>
+      }
+      keyboardOffsetClosed={-(height * 0.075)}
+      keyboardOffsetOpened={0}
+    >
+      <View className="items-center">
+        <OnboardingBg
+          className="relative items-center justify-start"
+          style={{
+            height: height * 0.5,
+          }}
+        >
+          {/* <BackButton goBack /> */}
+          <Image
+            style={{
+              height: 450,
+              width: 450,
+              zIndex: 0,
+            }}
+            source={images?.onboarding?.login}
+            contentFit="cover"
+            allowDownscaling={false}
+          />
+        </OnboardingBg>
       </View>
       {/* </KeyboardAvoidingView> */}
       <ThemeDrawer ref={loginDrawerRef} snapPoints={["30%"]} closable={false}>
-        <View className="h-full w-full flex-1 items-center justify-center gap-3">
+        <View className="w-full flex-1 items-center justify-center gap-3">
           <LottieView
             source={
               drawerMode == "success"
