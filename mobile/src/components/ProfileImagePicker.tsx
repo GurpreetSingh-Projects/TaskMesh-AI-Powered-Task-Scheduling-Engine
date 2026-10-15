@@ -9,7 +9,7 @@ import { themeColors } from "@/theme";
 import { FileType } from "@/features/auth/types";
 
 type ProfileImagePickerType = {
-  image_path: FileType;
+  image_path: FileType | string | null;
   onChange: (file: FileType) => void;
   size?: number;
   badgeSize?: number;
@@ -31,10 +31,10 @@ const ProfileImagePicker = (props: ProfileImagePickerType) => {
         style={{ width: size, height: size, borderRadius: 9999 }}
         className="items-center justify-center bg-neutral-100 border border-neutral-200"
       >
-        {props.image_path?.uri ? (
+        {props.image_path ? (
           <Image
             style={{ height: "100%", width: "100%", borderRadius: 9999 }}
-            source={props.image_path.uri}
+            source={props.image_path}
             contentFit="cover"
             allowDownscaling={false}
           />
