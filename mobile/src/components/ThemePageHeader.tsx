@@ -20,7 +20,7 @@ const ThemePageHeader = (props: PageHeaderProps) => {
         className="w-full"
         style={{
           height: height * 0.08,
-          backgroundColor: props.background ?? themeColors.canvas,
+          backgroundColor: props.background ?? "transparent",
           shadowOpacity: 0.15,
         }}
       >
