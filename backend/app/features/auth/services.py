@@ -1,20 +1,19 @@
 from uuid import UUID
 from fastapi import  HTTPException, UploadFile
 from pydantic import EmailStr
-from sqlalchemy import select, update
+from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import uuid4
 from loguru import logger
 from app.features.users.services import UserService
 from app.features.storage.services import StorageService
-from app.features.users.schemas import UserLoginRequestSchema, UserEditRequestSchema
+from app.features.users.schemas import UserLoginRequestSchema
 from app.features.users.models import Users
 from app.features.users.enums import UserRoles
 from app.core.utils import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
 from datetime import datetime, timezone, timedelta
 from app.config import settings
-from app.features.storage.enums import FileStorageEntity
 from app.features.activity.enums import UserActivityType, ActivityEntityType
 from app.features.activity.services import ActivityService
 from app.features.activity.schemas import UserActivityCreateRequestSchema
@@ -57,12 +56,11 @@ class AuthService:
                 await self.db.rollback()
                 raise HTTPException(status_code = 409, detail= "User with this email already exists")
 
-
             if profile_img:
                 file_record = await self.user_service.edit_user(user= user, profile_img= profile_img)
 
-            access_token = create_access_token(user.user_id)
-            refresh_token = create_refresh_token(user.user_id)
+            access_token = create_access_token(user_id)
+            refresh_token = create_refresh_token(user_id)
 
             await self.activity_service.record_activity(
                 activity_data= UserActivityCreateRequestSchema(
@@ -73,6 +71,7 @@ class AuthService:
                 user= user
             )
 
+            user.user_settings= await self.user_service.get_user_settings(user_id= user_id)
             await self.db.commit()
 
             return {

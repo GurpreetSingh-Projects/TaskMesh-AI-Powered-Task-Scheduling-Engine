@@ -24,6 +24,7 @@ def upgrade() -> None:
     op.alter_column('user_activity', 'entity_type',
                existing_type=sa.VARCHAR(length=50),
                type_=sa.Enum('USERS', 'USER_SETTINGS', 'TASKS', 'SUBTASKS', 'LABELS', 'FILE_STORAGE', 'NOTIFICATIONS', 'TASK_REMINDER_CONFIG', 'ONBOARDING_QUESTIONNAIRE_RESPONSES', name='activity_entity_type'),
+               postgresql_using= "entity_type::activity_entity_type",
                existing_nullable=True)
     # ### end Alembic commands ###
 
