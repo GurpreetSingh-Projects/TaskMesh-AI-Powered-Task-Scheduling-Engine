@@ -12,7 +12,7 @@ type ThemeTextInputProps = TextInputProps & {
 
 const ThemeTextInput = memo((props: ThemeTextInputProps) => {
   const [isFocussed, setIsFocussed] = useState<boolean>(false);
-  const [isSecure, setIsSecure] = useState<boolean>(true);
+  const [isSecure, setIsSecure] = useState<boolean>(false);
 
   const { onChangeText, ...rest } = props;
 
