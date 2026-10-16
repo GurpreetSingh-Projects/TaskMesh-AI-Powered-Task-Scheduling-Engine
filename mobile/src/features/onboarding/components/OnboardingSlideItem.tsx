@@ -3,9 +3,6 @@ import {
   ImageSourcePropType,
   type ImageStyle,
   type StyleProp,
-  StyleSheet,
-  Text,
-  View,
   type ViewProps,
 } from "react-native";
 import type { AnimatedProps } from "react-native-reanimated";
@@ -19,7 +16,7 @@ interface Props extends AnimatedProps<ViewProps> {
   source?: ImageSourcePropType;
 }
 
-export const SlideItem: React.FC<Props> = (props) => {
+export const OnboardingSlideItem: React.FC<Props> = (props) => {
   const { style, index = 0, ...animatedViewProps } = props;
 
   const source = useMemo(() => props.source, [index, props.source]);

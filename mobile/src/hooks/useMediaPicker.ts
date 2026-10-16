@@ -4,7 +4,7 @@ import { Alert } from "react-native";
 import { useAppSelector } from "@/app/store";
 import { FileType } from "@/features/auth/types";
 
-const formatImgTypes: Record<string, SaveFormat> = {
+export const formatImgTypes: Record<string, SaveFormat> = {
   "image/webp": SaveFormat.WEBP,
   "image/jpg": SaveFormat.JPEG,
   "image/jpeg": SaveFormat.JPEG,
@@ -15,7 +15,7 @@ export function useMediaPicker() {
   const settings = useAppSelector((state) => state?.settings);
 
   const processImage = async (
-    unprocessedImage: ImagePicker.ImagePickerAsset,
+    unprocessedImage: ImagePicker.ImagePickerAsset | FileType,
   ): Promise<FileType | null> => {
     const context = ImageManipulator.manipulate(unprocessedImage?.uri).resize({
       width: settings?.max_image_width,
@@ -32,7 +32,7 @@ export function useMediaPicker() {
 
       return {
         uri: compressedImgUri?.uri,
-        name: unprocessedImage?.fileName,
+        name: unprocessedImage?.fileName ?? "image",
         type: settings?.image_conversion_format ?? "image/webp",
       };
     } catch (error) {
@@ -93,5 +93,5 @@ export function useMediaPicker() {
     }
   };
 
-  return { pickFromGallery, pickFromCamera };
+  return { processImage, pickFromGallery, pickFromCamera };
 }

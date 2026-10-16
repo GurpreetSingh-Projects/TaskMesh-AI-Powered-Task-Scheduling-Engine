@@ -2,15 +2,18 @@ from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from uuid import UUID
-from sqlalchemy import select, insert, func, update, and_
+from sqlalchemy import select, insert, func, update, and_, case, String, cast
 import math
 from datetime import datetime, timezone
+from loguru import logger
 from app.features.users.models import Users
 from app.features.tasks.models import Tasks, SubTasks
 from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateRequestSchema, TaskReadResponseItemSchema, TaskReadResponseSchema, SubtaskReadResponseItemSchema, SubtaskReadResponseSchema, SubtaskCreateRequestSchema, SubtaskUpdateRequestSchema
 from app.features.storage.models import FileStorage
 from app.features.storage.enums import FileStorageEntity
 from app.features.storage.services import StorageService
+from app.features.tasks.enums import TaskPriority, TaskStatus, RankStatus, RankPriority
+
 
 class TaskService:
     def __init__(self, db:AsyncSession):
@@ -63,16 +66,66 @@ class TaskService:
         await self.db.commit()
         return response
 
-    async def get_tasks(self, user: Users, limit: int= 1, offset: int= 0):
+    async def get_tasks_summary(self, user: Users, limit: int= 5):
+        status_priority= case(RankStatus, value= cast(Tasks.status, String), else_=0)
+        rank_priority= case(RankPriority, value= cast(Tasks.priority, String), else_=0)
+        
         query= (
             select(Tasks)
             .where(
                 Tasks.user_id == user.user_id,
-                Tasks.is_deleted.is_(False)
+                Tasks.is_deleted.is_(False),
             )
             .order_by(
-                Tasks.created_at.desc(),
-                Tasks.updated_at.desc()
+                status_priority.asc(),
+                rank_priority.desc(),
+                Tasks.created_at.desc()
+            )
+            .limit(limit)
+        )
+
+        tasks = (await self.db.execute(query)).scalars().all()
+
+        for task in tasks:
+            if task.file_storage_id:
+                file_details= await self.storage_service.get_file_details(file_storage_id=task.file_storage_id, entity_type=FileStorageEntity.TASK)
+                task.image_url= await self.storage_service.get_signed_asset_url(storage_key= file_details.storage_key)
+            else:
+                task.image_url= None
+
+            self.db.expunge(task)
+
+        return {
+            "top_tasks": tasks,
+            "today_progress": [],
+            "recently_completed": [],
+        }
+
+
+    async def get_tasks(self, status: TaskStatus, start_date: datetime, end_date: datetime | None,  user: Users, limit: int= 1, offset: int= 0):
+        if end_date is None:
+            end_date= datetime.now(timezone.utc)
+
+        if start_date and end_date and start_date >= end_date:
+            raise HTTPException(422, "start_date must be before end_date")
+
+        if status is None:
+            status= TaskStatus.PENDING
+
+        rank_priority= case(RankPriority, value= cast(Tasks.priority, String), else_=0)
+        
+        query= (
+            select(Tasks)
+            .where(
+                Tasks.user_id == user.user_id,
+                Tasks.is_deleted.is_(False),
+                Tasks.status == status,
+                Tasks.created_at >= start_date,
+                Tasks.created_at < end_date,
+            )
+            .order_by(
+                rank_priority.desc(),
+                Tasks.created_at.desc()
             )
             .offset(offset)
             .limit(limit)
@@ -91,10 +144,13 @@ class TaskService:
 
         count_query = (
             select(func.count(Tasks.task_id))
-            .where(
-                Tasks.user_id == user.user_id,
-                Tasks.is_deleted.is_(False)
-            )
+                .where(
+                    Tasks.user_id == user.user_id,
+                    Tasks.is_deleted.is_(False),
+                    Tasks.status == status,
+                    Tasks.created_at >= start_date,
+                    Tasks.created_at < end_date,
+                )
         )
 
         total_tasks_count = (await self.db.execute(count_query)).scalar_one_or_none()
@@ -181,7 +237,7 @@ class TaskService:
                 updated_by= user.user_id
             )
             .returning(Tasks)
-        )
+        )   
 
         try:
             response = (await self.db.execute(deactivate_query)).scalar_one_or_none()

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { View, useWindowDimensions } from "react-native";
+import { Keyboard, View, useWindowDimensions } from "react-native";
 import { Image } from "expo-image";
 import Animated from "react-native-reanimated";
 import ThemeSheet from "@/components/ThemeSheet";
@@ -18,11 +18,18 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import ThemeText from "@/components/ThemeText";
 import ThemeTabGroup from "@/components/ThemeTabGroup";
 import PagerView from "react-native-pager-view";
+import DatePicker from "react-native-date-picker";
+import BackButton from "@/components/BackButton";
+import { DrawerMode, FileType } from "@/features/auth/types";
+import { useCreateTaskMutation } from "../taskApi";
+import LottieView from "lottie-react-native";
+import { animations, images } from "@/assets";
+import { useNavigation } from "@react-navigation/native";
+import { BottomTabsNavigationProp } from "@/navigation/routes";
 
-interface ImageClickedViewProps {
-  uri: string;
-  onConfirm: (details: unknown) => void;
-}
+type ImageClickedViewProps = {
+  media: FileType;
+};
 
 const taskCreateSchema = z.object({
   title: z.string().min(3, "Title is Required"),
@@ -34,19 +41,28 @@ const taskCreateSchema = z.object({
 
 type TaskCreateType = z.infer<typeof taskCreateSchema>;
 
-const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
+const ImageClickedView = (props: ImageClickedViewProps) => {
   const { height, width } = useWindowDimensions();
   const sheetRef = useRef(null);
   const [shrunk, setShrunk] = useState(false);
   const [isAnimationCompleted, setIsAnimationCompleted] = useState(false);
+  const [page, setPage] = useState<number>(0);
+  const [date, setDate] = useState(new Date());
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>("default");
+  const [drawerMsg, setDrawerMsg] = useState({ title: "", description: "" });
 
   const boxHeight = shrunk ? height * 0.65 : height;
   const boxTop = shrunk ? 50 : 0;
   const boxPaddingHorizontal = shrunk ? 25 : 0;
 
   const createTaskSheetRef = useRef<PagerView>(null);
+  const navigation = useNavigation<BottomTabsNavigationProp>();
+  const [createTask, { isLoading, isSuccess, isError, reset }] =
+    useCreateTaskMutation();
+
   const {
     control,
+    trigger,
     handleSubmit,
     formState: { errors },
   } = useForm<TaskCreateType>({
@@ -59,9 +75,58 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
     },
   });
 
-  const nextPageHandler = () => {
-    console.log("Running from next page handler");
-    createTaskSheetRef?.current?.setPage(1);
+  const nextPageHandler = async () => {
+    const isValid = await trigger(["title"]);
+    if (isValid) createTaskSheetRef?.current?.setPage(page + 1);
+  };
+
+  const prevPageHandler = () => {
+    console.log("prev");
+    createTaskSheetRef?.current?.setPage(page - 1);
+  };
+
+  const submitHandler = async (values: TaskCreateType) => {
+    try {
+      const response = await createTask({
+        title: values.title,
+        description: values.description,
+        due_at: values.due_at,
+        status: values.status,
+        priority: values.priority,
+        task_img: props?.media,
+      }).unwrap();
+
+      console.log("Success:", response);
+
+      setDrawerMsg({
+        title: "Task Created!!",
+        description: "Task created successfully.",
+      });
+
+      setDrawerMode("success");
+      createTaskSheetRef?.current?.setPage(page + 1);
+
+      setTimeout(() => {
+        navigation.reset({
+          index: 1,
+          routes: [{ name: "Home" }, { name: "Tasks" }],
+        });
+      }, 2500);
+    } catch (err) {
+      console.log("Error:", err);
+
+      setDrawerMsg({
+        title: "Task Creation Failed",
+        description: "Unable to create task. Please try again.",
+      });
+      setDrawerMode("fail");
+
+      createTaskSheetRef?.current?.setPage(page + 1);
+
+      setTimeout(() => {
+        prevPageHandler();
+      }, 2500);
+    }
   };
 
   return (
@@ -86,24 +151,34 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
         }}
       >
         <View style={{ flex: 1, borderRadius: 35, overflow: "hidden" }}>
-          <Image source={{ uri: `file://${uri}` }} style={{ flex: 1 }} />
+          <Image source={{ uri: props?.media?.uri }} style={{ flex: 1 }} />
         </View>
       </Animated.View>
       {isAnimationCompleted && (
         <ThemeSheet
           ref={sheetRef}
-          snapPoints={["50%"]}
+          snapPoints={
+            drawerMode === "success" || drawerMode === "fail"
+              ? ["30%"]
+              : ["50%"]
+          }
           backgroundStyle={{ backgroundColor: themeColors?.charcoal }}
           closable={false}
         >
           <PagerView
             ref={createTaskSheetRef}
             initialPage={0}
-            scrollEnabled
             pageMargin={themeSpacing?.page}
-            style={{ height: height * 0.5 }}
+            onPageSelected={(e) => setPage(e.nativeEvent.position)}
+            // scrollEnabled={false}
+            style={{
+              height:
+                drawerMode === "success" || drawerMode === "fail"
+                  ? height * 0.3
+                  : height * 0.5,
+            }}
           >
-            <View key={"1"} className="gap-5 px-5 mt-default-half">
+            <View key={"1"} className="gap-5 px-page mt-default-half">
               <View className="gap-2">
                 <ThemeText variant="title" className="text-xs! text-mist">
                   What's the name of this task?
@@ -113,7 +188,9 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
                   name="title"
                   render={({ field: { value, onChange, onBlur } }) => (
                     <ThemeTextInput
-                      placeholder=""
+                      mode="bottom-sheet"
+                      variant="secondary"
+                      placeholder="What's the name of this task?"
                       value={value}
                       onChangeText={onChange}
                       onBlur={onBlur}
@@ -137,11 +214,14 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
                   name="description"
                   render={({ field: { value, onChange, onBlur } }) => (
                     <ThemeTextInput
+                      mode="bottom-sheet"
+                      variant="secondary"
                       placeholder="What's the purpose of this task?"
                       value={value}
                       onChangeText={onChange}
                       onBlur={onBlur}
                       keyboardType="default"
+                      cursorColor={themeColors?.steel}
                       numberOfLines={3}
                       textAlignVertical="top"
                     />
@@ -167,17 +247,70 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
               </View>
 
               <ThemeButton
-                className="border-0.25 border-white mt-default"
+                className="mt-default border-0.25 border-steel absolute w-full left-page right page bottom-20"
                 text="Next"
                 onPress={nextPageHandler}
               />
             </View>
-            <View key={"2"} className="gap-5 px-5">
-              <ThemeButton
-                className="border-0.25 border-white mt-default"
-                text="Submit"
-                onPress={nextPageHandler}
+            <View key={"2"} className="gap-5 px-page mt-default-half">
+              <BackButton variant="light" onPress={prevPageHandler} />
+              <ThemeText variant="title" className="text-xs! text-mist mt-3">
+                Expected Completion Time
+              </ThemeText>
+              <Controller
+                control={control}
+                name="due_at"
+                render={({ field: { value, onChange } }) => (
+                  <View className="items-center justify-center">
+                    <DatePicker
+                      mode="datetime"
+                      locale="en"
+                      minuteInterval={5}
+                      date={date}
+                      onDateChange={setDate}
+                      hitSlop={25}
+                      style={{ opacity: 0.75 }}
+                    />
+                  </View>
+                )}
               />
+              <ThemeButton
+                className="mt-default border-0.25 border-steel absolute w-full left-page right page bottom-20"
+                text="Submit"
+                status={isLoading ? "loading" : "default"}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  handleSubmit(submitHandler)();
+                }}
+              />
+            </View>
+            <View key="3">
+              <View
+                className="items-center justify-center gap-3 z-10"
+                style={{ height: height * 0.25 }}
+              >
+                <LottieView
+                  source={
+                    drawerMode === "success"
+                      ? animations?.tickIcon
+                      : animations?.crossIcon
+                  }
+                  autoPlay
+                  loop={false}
+                  style={{ width: 75, height: 75 }}
+                />
+                <View className="gap-3 py-3">
+                  <ThemeText
+                    variant="subheading"
+                    className="text-center text-canvas"
+                  >
+                    {drawerMsg.title}
+                  </ThemeText>
+                  <ThemeText className="text-cloud! text-center">
+                    {drawerMsg.description}
+                  </ThemeText>
+                </View>
+              </View>
             </View>
           </PagerView>
         </ThemeSheet>

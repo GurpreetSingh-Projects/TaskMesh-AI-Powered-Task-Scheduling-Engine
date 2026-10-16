@@ -45,7 +45,7 @@ const ThemeDrawer = (props: ThemeDrawerProps) => {
     props?.closable ? (
       <View className="h-1.5 w-1/10 relative self-center bg-cloud rounded-full my-3" />
     ) : (
-      <></>
+      <View className="h-2.5 bg-transparent" />
     );
 
   return (
