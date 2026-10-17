@@ -2,6 +2,7 @@ import { FileType } from "../auth/types";
 
 export type UserState = {
   user_id: string;
+  full_name: string | null;
   email: string;
   profile_img: string | null;
   role: string;
