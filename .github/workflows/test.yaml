@@ -5,7 +5,7 @@ on:
     types: [closed]
     paths:
       - "mobile/**"
-      # - ".github/workflows/test.yaml" Only for debugging yaml file on stage
+      - ".github/workflows/**"
 
 jobs:
   build:
