@@ -3,6 +3,7 @@ import { UserState } from "../types";
 
 const initialState: UserState = {
   user_id: null,
+  full_name: null,
   email: null,
   profile_img: null,
   role: null,
@@ -26,6 +27,9 @@ export const userSlice = createSlice({
     },
     setUserId: (state, action: PayloadAction<string>) => {
       state.user_id = action.payload;
+    },
+    setFullName: (state, action: PayloadAction<string | null>) => {
+      state.full_name = action.payload;
     },
     setEmail: (state, action: PayloadAction<string>) => {
       state.email = action.payload;
@@ -64,6 +68,7 @@ export const userSlice = createSlice({
 export const {
   setUserInfo,
   setUserId,
+  setFullName,
   setEmail,
   setProfileImg,
   setRole,
