@@ -11,16 +11,20 @@ const profileApi = baseApi.injectEndpoints({
         profile_img: FileType;
       }) => {
         try {
-          const parts = [{ name: "full_name", data: fields?.fullName }];
+          const parts = [];
 
-          if (fields.profile_img && fields.profile_img?.uri) {
+          if (fields?.fullName)
+            parts.push({ name: "full_name", data: fields?.fullName });
+          else parts.push({ name: "full_name", data: null });
+
+          if (fields?.profile_img && fields?.profile_img?.uri) {
             parts.push({
               name: "profile_img",
               filename: fields?.profile_img.name,
               type: fields?.profile_img.type,
               data: ReactNativeBlobUtil.wrap(fields?.profile_img?.uri),
             });
-          }
+          } else parts.push({ name: "profile_img", data: null });
 
           const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
           const response = await ReactNativeBlobUtil.fetch(
@@ -50,7 +54,7 @@ const profileApi = baseApi.injectEndpoints({
       },
     }),
   }),
-  overrideExisting: false,
+  overrideExisting: true,
 });
 
 export const { useUpdateProfileMutation } = profileApi;
