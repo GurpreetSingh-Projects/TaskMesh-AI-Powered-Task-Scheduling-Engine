@@ -5,15 +5,21 @@ import ProfileDetailsPending from "@/features/profile/screens/ProfileDetailsPend
 import { useRefreshToken } from "@/hooks/useRefreshToken";
 import { useEffect } from "react";
 import { HomeStackParamList } from "./types";
+import { useAppSelector } from "@/app/store";
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
 
 const DashboardNavigator = () => {
+  const user = useAppSelector((state) => state?.user);
   const refreshToken = useRefreshToken();
 
   useEffect(() => {
     refreshToken();
   }, []);
+
+  if (!user.is_onboarding_completed) return <OnboardingQuestionnaire />;
+  if (!user.is_profile_completed && !user.isProfileCompletionSkipped)
+    return <ProfileDetailsPending />;
 
   return (
     <Stack.Navigator
