@@ -8,6 +8,7 @@ from app.features.tasks.enums import TaskStatus, TaskPriority
 class TaskBaseResponse(BaseModel):
     title: str
     description: str | None
+    file_storage_id: UUID | None
     image_url: str | None
     status: TaskStatus
     completed_at: datetime | None
@@ -34,7 +35,6 @@ class TaskReadResponseSchema(BaseModel):
 class TaskCreateRequestSchema(BaseModel):
     title: str
     description: str | None
-    image_url: str | None
     status: TaskStatus
     priority: TaskPriority
     completed_at: datetime | None
