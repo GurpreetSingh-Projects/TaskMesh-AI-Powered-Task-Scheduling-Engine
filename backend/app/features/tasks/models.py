@@ -1,5 +1,5 @@
+from sqlalchemy import ForeignKey, String, Enum as SAEnum, DateTime, Boolean, Integer, JSON, text, CheckConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey, String, Enum as SAEnum, DateTime, Boolean, Integer, JSON, text, CheckConstraint
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from datetime import datetime
@@ -10,6 +10,13 @@ from app.core.enums import ActivationStatus, DeliveryStatus
 
 class Tasks(Base):
     __tablename__= "tasks"
+    __table_args__ = (
+        Index(
+            "unique_task", "user_id", "title", "due_at",
+            unique=True,
+            postgresql_where= text("deleted_at IS NULL")
+        ),
+    )
     
     task_id: Mapped[uuid.UUID]= mapped_column(PG_UUID(as_uuid= True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"), nullable=False)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.user_id", ondelete="CASCADE"))
@@ -29,6 +36,13 @@ class Tasks(Base):
     
 class SubTasks(Base):
     __tablename__= "subtasks"
+    __table_args__ = (
+            Index(
+                "unique_subtask", "task_id", "title", "due_at",
+                unique=True,
+                postgresql_where= text("deleted_at IS NULL")
+            ),
+        )
     
     subtask_id: Mapped[uuid.UUID]= mapped_column(PG_UUID(as_uuid= True), primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()"), nullable=False)
     task_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("tasks.task_id", ondelete="CASCADE"))
