@@ -1,4 +1,4 @@
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 from sqlalchemy import select, insert, func, update, and_
@@ -7,35 +7,57 @@ from datetime import datetime, timezone
 from app.features.users.models import Users
 from app.features.tasks.models import Tasks, SubTasks
 from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateRequestSchema, TaskReadResponseItemSchema, TaskReadResponseSchema, SubtaskReadResponseItemSchema, SubtaskReadResponseSchema, SubtaskCreateRequestSchema, SubtaskUpdateRequestSchema
+from app.features.storage.models import FileStorage
+from app.features.storage.enums import FileStorageEntity
+from app.features.storage.services import StorageService
 
 class TaskService:
     def __init__(self, db:AsyncSession):
         self.db = db
+        self.storage_service= StorageService(db)
 
-    async def create_task(self, user: Users, task_data: TaskCreateRequestSchema):
+    async def create_task(self, user: Users, task_data, task_img: UploadFile | None):
+        file_record= None
+        
+        if task_data is not None: 
+            task_data= task_data.model_dump(exclude_unset= True, exclude_none= True)
+
+        task_data["user_id"]= user.user_id
+
+        if task_img is not None:
+            file_record = await self.storage_service.upload_file(
+                user=user,
+                file=task_img,
+                entity_type=FileStorageEntity.TASK,
+                entity_id=str(user.user_id),
+            )
+            task_data["file_storage_id"]=str(file_record["item"].file_storage_id)
+
+        print(task_data)
         insert_query= (
             insert(Tasks)
             .values(
-                user_id= user.user_id,
-                title= task_data.title,
-                description= task_data.description,
-                image_url= task_data.image_url,
-                status= task_data.status,
-                completed_at= task_data.completed_at,
-                due_at= task_data.due_at,
-                priority= task_data.priority,
-                updated_by= user.user_id,
-                created_by= user.user_id,
+                **task_data
             )
             .returning(Tasks)
         )
+
         try:
             response = (await self.db.execute(insert_query)).scalar_one_or_none()
         except HTTPException:
             await self.db.rollback()
             raise
         except Exception as e:
+            await self.db.rollback()
             raise HTTPException(status_code=500, detail=f"An error occurred while adding task: {str(e)}")
+
+        self.db.expunge(response)
+        if response.file_storage_id:
+            file_details= await self.storage_service.get_file_details(file_storage_id=response.file_storage_id, entity_type=FileStorageEntity.TASK)
+            response.image_url= await self.storage_service.get_signed_asset_url(storage_key= file_details.storage_key)
+        else:
+            response.image_url= None
+
         await self.db.commit()
         return response
 
