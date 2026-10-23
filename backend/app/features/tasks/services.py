@@ -1,5 +1,6 @@
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
 from uuid import UUID
 from sqlalchemy import select, insert, func, update, and_
 import math
@@ -33,7 +34,6 @@ class TaskService:
             )
             task_data["file_storage_id"]=str(file_record["item"].file_storage_id)
 
-        print(task_data)
         insert_query= (
             insert(Tasks)
             .values(
@@ -47,10 +47,12 @@ class TaskService:
         except HTTPException:
             await self.db.rollback()
             raise
+        except IntegrityError as e:
+            await self.db.rollback()
+            raise HTTPException(status_code = 409, detail=f"Duplicate task detected, addition cancelled!")
         except Exception as e:
             await self.db.rollback()
             raise HTTPException(status_code=500, detail=f"An error occurred while adding task: {str(e)}")
-
         self.db.expunge(response)
         if response.file_storage_id:
             file_details= await self.storage_service.get_file_details(file_storage_id=response.file_storage_id, entity_type=FileStorageEntity.TASK)
@@ -163,32 +165,49 @@ class TaskService:
         await self.db.commit()
         return
 
-    async def create_subtask(self, user: Users, subtask_data: SubtaskCreateRequestSchema):
-         insert_query= (
+    async def create_subtask(self, user: Users, subtask_data: SubtaskCreateRequestSchema, subtask_img: UploadFile | None):
+        file_record= None
+        
+        if subtask_data is not None: 
+            subtask_data= subtask_data.model_dump(exclude_unset= True, exclude_none= True)
+
+        if subtask_img is not None:
+            file_record = await self.storage_service.upload_file(
+                user=user,
+                file=subtask_img,
+                entity_type=FileStorageEntity.TASK,
+                entity_id=str(user.user_id),
+            )
+            subtask_data["file_storage_id"]=str(file_record["item"].file_storage_id)
+
+        insert_query= (
              insert(SubTasks)
              .values(
-                 task_id= subtask_data.task_id,
-                 title= subtask_data.title,
-                 description= subtask_data.description,
-                 image_url= subtask_data.image_url,
-                 status= subtask_data.status,
-                 completed_at= subtask_data.completed_at,
-                 due_at= subtask_data.due_at,
-                 priority= subtask_data.priority,
-                 updated_by= user.user_id,
-                 created_by= user.user_id,
+                 **subtask_data
              )
              .returning(SubTasks)
          )
-         try:
-             response = (await self.db.execute(insert_query)).scalar_one_or_none()
-         except HTTPException:
-             await self.db.rollback()
-             raise
-         except Exception as e:
-             raise HTTPException(status_code=500, detail=f"An error occurred while adding subtask: {str(e)}")
-         await self.db.commit()
-         return response
+        
+        try:
+            response = (await self.db.execute(insert_query)).scalar_one_or_none()
+        except HTTPException:
+            await self.db.rollback()
+            raise
+        except IntegrityError as e:
+            await self.db.rollback()
+            raise HTTPException(status_code = 409, detail=f"Duplicate subtask detected, addition cancelled!")
+        except Exception as e:
+            await self.db.rollback()
+            raise HTTPException(status_code=500, detail=f"An error occurred while adding subtask: {str(e)}")
+        self.db.expunge(response)
+        if response.file_storage_id:
+            file_details= await self.storage_service.get_file_details(file_storage_id=response.file_storage_id, entity_type=FileStorageEntity.TASK)
+            response.image_url= await self.storage_service.get_signed_asset_url(storage_key= file_details.storage_key)
+        else:
+            response.image_url= None
+
+        await self.db.commit()
+        return response
  
     async def get_subtasks(self, user: Users, task_id: UUID, limit: int= 1, offset: int= 0):
         query= (

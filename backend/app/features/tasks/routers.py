@@ -51,8 +51,27 @@ async def deactivate_task(task_id: UUID, user= Depends(get_current_user), task_s
 
 # Subtasks
 @router.post("/subtask/", response_model= SubtaskReadResponseItemSchema, status_code=201, summary="Create a new subtask")
-async def create_subtask(subtask_data: SubtaskCreateRequestSchema, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
-    response = await task_service.create_subtask(user= user, subtask_data= subtask_data)
+async def create_subtask(
+    task_id: UUID= Form(...),
+    title: str = Form(...),
+    description: str | None = Form(None),
+    status: TaskStatus = Form(...),
+    priority: TaskPriority = Form(...),
+    due_at: datetime | None = Form(None),
+    completed_at: datetime | None = Form(None),
+    subtask_img: UploadFile | None = File(None),
+    user= Depends(get_current_user), 
+    task_service: TaskService = Depends(get_tasks_service)):
+    subtask_data = SubtaskCreateRequestSchema(
+            task_id= task_id,
+            title=title,
+            description=description,
+            status=status,
+            priority=priority,
+            due_at=due_at,
+            completed_at=completed_at,
+        )
+    response = await task_service.create_subtask(user= user, subtask_data= subtask_data, subtask_img= subtask_img)
     return response
 
 @router.get("/subtasks", response_model= SubtaskReadResponseSchema, summary="List subtasks for a given task id")
