@@ -80,6 +80,15 @@ class TaskService:
 
         tasks = (await self.db.execute(query)).scalars().all()
 
+        for task in tasks:
+            if task.file_storage_id:
+                file_details= await self.storage_service.get_file_details(file_storage_id=task.file_storage_id, entity_type=FileStorageEntity.TASK)
+                task.image_url= await self.storage_service.get_signed_asset_url(storage_key= file_details.storage_key)
+            else:
+                task.image_url= None
+
+            self.db.expunge(task)
+
         count_query = (
             select(func.count(Tasks.task_id))
             .where(
@@ -175,7 +184,7 @@ class TaskService:
             file_record = await self.storage_service.upload_file(
                 user=user,
                 file=subtask_img,
-                entity_type=FileStorageEntity.TASK,
+                entity_type=FileStorageEntity.SUBTASK,
                 entity_id=str(user.user_id),
             )
             subtask_data["file_storage_id"]=str(file_record["item"].file_storage_id)
@@ -231,6 +240,14 @@ class TaskService:
         )
 
         subtasks = (await self.db.execute(query)).scalars().all()
+
+        for subtask in subtasks:
+            if subtask.file_storage_id:
+                file_details= await self.storage_service.get_file_details(file_storage_id=subtask.file_storage_id, entity_type=FileStorageEntity.SUBTASK)
+                subtask.image_url= await self.storage_service.get_signed_asset_url(storage_key= file_details.storage_key)
+            else:
+                subtask.image_url= None
+
 
         count_query = (
             select(func.count(SubTasks.subtask_id))
