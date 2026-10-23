@@ -1,7 +1,7 @@
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from uuid import UUID
+from uuid import uuid4, UUID
 from sqlalchemy import select, insert, func, update, and_, case, String, cast
 import math
 from datetime import datetime, timezone
@@ -13,49 +13,66 @@ from app.features.storage.models import FileStorage
 from app.features.storage.enums import FileStorageEntity
 from app.features.storage.services import StorageService
 from app.features.tasks.enums import TaskPriority, TaskStatus, RankStatus, RankPriority
-
+from app.features.activity.enums import UserActivityType, ActivityEntityType
+from app.features.activity.services import ActivityService
+from app.features.activity.schemas import UserActivityCreateRequestSchema
 
 class TaskService:
     def __init__(self, db:AsyncSession):
         self.db = db
         self.storage_service= StorageService(db)
+        self.activity_service= ActivityService(db)
 
     async def create_task(self, user: Users, task_data: TaskCreateRequestSchema, task_img: UploadFile | None):
         file_record= None
+        task_id: UUID= uuid4()
         
         if task_data is not None: 
             task_data= task_data.model_dump(exclude_unset= True, exclude_none= True)
 
         task_data["user_id"]= user.user_id
+        task_data["created_by"]= user.user_id
+        task_data["updated_by"]= user.user_id
 
         if task_img is not None:
             file_record = await self.storage_service.upload_file(
                 user=user,
                 file=task_img,
                 entity_type=FileStorageEntity.TASK,
-                entity_id=str(user.user_id),
+                entity_id=str(task_id),
             )
             task_data["file_storage_id"]=str(file_record["item"].file_storage_id)
-
+        
         insert_query= (
             insert(Tasks)
             .values(
+                task_id= task_id,
                 **task_data
             )
             .returning(Tasks)
         )
 
         try:
-            response = (await self.db.execute(insert_query)).scalar_one_or_none()
+            response = (await self.db.execute(insert_query)).scalar_one()
+            await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.TASK_CREATED,
+                    entity_type= ActivityEntityType.TASKS,
+                    entity_id= task_id,
+                ),
+                user= user
+            )
         except HTTPException:
             await self.db.rollback()
             raise
         except IntegrityError as e:
             await self.db.rollback()
+            logger.warning("Integrity error on task create | task_id={}, user_id={}, error={}", task_id, user.user_id, e.orig)
             raise HTTPException(status_code = 409, detail=f"Duplicate task detected, addition cancelled!")
         except Exception as e:
             await self.db.rollback()
-            raise HTTPException(status_code=500, detail=f"An error occurred while adding task: {str(e)}")
+            logger.exception("Task create failed | user_id={}", user.user_id)
+            raise HTTPException(status_code=500, detail="An error occurred while adding task")
         self.db.expunge(response)
         if response.file_storage_id:
             file_details= await self.storage_service.get_file_details(file_storage_id=response.file_storage_id, entity_type=FileStorageEntity.TASK)
@@ -64,6 +81,7 @@ class TaskService:
             response.image_url= None
 
         await self.db.commit()
+        logger.info("Task created | task_id={} user_id={}", response.task_id, user.user_id)
         return response
 
     async def get_tasks_summary(self, user: Users, limit: int= 5):
@@ -100,7 +118,6 @@ class TaskService:
             "today_progress": [],
             "recently_completed": [],
         }
-
 
     async def get_tasks(self, status: TaskStatus, start_date: datetime, end_date: datetime | None,  user: Users, limit: int= 1, offset: int= 0):
         if end_date is None:
@@ -182,7 +199,7 @@ class TaskService:
                 user=user,
                 file=task_img,
                 entity_type=FileStorageEntity.TASK,
-                entity_id=str(user.user_id),
+                entity_id=str(task_id),
             )
             task_data["file_storage_id"]=str(file_record["item"].file_storage_id)
 
@@ -200,30 +217,44 @@ class TaskService:
         )
 
         try:
-            response = (await self.db.execute(update_query)).scalar_one_or_none()
+            response = (await self.db.execute(update_query)).scalar_one()
+            
             if response is None:
                 raise HTTPException(status_code= 404, detail= "No task found with the given id")
+
+            await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.TASK_UPDATED,
+                    entity_type= ActivityEntityType.TASKS,
+                    entity_id= task_id,
+                ),
+                user= user
+            )
         except HTTPException:
             await self.db.rollback()
             raise
         except IntegrityError as e:
             await self.db.rollback()
-            raise HTTPException(status_code = 409, detail=f"An error occurred while updating user: {str(e)}")
+            logger.warning("Integrity error on task update | task_id={}, user_id={}, error={}", task_id, user.user_id, e.orig)
+            raise HTTPException(status_code = 409, detail="An error occurred while updating user")
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
+            await self.db.rollback()
+            logger.warning("Exception on task update | task_id={}, user_id={}, error={}", task_id, user.user_id, e)
+            raise HTTPException(status_code=500, detail="An error occurred while updating task")
 
         await self.db.commit()
 
         self.db.expunge(response)
+
         if response.file_storage_id:
             file_details= await self.storage_service.get_file_details(file_storage_id=response.file_storage_id, entity_type=FileStorageEntity.TASK)
             response.image_url= await self.storage_service.get_signed_asset_url(storage_key= file_details.storage_key)
         else:
             response.image_url= None
-
+        logger.info("Task updated | task_id={} user_id={}", response.task_id, user.user_id)
         return response
 
-    async def deactivate_task(self, user: UUID, task_id: UUID):
+    async def deactivate_task(self, user: Users, task_id: UUID):
         deactivate_query= (
             update(Tasks)
             .where(
@@ -240,20 +271,31 @@ class TaskService:
         )   
 
         try:
-            response = (await self.db.execute(deactivate_query)).scalar_one_or_none()
+            response = (await self.db.execute(deactivate_query)).scalar_one()
+            await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.TASK_DELETED,
+                    entity_type= ActivityEntityType.TASKS,
+                    entity_id= task_id,
+                ),
+                user= user
+            )
             if response is None:
                 raise HTTPException(status_code= 400, detail= "No task found with the given id")
         except HTTPException:
             await self.db.rollback()
+            logger.exception("Task deactivation failed | task_id={}, user_id={}", task_id, user.user_id)
             raise
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
+            raise HTTPException(status_code=500, detail="An error occurred while updating task")
         
         await self.db.commit()
+        logger.info("Task Deactivated | task_id={}, user_id={}", response.task_id, user.user_id)
         return
 
     async def create_subtask(self, user: Users, subtask_data: SubtaskCreateRequestSchema, subtask_img: UploadFile | None):
         file_record= None
+        subtask_id: UUID= uuid4()
         
         if subtask_data is not None: 
             subtask_data= subtask_data.model_dump(exclude_unset= True, exclude_none= True)
@@ -263,29 +305,44 @@ class TaskService:
                 user=user,
                 file=subtask_img,
                 entity_type=FileStorageEntity.SUBTASK,
-                entity_id=str(user.user_id),
+                entity_id=str(subtask_id),
             )
             subtask_data["file_storage_id"]=str(file_record["item"].file_storage_id)
 
+        subtask_data["created_by"]= user.user_id
+        subtask_data["updated_by"]= user.user_id
+        
         insert_query= (
              insert(SubTasks)
              .values(
+                 subtask_id= subtask_id,
                  **subtask_data
              )
              .returning(SubTasks)
          )
         
         try:
-            response = (await self.db.execute(insert_query)).scalar_one_or_none()
+            response = (await self.db.execute(insert_query)).scalar_one()
+            await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.SUBTASK_CREATED,
+                    entity_type= ActivityEntityType.SUBTASKS,
+                    entity_id= subtask_id,
+                ),
+                user= user
+            )
         except HTTPException:
             await self.db.rollback()
             raise
         except IntegrityError as e:
             await self.db.rollback()
+            logger.warning("Integrity error on subtask create | subtask_id={}, user_id={}, error={}", subtask_id, user.user_id, e.orig)
             raise HTTPException(status_code = 409, detail=f"Duplicate subtask detected, addition cancelled!")
         except Exception as e:
             await self.db.rollback()
-            raise HTTPException(status_code=500, detail=f"An error occurred while adding subtask: {str(e)}")
+            logger.exception("Subtask create failed | user_id={}", user.user_id)
+            raise HTTPException(status_code=500, detail="An error occurred while adding subtask")
+
         self.db.expunge(response)
         if response.file_storage_id:
             file_details= await self.storage_service.get_file_details(file_storage_id=response.file_storage_id, entity_type=FileStorageEntity.TASK)
@@ -294,6 +351,7 @@ class TaskService:
             response.image_url= None
 
         await self.db.commit()
+        logger.info("Subtask created | subtask_id={} user_id={}", response.task_id, user.user_id)
         return response
  
     async def get_subtasks(self, user: Users, task_id: UUID, limit: int= 1, offset: int= 0):
@@ -362,6 +420,7 @@ class TaskService:
     async def update_subtask(
         self,
         user: Users,
+        task_id: UUID,
         subtask_id: UUID,
         subtask_img: UploadFile,
         subtask_data: SubtaskUpdateRequestSchema,
@@ -377,7 +436,7 @@ class TaskService:
                 user=user,
                 file=subtask_img,
                 entity_type=FileStorageEntity.SUBTASK,
-                entity_id=str(user.user_id),
+                entity_id=str(subtask_id),
             )
             subtask_data["file_storage_id"]=str(file_record["item"].file_storage_id)
 
@@ -386,7 +445,11 @@ class TaskService:
         update_query = (
             update(SubTasks)
             .where(
+                SubTasks.task_id == task_id,
                 SubTasks.subtask_id == subtask_id,
+                Tasks.task_id == SubTasks.task_id,
+                Tasks.user_id == user.user_id,
+                Tasks.is_deleted.is_(False),
                 SubTasks.is_deleted.is_(False),
             )
             .values(**subtask_data)
@@ -395,19 +458,32 @@ class TaskService:
 
         try:
             response = (await self.db.execute(update_query)).scalar_one_or_none()
+
             if response is None:
                 raise HTTPException(status_code= 404, detail= "No subtask found with the given id")
+
+            await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.SUBTASK_UPDATED,
+                    entity_type= ActivityEntityType.SUBTASKS,
+                    entity_id= subtask_id,
+                ),
+                user= user
+            )
         except HTTPException:
             await self.db.rollback()
             raise
         except IntegrityError as e:
             await self.db.rollback()
-            raise HTTPException(status_code = 409, detail=f"An error occurred while updating user: {str(e)}")
+            logger.warning("Integrity error on subtask update | subtask_id={}, user_id={}, error={}", subtask_id, user.user_id, e.orig)
+            raise HTTPException(status_code = 409, detail="An error occurred while updating subtask")
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"An error occurred while updating subtask: {str(e)}")
+            await self.db.rollback()
+            logger.exception("Exception on subtask update | task_id= {}, subtask_id={}, user_id={}, error={}", task_id, subtask_id, user.user_id, e)
+            raise HTTPException(status_code=500, detail="An error occurred while updating subtask")
 
         await self.db.commit()
-
+    
         self.db.expunge(response)
         if response.file_storage_id:
             file_details= await self.storage_service.get_file_details(file_storage_id=response.file_storage_id, entity_type=FileStorageEntity.SUBTASK)
@@ -415,6 +491,7 @@ class TaskService:
         else:
             response.image_url= None
 
+        logger.info("Subtask updated | subtask_id={}, user_id={}", response.subtask_id, user.user_id)
         return response
 
     async def deactivate_subtask(self, user: UUID, subtask_id: UUID):
@@ -442,11 +519,23 @@ class TaskService:
             response = (await self.db.execute(deactivate_query)).scalar_one_or_none()
             if response is None:
                 raise HTTPException(status_code= 400, detail= "No task found with the given id")
+
+            await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.SUBTASK_DELETED,
+                    entity_type= ActivityEntityType.SUBTASKS,
+                    entity_id= subtask_id,
+                ),
+                user= user
+            )
         except HTTPException:
             await self.db.rollback()
             raise
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
+            await self.db.rollback()
+            logger.exception("Subtask deactivation failed | subtask_id={}, user_id={}", subtask_id, user.user_id)
+            raise HTTPException(status_code=500, detail="An error occurred while updating task")
         
         await self.db.commit()
+        logger.info("Subtask Deactivated | task_id={}, user_id={}", response.subtask_id, user.user_id)
         return

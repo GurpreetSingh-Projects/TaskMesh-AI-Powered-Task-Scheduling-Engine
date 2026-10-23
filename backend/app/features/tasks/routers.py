@@ -127,11 +127,12 @@ async def get_subtasks(task_id: UUID, limit: int = Query(15, ge=0, le= 500), off
 
 
 @router.patch(
-    "/subtasks/{subtask_id}",
+    "/{task_id}/subtasks/{subtask_id}",
     response_model=SubtaskReadResponseItemSchema,
     summary="Update a subtask",
 )
 async def update_subtask(
+    task_id: UUID,
     subtask_id: UUID,
     title: str | None = Form(None),
     description: str | None = Form(None),
@@ -154,6 +155,7 @@ async def update_subtask(
 
     response = await task_service.update_subtask(
         user=user,
+        task_id= task_id,
         subtask_id=subtask_id,
         subtask_data=subtask_data,
         subtask_img=subtask_img,
