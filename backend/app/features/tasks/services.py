@@ -245,7 +245,7 @@ class TaskService:
             select(SubTasks)
             .join(
                 Tasks,
-                and_(Tasks.task_id == SubTasks.task_id)
+                Tasks.task_id == SubTasks.task_id
             )
             .where(
                 SubTasks.task_id == task_id,
@@ -270,6 +270,7 @@ class TaskService:
             else:
                 subtask.image_url= None
 
+            self.db.expunge(subtask)
 
         count_query = (
             select(func.count(SubTasks.subtask_id))
@@ -297,7 +298,7 @@ class TaskService:
             "limit": limit,
             "offset": offset,
             "has_more": has_more,
-            "total_tasks": total_subtasks_count,
+            "total_subtasks": total_subtasks_count,
             "page": page,
             "total_pages": total_pages
         }
