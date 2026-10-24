@@ -58,7 +58,7 @@ class SubtaskReadResponseSchema(BaseModel):
     limit: int
     offset: int
     has_more: bool
-    total_tasks: int
+    total_subtasks: int
     page: int
     total_pages: int
     
