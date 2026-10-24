@@ -40,9 +40,36 @@ async def get_tasks(limit: int = Query(15, ge=0, le= 500), offset:int= Query(0, 
     response= await task_service.get_tasks(user= user, limit= limit, offset= offset)
     return response
 
-@router.patch("/{task_id}", response_model=TaskReadResponseItemSchema, summary="Update a task")
-async def update_task(task_id: UUID, task_data: TaskUpdateRequestSchema, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
-    response= await task_service.update_task(user= user, task_id= task_id, task_data= task_data)
+@router.patch("/{task_id}", response_model=TaskReadResponseItemSchema, summary="Update a task",
+)
+async def update_task(
+    task_id: UUID,
+    title: str | None = Form(None),
+    description: str | None = Form(None),
+    status: TaskStatus | None = Form(None),
+    priority: TaskPriority | None = Form(None),
+    due_at: datetime | None = Form(None),
+    completed_at: datetime | None = Form(None),
+    task_img: UploadFile | None = File(None),
+    user=Depends(get_current_user),
+    task_service: TaskService = Depends(get_tasks_service),
+):
+    task_data = TaskUpdateRequestSchema(
+        title=title,
+        description=description,
+        status=status,
+        priority=priority,
+        due_at=due_at,
+        completed_at=completed_at,
+    )
+
+    response = await task_service.update_task(
+        user=user,
+        task_id=task_id,
+        task_data=task_data,
+        task_img=task_img,
+    )
+
     return response
 
 @router.patch("/deactivate/{task_id}", status_code= 204, summary= "Deactivate task with its task_id")
@@ -74,14 +101,45 @@ async def create_subtask(
     response = await task_service.create_subtask(user= user, subtask_data= subtask_data, subtask_img= subtask_img)
     return response
 
-@router.get("/subtasks", response_model= SubtaskReadResponseSchema, summary="List subtasks for a given task id")
+@router.get("/subtasks/", response_model= SubtaskReadResponseSchema, summary="List subtasks for a given task id")
 async def get_subtasks(task_id: UUID, limit: int = Query(15, ge=0, le= 500), offset:int= Query(0, ge= 0), user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
     response= await task_service.get_subtasks(user= user, task_id= task_id, limit= limit, offset= offset)
     return response
 
-@router.patch("/subtask/{subtask_id}", response_model= SubtaskReadResponseItemSchema, summary="Update subtask by its id")
-async def update_task(subtask_id: UUID, subtask_data: SubtaskUpdateRequestSchema, user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
-    response= await task_service.update_subtask(user= user, subtask_id= subtask_id, subtask_data= subtask_data)
+
+@router.patch(
+    "/subtasks/{subtask_id}",
+    response_model=SubtaskReadResponseItemSchema,
+    summary="Update a subtask",
+)
+async def update_subtask(
+    subtask_id: UUID,
+    title: str | None = Form(None),
+    description: str | None = Form(None),
+    status: TaskStatus | None = Form(None),
+    priority: TaskPriority | None = Form(None),
+    due_at: datetime | None = Form(None),
+    completed_at: datetime | None = Form(None),
+    subtask_img: UploadFile | None = File(None),
+    user=Depends(get_current_user),
+    task_service: TaskService = Depends(get_tasks_service),
+):
+    subtask_data = SubtaskUpdateRequestSchema(
+        title=title,
+        description=description,
+        status=status,
+        priority=priority,
+        due_at=due_at,
+        completed_at=completed_at,
+    )
+
+    response = await task_service.update_subtask(
+        user=user,
+        subtask_id=subtask_id,
+        subtask_data=subtask_data,
+        subtask_img=subtask_img,
+    )
+
     return response
 
 @router.patch("/subtask/deactivate/{subtask_id}/", status_code= 204, summary= "Deactivate task with its task_id")
