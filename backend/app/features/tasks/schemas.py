@@ -41,7 +41,12 @@ class TaskCreateRequestSchema(BaseModel):
     due_at: datetime | None
 
 class TaskUpdateRequestSchema(TaskCreateRequestSchema):
-    pass
+    title: str | None
+    description: str | None
+    status: TaskStatus | None
+    priority: TaskPriority | None
+    completed_at: datetime | None
+    due_at: datetime | None
 
 # Subtasks
 class SubtaskReadResponseItemSchema(TaskBaseResponse):
@@ -60,5 +65,5 @@ class SubtaskReadResponseSchema(BaseModel):
 class SubtaskCreateRequestSchema(TaskCreateRequestSchema):
     task_id: UUID
 
-class SubtaskUpdateRequestSchema(TaskCreateRequestSchema):
+class SubtaskUpdateRequestSchema(TaskUpdateRequestSchema):
     pass
