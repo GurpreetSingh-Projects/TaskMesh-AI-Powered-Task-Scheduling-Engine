@@ -6,7 +6,7 @@ from app.features.tasks.dependencies import get_tasks_service
 from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateRequestSchema, TaskReadResponseItemSchema, TaskReadResponseSchema, SubtaskReadResponseItemSchema, SubtaskReadResponseSchema, SubtaskCreateRequestSchema, SubtaskUpdateRequestSchema
 from app.features.tasks.services import TaskService
 from app.features.tasks.enums import TaskPriority, TaskStatus
-from datetime import datetime
+from datetime import date, datetime
 
 router = APIRouter(prefix="/tasks", tags=["Tasks & Subtasks"], dependencies=[Depends(get_current_user)])
 
@@ -36,18 +36,21 @@ async def create_task(
 
 @router.get("/summary", summary="List your tasks")
 async def get_tasks(
-    limit: int = Query(10, ge=1, le=500),
+    start_date: date= date.today(),
+    end_date: date= date.today(),
+    limit: int = Query(10, ge=1, le=50),
     user=Depends(get_current_user),
     task_service: TaskService = Depends(get_tasks_service),
 ):
     return await task_service.get_tasks_summary(
-        user=user, limit=limit,
+        start_date=start_date, end_date=end_date, user=user, limit=limit,
     )
 
 @router.get("", response_model=TaskReadResponseSchema, summary="List your tasks")
 async def get_tasks(
-    start_date: datetime= Query(default= datetime.now()),
-    end_date: datetime | None = Query(default= datetime.now()),
+    start_date: datetime | None= None,
+    end_date: datetime | None = None,
+    priority: TaskPriority | None = None,
     status: TaskStatus | None = None,
     limit: int = Query(15, ge=1, le=500),
     offset: int = Query(0, ge=0),
@@ -55,7 +58,7 @@ async def get_tasks(
     task_service: TaskService = Depends(get_tasks_service),
 ):
     return await task_service.get_tasks(
-        status=status, start_date=start_date, end_date=end_date,
+        status=status, start_date=start_date, priority= priority, end_date=end_date,
         user=user, limit=limit, offset=offset,
     )
 

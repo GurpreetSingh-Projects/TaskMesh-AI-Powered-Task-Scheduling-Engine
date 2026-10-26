@@ -2,12 +2,13 @@ from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from uuid import uuid4, UUID
-from sqlalchemy import select, insert, func, update, and_, case, String, cast
+from sqlalchemy import select, insert, func, update, and_, case, String, cast, Date, distinct
 import math
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from loguru import logger
 from app.features.users.models import Users
 from app.features.tasks.models import Tasks, SubTasks
+from app.features.activity.models import UserActivity
 from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateRequestSchema, TaskReadResponseItemSchema, TaskReadResponseSchema, SubtaskReadResponseItemSchema, SubtaskReadResponseSchema, SubtaskCreateRequestSchema, SubtaskUpdateRequestSchema
 from app.features.storage.models import FileStorage
 from app.features.storage.enums import FileStorageEntity
@@ -84,14 +85,15 @@ class TaskService:
         logger.info("Task created | task_id={} user_id={}", response.task_id, user.user_id)
         return response
 
-    async def get_tasks_summary(self, user: Users, limit: int= 5):
+    async def get_tasks_summary(self, start_date: date, end_date: date, user: Users,limit: int= 5):
         status_priority= case(RankStatus, value= cast(Tasks.status, String), else_=0)
         rank_priority= case(RankPriority, value= cast(Tasks.priority, String), else_=0)
-        
-        query= (
+        top_tasks_query= (
             select(Tasks)
             .where(
                 Tasks.user_id == user.user_id,
+                Tasks.created_at >= start_date,
+                Tasks.created_at < end_date,
                 Tasks.is_deleted.is_(False),
             )
             .order_by(
@@ -102,47 +104,133 @@ class TaskService:
             .limit(limit)
         )
 
-        tasks = (await self.db.execute(query)).scalars().all()
+        progress_query= (
+            select(
+                func.count().filter(
+                    Tasks.created_at >= start_date,
+                    Tasks.created_at < end_date,
+                )
+                .label("created"),
 
-        for task in tasks:
+                func.count().filter(
+                    Tasks.created_at >= start_date,
+                    Tasks.created_at < end_date,
+                    Tasks.status == TaskStatus.PENDING
+                )
+                .label("pending"),
+
+                func.count().filter(
+                    Tasks.created_at >= start_date,
+                    Tasks.created_at < end_date,
+                    Tasks.status == TaskStatus.IN_PROGRESS
+                )
+                .label("in_progress"),
+
+                func.count().filter(
+                    Tasks.created_at >= start_date,
+                    Tasks.completed_at < end_date,
+                    Tasks.status == TaskStatus.COMPLETED
+                )
+                .label("completed"),
+
+                func.count().filter(
+                    Tasks.status == TaskStatus.OVERDUE,
+                    Tasks.completed_at.is_(None)
+                )
+                .label("overdue")
+            )      
+            .where(
+                Tasks.user_id == user.user_id,
+                Tasks.is_deleted.is_(False),
+            )
+        )
+
+
+        curr_weekdays = []
+        today = date.today()
+        recent_week_start = today - timedelta(days=((today.weekday() + 1) % 7))
+        
+        weekly_activity_query = (
+            select((func.date(UserActivity.created_at)))
+                .where(
+                    UserActivity.user_id == user.user_id,
+                    UserActivity.activity_type.in_([
+                    UserActivityType.TASK_CREATED,
+                    UserActivityType.TASK_UPDATED,
+                    UserActivityType.TASK_DELETED,
+                    UserActivityType.TASK_STATUS_UPDATED,
+                    UserActivityType.SUBTASK_CREATED,
+                    UserActivityType.SUBTASK_UPDATED,
+                    UserActivityType.SUBTASK_DELETED,
+                    ]),
+                    UserActivity.created_at >= recent_week_start,
+                )
+                .distinct()
+        )
+    
+        top_tasks = (await self.db.execute(top_tasks_query)).scalars().all()
+        progress_stats = (await self.db.execute(progress_query)).one()
+        weekly_streak = (await self.db.execute(weekly_activity_query)).scalars().all()
+
+        for d in range(7):
+            active_date= recent_week_start + timedelta(days= d)
+            is_active = active_date in weekly_streak
+
+            curr_weekdays.append({
+                "date": active_date,
+                "day": active_date.strftime("%A"),
+                "is_active": is_active
+            })
+
+        for task in top_tasks:
             if task.file_storage_id:
                 file_details= await self.storage_service.get_file_details(file_storage_id=task.file_storage_id, entity_type=FileStorageEntity.TASK)
                 task.image_url= await self.storage_service.get_signed_asset_url(storage_key= file_details.storage_key)
             else:
                 task.image_url= None
 
-            self.db.expunge(task)
-
         return {
-            "top_tasks": tasks,
-            "today_progress": [],
-            "recently_completed": [],
+            "top_tasks": top_tasks,
+            "progress_stats": progress_stats._asdict(),
+            "weekly_streak": curr_weekdays,
         }
 
-    async def get_tasks(self, status: TaskStatus, start_date: datetime, end_date: datetime | None,  user: Users, limit: int= 1, offset: int= 0):
-        if end_date is None:
-            end_date= datetime.now(timezone.utc)
-
-        if start_date and end_date and start_date >= end_date:
-            raise HTTPException(422, "start_date must be before end_date")
-
-        if status is None:
-            status= TaskStatus.PENDING
-
+    async def get_tasks(self, priority:TaskPriority | None, status: TaskStatus | None, start_date: datetime | None, end_date: datetime | None,  user: Users, limit: int= 1, offset: int= 0):
+        status_priority= case(RankStatus, value= cast(Tasks.status, String), else_=0)
         rank_priority= case(RankPriority, value= cast(Tasks.priority, String), else_=0)
+
+        filters = [
+            Tasks.user_id == user.user_id,
+            Tasks.is_deleted.is_(False),
+        ]
+
+        if start_date is not None:
+            filters.append(Tasks.created_at >= start_date)
+
+        if end_date is not None:
+            filters.append(Tasks.created_at < end_date)
+
+        if status is not None:
+            if status == TaskStatus.COMPLETED:
+                filters.extend([
+                    Tasks.status == TaskStatus.COMPLETED,
+                ])
+            else:
+                filters.append(Tasks.status == status)
+
+        if priority is not None:
+            filters.append(Tasks.priority == priority)
         
         query= (
             select(Tasks)
             .where(
-                Tasks.user_id == user.user_id,
-                Tasks.is_deleted.is_(False),
-                Tasks.status == status,
-                Tasks.created_at >= start_date,
-                Tasks.created_at < end_date,
+                *filters
             )
             .order_by(
+                status_priority.asc(),
                 rank_priority.desc(),
-                Tasks.created_at.desc()
+                Tasks.created_at.desc(),
+                Tasks.completed_at.desc()
             )
             .offset(offset)
             .limit(limit)
@@ -162,11 +250,7 @@ class TaskService:
         count_query = (
             select(func.count(Tasks.task_id))
                 .where(
-                    Tasks.user_id == user.user_id,
-                    Tasks.is_deleted.is_(False),
-                    Tasks.status == status,
-                    Tasks.created_at >= start_date,
-                    Tasks.created_at < end_date,
+                    *filters
                 )
         )
 
