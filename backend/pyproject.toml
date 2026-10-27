@@ -17,4 +17,5 @@ dependencies = [
     "email-validator",
     "python-multipart",
     "aioboto3>=15.5.0",
+    "loguru>=0.7.3",
 ]
