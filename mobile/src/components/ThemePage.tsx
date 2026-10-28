@@ -7,6 +7,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useKeepAwake } from "expo-keep-awake";
 import { themeColors } from "@/theme";
+import { SystemBars, SystemBarStyle } from "react-native-edge-to-edge";
 
 export type ThemePageProps = {
   children: ReactNode;
@@ -15,6 +16,8 @@ export type ThemePageProps = {
   noSafeArea?: boolean;
   isScrollable?: boolean;
   backgroundColor?: string;
+  statusBarColor?: SystemBarStyle;
+  navigationBarColor?: SystemBarStyle;
   keyboardOffsetOpened?: number;
   keyboardOffsetClosed?: number;
 };
@@ -31,40 +34,49 @@ const ThemePage = (props: ThemePageProps) => {
   const [footerHeight, setFooterHeight] = useState<number>(0);
 
   return (
-    <Container
-      style={{
-        flex: 1,
-        backgroundColor: props?.backgroundColor ?? themeColors?.canvas,
-      }}
-    >
-      {props?.isScrollable ? (
-        <KeyboardAwareScrollView
-          contentContainerStyle={{
-            flexGrow: 1,
-            paddingBottom: footerHeight,
-          }}
-          bottomOffset={footerHeight * 1.25}
-          mode="insets"
-          keyboardShouldPersistTaps="handled"
-        >
-          {content}
-        </KeyboardAwareScrollView>
-      ) : (
-        content
-      )}
+    <>
+      <SystemBars
+        style={{
+          statusBar: props?.statusBarColor ?? "auto",
+          navigationBar: props?.navigationBarColor ?? "auto",
+        }}
+      />
 
-      {props?.footer && (
-        <KeyboardStickyView
-          offset={{
-            closed: props?.keyboardOffsetClosed ?? 0,
-            opened: props?.keyboardOffsetOpened ?? 0,
-          }}
-          onLayout={(e) => setFooterHeight(e.nativeEvent.layout.height)}
-        >
-          {props.footer}
-        </KeyboardStickyView>
-      )}
-    </Container>
+      <Container
+        style={{
+          flex: 1,
+          backgroundColor: props?.backgroundColor ?? themeColors?.canvas,
+        }}
+      >
+        {props?.isScrollable ? (
+          <KeyboardAwareScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingBottom: footerHeight,
+            }}
+            bottomOffset={footerHeight * 1.25}
+            mode="insets"
+            keyboardShouldPersistTaps="handled"
+          >
+            {content}
+          </KeyboardAwareScrollView>
+        ) : (
+          content
+        )}
+
+        {props?.footer && (
+          <KeyboardStickyView
+            offset={{
+              closed: props?.keyboardOffsetClosed ?? 0,
+              opened: props?.keyboardOffsetOpened ?? 0,
+            }}
+            onLayout={(e) => setFooterHeight(e.nativeEvent.layout.height)}
+          >
+            {props.footer}
+          </KeyboardStickyView>
+        )}
+      </Container>
+    </>
   );
 };
 
