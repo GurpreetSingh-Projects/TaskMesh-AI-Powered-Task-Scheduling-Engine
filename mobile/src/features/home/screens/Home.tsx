@@ -3,10 +3,10 @@ import { Pressable, ScrollView, useWindowDimensions, View } from "react-native";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { useAppSelector } from "@/app/store";
 import { themeColors } from "@/theme";
-import { ChevronDownIcon, MenuIcon, TickIcon } from "@/Icon";
 import ThemePage from "@/components/ThemePage";
 import ThemeText from "@/components/ThemeText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Check, ChevronDown, Menu } from "lucide-react-native";
 
 const ranges = ["Daily", "Weekly", "Monthly"] as const;
 
@@ -83,7 +83,12 @@ const Home = () => {
               onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
               className="p-2 rounded-full border border-slate bg-carbon"
             >
-              <MenuIcon height={24} width={24} stroke={themeColors?.canvas} />
+              <Menu
+                height={24}
+                width={24}
+                stroke={themeColors?.canvas}
+                strokeWidth={1.5}
+              />
             </Pressable>
 
             <View className="relative z-30">
@@ -94,10 +99,11 @@ const Home = () => {
                 <ThemeText className="text-xs font-semibold text-mist">
                   {homeRange}
                 </ThemeText>
-                <ChevronDownIcon
+                <ChevronDown
                   width={15}
                   height={15}
                   stroke={themeColors.canvas}
+                  strokeWidth={1.5}
                 />
               </Pressable>
 
@@ -132,10 +138,11 @@ const Home = () => {
                           {range}
                         </ThemeText>
                         {isSelected && (
-                          <TickIcon
+                          <Check
                             width={17.5}
                             height={17.5}
                             stroke={themeColors.canvas}
+                            strokeWidth={1.5}
                           />
                         )}
                       </Pressable>
@@ -177,10 +184,11 @@ const Home = () => {
                 <ThemeText className="text-[11px] font-semibold text-cloud">
                   {homeRange}
                 </ThemeText>
-                <ChevronDownIcon
+                <ChevronDown
                   width={24}
                   height={24}
                   stroke={themeColors.ink}
+                  strokeWidth={1.5}
                 />
               </View>
             </View>

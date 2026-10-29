@@ -23,7 +23,6 @@ import {
   OnboardingQuestionOption,
   OnboardingQuestionsAnswersRequest,
 } from "../types";
-import { ChevronLeftIcon, ChevronRightIcon } from "@/Icon";
 import ThemeButton from "@/components/ThemeButton";
 import { AnimatedImage } from "@/utils";
 import ThemeDrawer from "@/components/ThemeDrawer";
@@ -38,6 +37,7 @@ import {
   useCreateOnboardingQuestionnaireResponsesMutation,
   useLazyOnboardingQuestionnaireQuery,
 } from "../onboardingApi";
+import { ChevronLeft, ChevronRight } from "lucide-react-native";
 
 const OnboardingQuestionnaire = () => {
   const { height, width } = useWindowDimensions();
@@ -338,10 +338,11 @@ const OnboardingQuestionnaire = () => {
               opacity: canGoPrev ? 1 : 0.5,
             }}
           >
-            <ChevronLeftIcon
+            <ChevronLeft
               width={24}
               height={24}
               stroke={canGoPrev ? themeColors.ink : themeColors.steel}
+              strokeWidth={1.5}
             />
           </Pressable>
 
@@ -353,10 +354,11 @@ const OnboardingQuestionnaire = () => {
               opacity: canGoNext ? 1 : 0.5,
             }}
           >
-            <ChevronRightIcon
+            <ChevronRight
               width={24}
               height={24}
               stroke={canGoNext ? themeColors.ink : themeColors.steel}
+              strokeWidth={1.5}
             />
           </Pressable>
         </View>
