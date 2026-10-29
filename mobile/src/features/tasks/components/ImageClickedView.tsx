@@ -47,7 +47,7 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
   const [shrunk, setShrunk] = useState(false);
   const [isAnimationCompleted, setIsAnimationCompleted] = useState(false);
   const [page, setPage] = useState<number>(0);
-  const [date, setDate] = useState(new Date());
+  const [dueDate, setDueDate] = useState(new Date());
   const [drawerMode, setDrawerMode] = useState<DrawerMode>("default");
   const [drawerMsg, setDrawerMsg] = useState({ title: "", description: "" });
 
@@ -90,7 +90,7 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
       const response = await createTask({
         title: values.title,
         description: values.description,
-        due_at: values.due_at,
+        due_at: dueDate.toISOString(),
         status: values.status,
         priority: values.priority,
         task_img: props?.media,
@@ -266,8 +266,8 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
                       mode="datetime"
                       locale="en"
                       minuteInterval={5}
-                      date={date}
-                      onDateChange={setDate}
+                      date={dueDate}
+                      onDateChange={setDueDate}
                       hitSlop={25}
                       style={{ opacity: 0.75 }}
                     />

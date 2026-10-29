@@ -3,7 +3,7 @@ import { ExpoConfig } from "expo/config";
 const config: ExpoConfig = {
   name: "TaskMesh AI",
   slug: "taskmesh-ai",
-  version: "1.0.8",
+  version: "1.0.9",
   orientation: "portrait",
   icon: "./assets/images/taskmesh-logo.png",
   scheme: "taskmesh",

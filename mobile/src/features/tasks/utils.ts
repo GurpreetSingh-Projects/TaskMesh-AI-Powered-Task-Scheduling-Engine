@@ -25,3 +25,11 @@ export const TASK_PRIORITY_OPTIONS = [
   { value: "HIGH", label: "High" },
   { value: "IMPORTANT", label: "Important" },
 ];
+
+export const statusLabels = Object.fromEntries(
+  TASK_STATUS_OPTIONS?.map((item) => [item.value, item.label]),
+);
+
+export const priorityLabels = Object.fromEntries(
+  TASK_PRIORITY_OPTIONS?.map((item) => [item.value, item.label]),
+);

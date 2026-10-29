@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View } from "react-native";
-import React, { useCallback, useEffect, useRef } from "react";
+import { View } from "react-native";
+import React, { useCallback } from "react";
 import {
   BottomSheetBackdrop,
   BottomSheetModal,
@@ -7,8 +7,6 @@ import {
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
 import { themeColors } from "@/theme";
-import ThemeText from "./ThemeText";
-import { LinearGradient } from "expo-linear-gradient";
 
 type ThemeDrawerProps = {
   ref?: any;

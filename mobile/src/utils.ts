@@ -18,4 +18,8 @@ export function getISTTime(time?: Date) {
   return dayjs().format("YYYY-MM-DD HH:mm:ss");
 }
 
+export function timeLeft(time?: Date) {
+  return dayjs(time).fromNow();
+}
+
 export const AnimatedImage = Animated.createAnimatedComponent(Image);
