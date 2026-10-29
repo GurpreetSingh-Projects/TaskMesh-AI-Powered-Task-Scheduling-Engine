@@ -1,24 +1,29 @@
 from uuid import UUID
 from fastapi import  HTTPException, UploadFile
 from pydantic import EmailStr
-from sqlalchemy import select, update
+from sqlalchemy import update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import uuid4
+from loguru import logger
 from app.features.users.services import UserService
 from app.features.storage.services import StorageService
-from app.features.users.schemas import UserLoginRequestSchema, UserEditRequestSchema
+from app.features.users.schemas import UserLoginRequestSchema
 from app.features.users.models import Users
 from app.features.users.enums import UserRoles
 from app.core.utils import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
 from datetime import datetime, timezone, timedelta
 from app.config import settings
-from app.features.storage.enums import FileStorageEntity
+from app.features.activity.enums import UserActivityType, ActivityEntityType
+from app.features.activity.services import ActivityService
+from app.features.activity.schemas import UserActivityCreateRequestSchema
 
 class AuthService:
     def __init__(self, db: AsyncSession):
         self.db= db
         self.user_service= UserService(db)
         self.storage_service= StorageService(db)
+        self.activity_service= ActivityService(db)
 
     async def create_user(self, email: EmailStr, password: str, profile_img: UploadFile | None):
         user = await self.user_service.get_user_details(email= email, silent_mode= True)
@@ -28,11 +33,14 @@ class AuthService:
                 raise HTTPException(status_code = 409, detail= "User with this email already exists, please try logging in")
             raise HTTPException(status_code = 410, detail= "This user was deleted, please try reactivating your account")
 
+        user_id= uuid4()
+
         insert_query= insert(Users).values(
+            user_id= user_id,
             email= email, 
             hashed_pswd= hash_password(password), 
-            role= UserRoles.USER,
             profile_img= None,
+            role= UserRoles.USER,
             is_deleted= False,
             deleted_at= None
         )
@@ -48,13 +56,22 @@ class AuthService:
                 await self.db.rollback()
                 raise HTTPException(status_code = 409, detail= "User with this email already exists")
 
-
             if profile_img:
                 file_record = await self.user_service.edit_user(user= user, profile_img= profile_img)
 
-            access_token = create_access_token(user.user_id)
-            refresh_token = create_refresh_token(user.user_id)
+            access_token = create_access_token(user_id)
+            refresh_token = create_refresh_token(user_id)
 
+            await self.activity_service.record_activity(
+                activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.PROFILE_CREATED,
+                    entity_type= ActivityEntityType.USERS,
+                    entity_id= user_id,
+                ),
+                user= user
+            )
+
+            user.user_settings= await self.user_service.get_user_settings(user_id= user_id)
             await self.db.commit()
 
             return {
@@ -63,7 +80,7 @@ class AuthService:
                 "access_token": access_token,
                 "access_token_expires_at": datetime.now(timezone.utc) + timedelta(minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES),
                 "refresh_token": refresh_token,
-                  "user_settings": "",
+                "user_settings": "",
                 "refresh_token_expires_at": datetime.now(timezone.utc) + timedelta(days= settings.REFRESH_TOKEN_EXPIRE_DAYS),
                 "token_type": "bearer"
             }
@@ -89,14 +106,12 @@ class AuthService:
         if user.is_deleted and user.deleted_at is not None:
             raise HTTPException(status_code = 410, detail= "This user was deleted, please try reactivating your account")
         
-        
         if not user.is_deleted and not verify_password(user_details.password, user.hashed_pswd):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
         return {
             "message": "User logged in successfully",
             "user": user,
-            "user_settings": "",
             "access_token": create_access_token(user.user_id),
             "access_token_expires_at": datetime.now(timezone.utc) + timedelta(minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES),
             "refresh_token": create_refresh_token(user.user_id),

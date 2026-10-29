@@ -1,21 +1,10 @@
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
-
-export type RootStackParamList = {
-  Auth: undefined;
-  Dashboard: undefined;
-};
-
-export type AuthStackParamList = {
-  OnboardingCarousel: undefined;
-  Login: undefined;
-  Register: undefined;
-};
-
-export type HomeStackParamList = {
-  OnboardingQuestionnaire: undefined;
-  ProfileDetailsPending: undefined;
-  Home: undefined;
-};
+import {
+  AuthStackParamList,
+  BottomTabsStackParamList,
+  HomeStackParamList,
+  RootStackParamList,
+} from "./types";
 
 export type RootStackNavigationProp =
   NativeStackNavigationProp<RootStackParamList>;
@@ -25,3 +14,6 @@ export type AuthStackNavigationProp =
 
 export type HomeStackNavigationProp =
   NativeStackNavigationProp<HomeStackParamList>;
+
+export type BottomTabsNavigationProp =
+  NativeStackNavigationProp<BottomTabsStackParamList>;

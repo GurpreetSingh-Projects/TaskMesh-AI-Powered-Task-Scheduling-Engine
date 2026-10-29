@@ -13,14 +13,14 @@ import {
   type CarouselItemAnimation,
 } from "react-native-reanimated-carousel";
 import { carouselImages, images } from "@/assets";
-import { SlideItem } from "@/components/SlideItem";
+import { OnboardingSlideItem } from "@/features/onboarding/components/OnboardingSlideItem";
 import { primaryBorderRadius, themeColors } from "@/theme";
 import ThemeButton from "@/components/ThemeButton";
 import ThemeText from "@/components/ThemeText";
 import OnboardingBg from "@/features/onboarding/components/OnboardingBg";
 import { useNavigation } from "@react-navigation/native";
-import { AuthStackParamList } from "@/features/auth/types";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { AuthStackParamList } from "@/navigation/types";
 
 const OnboardingCarousel = () => {
   const { height, width } = useWindowDimensions();
@@ -98,10 +98,10 @@ const OnboardingCarousel = () => {
 
 export default OnboardingCarousel;
 
-interface ItemProps {
+type ItemProps = {
   pressAnim: SharedValue<number>;
   index: number;
-}
+};
 
 const CustomItem: React.FC<ItemProps> = ({ pressAnim, index }) => {
   const animStyle = useAnimatedStyle(() => {
@@ -124,7 +124,7 @@ const CustomItem: React.FC<ItemProps> = ({ pressAnim, index }) => {
         animStyle,
       ]}
     >
-      <SlideItem source={carouselImages[index]} index={index} />
+      <OnboardingSlideItem source={carouselImages[index]} index={index} />
     </Animated.View>
   );
 };

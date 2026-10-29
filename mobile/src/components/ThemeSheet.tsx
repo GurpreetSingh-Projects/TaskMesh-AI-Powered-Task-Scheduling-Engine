@@ -21,11 +21,12 @@ type ThemeSheetProps = {
 };
 
 const ThemeSheet = (props: ThemeSheetProps & BottomSheetProps) => {
-  const ThemeDrawerPill = () => (
-    <View className="w-full bg-transparent">
+  const ThemeDrawerPill = () =>
+    props?.closable ? (
       <View className="h-1.5 w-1/10 relative self-center bg-cloud rounded-full my-3" />
-    </View>
-  );
+    ) : (
+      <View className="h-2.5 bg-transparent" />
+    );
   return (
     <BottomSheet
       ref={props?.ref}
@@ -34,6 +35,9 @@ const ThemeSheet = (props: ThemeSheetProps & BottomSheetProps) => {
       handleComponent={ThemeDrawerPill}
       style={props?.style}
       backgroundStyle={props?.backgroundStyle}
+      enableDynamicSizing={props?.enableDynamicSizing}
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
       {...props}
     >
       <BottomSheetView className={`h-full w-full relative`}>

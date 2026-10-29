@@ -6,14 +6,13 @@ from app.features.tasks.dependencies import get_tasks_service
 from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateRequestSchema, TaskReadResponseItemSchema, TaskReadResponseSchema, SubtaskReadResponseItemSchema, SubtaskReadResponseSchema, SubtaskCreateRequestSchema, SubtaskUpdateRequestSchema
 from app.features.tasks.services import TaskService
 from app.features.tasks.enums import TaskPriority, TaskStatus
-from datetime import datetime
+from datetime import date, datetime
 
 router = APIRouter(prefix="/tasks", tags=["Tasks & Subtasks"], dependencies=[Depends(get_current_user)])
 
 # Tasks
 @router.post("", response_model=TaskReadResponseItemSchema, status_code=201, summary="Create a new task")
 async def create_task(
-    # task_data: TaskCreateRequestSchema,
     title: str = Form(...),
     description: str | None = Form(None),
     status: TaskStatus = Form(None),
@@ -35,10 +34,33 @@ async def create_task(
     response = await task_service.create_task(user=user, task_img=task_img, task_data=task_data)
     return response
 
-@router.get("", response_model= TaskReadResponseSchema, summary="List your tasks")
-async def get_tasks(limit: int = Query(15, ge=0, le= 500), offset:int= Query(0, ge= 0), user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
-    response= await task_service.get_tasks(user= user, limit= limit, offset= offset)
-    return response
+@router.get("/summary", summary="List your tasks")
+async def get_tasks(
+    start_date: date= date.today(),
+    end_date: date= date.today(),
+    limit: int = Query(10, ge=1, le=50),
+    user=Depends(get_current_user),
+    task_service: TaskService = Depends(get_tasks_service),
+):
+    return await task_service.get_tasks_summary(
+        start_date=start_date, end_date=end_date, user=user, limit=limit,
+    )
+
+@router.get("", response_model=TaskReadResponseSchema, summary="List your tasks")
+async def get_tasks(
+    start_date: datetime | None= None,
+    end_date: datetime | None = None,
+    priority: TaskPriority | None = None,
+    status: TaskStatus | None = None,
+    limit: int = Query(15, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    user=Depends(get_current_user),
+    task_service: TaskService = Depends(get_tasks_service),
+):
+    return await task_service.get_tasks(
+        status=status, start_date=start_date, priority= priority, end_date=end_date,
+        user=user, limit=limit, offset=offset,
+    )
 
 @router.patch("/{task_id}", response_model=TaskReadResponseItemSchema, summary="Update a task",
 )
@@ -108,11 +130,12 @@ async def get_subtasks(task_id: UUID, limit: int = Query(15, ge=0, le= 500), off
 
 
 @router.patch(
-    "/subtasks/{subtask_id}",
+    "/{task_id}/subtasks/{subtask_id}",
     response_model=SubtaskReadResponseItemSchema,
     summary="Update a subtask",
 )
 async def update_subtask(
+    task_id: UUID,
     subtask_id: UUID,
     title: str | None = Form(None),
     description: str | None = Form(None),
@@ -135,6 +158,7 @@ async def update_subtask(
 
     response = await task_service.update_subtask(
         user=user,
+        task_id= task_id,
         subtask_id=subtask_id,
         subtask_data=subtask_data,
         subtask_img=subtask_img,

@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     B2_BUCKET_NAME: str
     MAX_FILE_SIZE: int
     ALLOWED_CONTENT_TYPES: list[str]
+    REDIS_URL: str
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
     
