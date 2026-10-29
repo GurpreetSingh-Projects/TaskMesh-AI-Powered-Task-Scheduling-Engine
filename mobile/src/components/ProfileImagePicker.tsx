@@ -4,9 +4,9 @@ import { useRef } from "react";
 import type { BottomSheetModal } from "@gorhom/bottom-sheet";
 import ThemeDrawer from "@/components/ThemeDrawer";
 import MediaPicker from "@/components/MediaPicker";
-import { CameraIcon, UserRoundIcon } from "@/Icon";
 import { themeColors } from "@/theme";
 import { FileType } from "@/features/auth/types";
+import { Camera, UserRound } from "lucide-react-native";
 
 type ProfileImagePickerType = {
   image_path: FileType | string | null;
@@ -39,11 +39,12 @@ const ProfileImagePicker = (props: ProfileImagePickerType) => {
             allowDownscaling={false}
           />
         ) : (
-          <UserRoundIcon
+          <UserRound
             width={size * 0.65}
             height={size * 0.65}
             stroke={themeColors?.steel}
             fill="transparent"
+            strokeWidth={1.5}
           />
         )}
 
@@ -58,7 +59,7 @@ const ProfileImagePicker = (props: ProfileImagePickerType) => {
           }}
           className="bg-ink items-center justify-center border-2 border-white"
         >
-          <CameraIcon
+          <Camera
             width={badgeSize * 0.5}
             height={badgeSize * 0.5}
             stroke="#fff"
