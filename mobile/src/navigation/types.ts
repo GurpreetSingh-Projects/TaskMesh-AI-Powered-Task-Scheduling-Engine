@@ -18,6 +18,7 @@ export type HomeStackParamList = {
 export type BottomTabsStackParamList = {
   Home: undefined;
   Tasks: undefined;
+  CreateTask: undefined;
   Notifications: undefined;
   Profile: undefined;
 };
