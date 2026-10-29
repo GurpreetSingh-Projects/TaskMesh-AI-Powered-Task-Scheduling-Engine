@@ -8,3 +8,9 @@ class LabelCreateSchema(BaseModel):
     description: str | None
     entity_type: str | None
     entity_id: UUID | None
+
+class LabelResponseSchema(BaseModel):
+    title: str
+    description: str | None
+    entity_type: str | None
+    entity_id: UUID | None
