@@ -109,6 +109,9 @@ const BottomTabs = () => {
               </View>
             );
           },
+          tabBarStyle: {
+            display: "none",
+          },
         }}
       />
       <Tab.Screen name="Notifications" component={Notifications} />
