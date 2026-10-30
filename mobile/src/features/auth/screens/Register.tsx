@@ -21,7 +21,7 @@ import { getAuthMessage, setAuth } from "../utils";
 import ProfileImagePicker from "@/components/ProfileImagePicker";
 import { useWindowDimensions } from "react-native-keyboard-controller";
 import { useRegisterMutation } from "../authApi";
-import { Lock } from "lucide-react-native";
+import { Lock, Mail } from "lucide-react-native";
 
 const registerSchema = z.object({
   email: z.email(),
@@ -120,13 +120,7 @@ const Register = () => {
                     onChangeText={onChange}
                     onBlur={onBlur}
                     keyboardType="email-address"
-                    icon={
-                      <EmailIcon
-                        height={22.5}
-                        width={22.5}
-                        stroke={themeColors?.steel}
-                      />
-                    }
+                    icon={<Mail size={22.5} stroke={themeColors?.steel} />}
                   />
                 )}
               />
