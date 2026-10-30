@@ -58,9 +58,7 @@ const Home = () => {
   const [isHomeRangeMenuOpen, setIsHomeRangeMenuOpen] = useState(false);
 
   const displayName =
-    typeof user?.full === "string" && user.full.trim().length > 0
-      ? user.full.trim()
-      : "Taskmesh User";
+    user.full_name.trim().length > 0 ? user.full_name.trim() : "Taskmesh User";
 
   const analytics = analyticsData[homeRange];
 
@@ -160,7 +158,7 @@ const Home = () => {
             <ThemeText
               variant="heading"
               numberOfLines={1}
-              className="mt-1 font-bold tracking-tight text-canvas"
+              className="mt-1 font-bold tracking-tight text-canvas capitalize"
             >
               {displayName}
             </ThemeText>
