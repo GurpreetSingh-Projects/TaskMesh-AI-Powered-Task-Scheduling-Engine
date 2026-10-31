@@ -1,7 +1,7 @@
 {
   "name": "taskmesh-ai-powered-task-scheduling-engine",
   "main": "index.ts",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "scripts": {
     "start": "pnpm exec expo start -c",
     "reset-project": "node ./scripts/reset-project.js",
