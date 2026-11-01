@@ -26,7 +26,7 @@ const loginSchema = z.object({
   password: z.string().min(3, "Password is Required"),
 });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type LoginFormType = z.infer<typeof loginSchema>;
 
 const Login = () => {
   const { height } = useWindowDimensions();
@@ -43,7 +43,7 @@ const Login = () => {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginForm>({
+  } = useForm<LoginFormType>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -51,7 +51,7 @@ const Login = () => {
     },
   });
 
-  const submitHandler = async (values: LoginForm) => {
+  const submitHandler = async (values: LoginFormType) => {
     try {
       const response = await login({
         email: values.email,
