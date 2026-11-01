@@ -44,6 +44,7 @@
     "react-hook-form": "^7.85.0",
     "react-native": "0.86.3",
     "react-native-blob-util": "^0.24.10",
+    "react-native-calendars": "^1.1314.0",
     "react-native-css": "^3.0.7",
     "react-native-device-info": "^15.0.2",
     "react-native-edge-to-edge": "^1.8.1",
