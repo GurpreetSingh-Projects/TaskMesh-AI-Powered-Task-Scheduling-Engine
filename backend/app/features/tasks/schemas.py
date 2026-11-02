@@ -35,8 +35,8 @@ class TaskReadResponseSchema(BaseModel):
 class TaskCreateRequestSchema(BaseModel):
     title: str
     description: str | None
-    status: TaskStatus
-    priority: TaskPriority
+    status: TaskStatus | None = TaskStatus.PENDING
+    priority: TaskPriority | None = TaskPriority.NORMAL
     completed_at: datetime | None
     due_at: datetime | None
 
