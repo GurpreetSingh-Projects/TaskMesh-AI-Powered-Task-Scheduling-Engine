@@ -90,6 +90,7 @@ const BottomTabs = () => {
           />
         ),
         tabBarLabel: () => null,
+        animation: "shift",
         tabBarHideOnKeyboard: true,
         lazy: true,
         freezeOnBlur: true,

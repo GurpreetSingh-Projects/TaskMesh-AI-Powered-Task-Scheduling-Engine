@@ -26,7 +26,7 @@ const BackButton = (props: BackButtonProps) => {
     <Pressable
       onPress={() => {
         props?.goBack && clickHandler();
-        props?.onPress();
+        props?.onPress && props?.onPress();
       }}
       className="z-999 rounded-default shadow-sm"
       hitSlop={15}

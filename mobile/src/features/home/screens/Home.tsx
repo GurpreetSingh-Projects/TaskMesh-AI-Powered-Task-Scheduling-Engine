@@ -12,14 +12,21 @@ import ThemeText from "@/components/ThemeText";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Check, ChevronDown, Menu, Plus } from "lucide-react-native";
 import { Image, ImageBackground } from "expo-image";
-import { images } from "@/assets";
+import { animations, images } from "@/assets";
 import { Carousel, CarouselRef } from "react-native-reanimated-carousel";
-import Animated from "react-native-reanimated";
+import Animated, {
+  FadeInDown,
+  FadeInUp,
+  FadeOutDown,
+} from "react-native-reanimated";
 import { HomeSlideItem } from "../components/HomeSlideItem";
 import { TaskItem } from "@/features/tasks/types";
 import { useGetSummaryQuery } from "../homeApi";
 import dayjs from "dayjs";
 import { ViewAll } from "../components/ViewAll";
+import { HomeStackNavigationProp } from "@/navigation/routes";
+import { ProgressOverview } from "../components/ProgressOverview";
+import LottieView from "lottie-react-native";
 
 const ranges = ["Daily", "Weekly", "Monthly"] as const;
 
@@ -66,10 +73,10 @@ const loadiingData = [{}, {}] as unknown as TaskItem[];
 const Home = () => {
   const { height, width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<HomeStackNavigationProp>();
   const user = useAppSelector((state) => state.user);
 
-  const end_date = dayjs().format("YYYY-MM-DD");
+  const end_date = dayjs().add(1, "day").format("YYYY-MM-DD");
   const start_date = dayjs().subtract(90, "day").format("YYYY-MM-DD");
 
   const carouselRef = useRef<CarouselRef>(null);
@@ -78,7 +85,7 @@ const Home = () => {
   const [currSummaryTaskSlide, setCurrSummaryTaskSlide] = useState(0);
 
   const displayName =
-    user.full_name.trim().length > 0
+    user?.full_name?.trim()?.length > 0
       ? user?.full_name?.trim()
       : "Taskmesh User";
 
@@ -98,7 +105,10 @@ const Home = () => {
   });
 
   const isViewAllActive =
-    (tasksData?.top_tasks.length ?? 0) == currSummaryTaskSlide + 1;
+    (tasksData?.top_tasks.length ?? 0) == currSummaryTaskSlide + 1 ||
+    tasksData?.top_tasks.length == 1;
+
+  console.log(isViewAllActive);
 
   const carouselStyle = {
     transform: [
@@ -114,7 +124,7 @@ const Home = () => {
   const viewAllStyle = {
     transform: [
       {
-        translateX: isViewAllActive ? 0 : 150,
+        translateX: isViewAllActive ? -75 : 150,
       },
     ],
     transitionProperty: "transform",
@@ -122,18 +132,45 @@ const Home = () => {
     transitionTimingFunction: "ease-in-out",
   } as const;
 
+  const addTaskHandler = () => {
+    navigation.navigate("CreateTask");
+  };
+
+  const addSubtaskHandler = () => {
+    navigation.navigate("CreateTask");
+  };
+
+  const openLabelsHandler = () => {
+    navigation.navigate("LabelManagement");
+  };
+
+  const openSettingsHandler = () => {
+    navigation.navigate("Settings");
+  };
+
   const quickActions = [
-    { label: "Add task", icon: images?.icons?.addTaskIcon, onPress: null },
+    {
+      label: "Add task",
+      icon: images?.icons?.addTaskIcon,
+      onPress: addTaskHandler,
+    },
     {
       label: "Add subtask",
       icon: images?.icons?.addSubtaskIcon,
-      onPress: null,
+      onPress: addSubtaskHandler,
     },
-    { label: "Labels", icon: images?.icons?.labelsIcon, onPress: null },
-    { label: "Settings", icon: images?.icons?.settingsIcon, onPress: null },
+    {
+      label: "Labels",
+      icon: images?.icons?.labelsIcon,
+      onPress: openLabelsHandler,
+    },
+    {
+      label: "Settings",
+      icon: images?.icons?.settingsIcon,
+      onPress: openSettingsHandler,
+    },
   ];
-
-  // console.log("Tasks:", tasksData, start_date, end_date);
+  console.log("Tasks:", tasksData, start_date, end_date);
 
   useFocusEffect(
     useCallback(() => {
@@ -145,7 +182,7 @@ const Home = () => {
     <ThemePage noSafeArea isScrollable backgroundColor={themeColors?.ink}>
       <ImageBackground
         source={images?.backgrounds?.homeBg}
-        style={{ flex: 1, paddingTop: insets?.top, justifyContent: "start" }}
+        style={{ flex: 1, paddingTop: insets?.top }}
       >
         <View className="">
           <View className="flex-row items-center justify-between px-page">
@@ -237,81 +274,104 @@ const Home = () => {
           </View>
 
           <View className="flex-row w-full gap-5">
-            <Animated.View className="flex-1" style={carouselStyle}>
-              <Carousel
-                ref={carouselRef}
-                data={areTasksLoading ? loadiingData : tasksData?.top_tasks}
-                style={{
-                  height: height * 0.5,
-                  width: width,
-                }}
-                contentContainerStyle={{}}
-                layout={{
-                  type: "parallax",
-                  scale: 0.85,
-                  adjacentScale: 0.7,
-                  offset: 250,
-                }}
-                renderItem={({ item, index }) => (
-                  <HomeSlideItem
-                    key={index}
-                    task={item}
-                    isLoading={areTasksLoading}
-                  />
-                )}
-                onSnapToItem={setCurrSummaryTaskSlide}
-              />
-            </Animated.View>
-
-            <Animated.View style={viewAllStyle}>
-              <ViewAll />
-            </Animated.View>
+            {areTasksLoading ? (
+              <Animated.View
+                entering={FadeInUp}
+                exiting={FadeOutDown}
+                className="items-center justify-center py-5 w-full"
+              >
+                <LottieView
+                  source={animations?.loadingIcon}
+                  autoPlay
+                  loop
+                  style={{ width: 50, height: 50 }}
+                />
+              </Animated.View>
+            ) : tasksData?.top_tasks?.length ? (
+              <Animated.View
+                className="flex- 1 flex-row w-full"
+                entering={FadeInUp.duration(500)}
+                exiting={FadeInDown.duration(500)}
+                style={carouselStyle}
+              >
+                <Carousel
+                  ref={carouselRef}
+                  data={areTasksLoading ? loadiingData : tasksData?.top_tasks}
+                  style={{
+                    height: height * 0.5,
+                    width: width,
+                  }}
+                  contentContainerStyle={{}}
+                  layout={{
+                    type: "parallax",
+                    scale: 0.85,
+                    adjacentScale: 0.7,
+                    offset: 250,
+                  }}
+                  renderItem={({ item, index }) => (
+                    <HomeSlideItem
+                      key={index}
+                      task={item}
+                      isLoading={areTasksLoading}
+                    />
+                  )}
+                  keyExtractor={(item) => item?.task_id}
+                  onSnapToItem={setCurrSummaryTaskSlide}
+                />
+                <Animated.View style={viewAllStyle}>
+                  <ViewAll />
+                </Animated.View>
+              </Animated.View>
+            ) : (
+              <View className="w-full h-5" />
+            )}
           </View>
         </View>
 
-        <View className="rounded-t-[36px] bg-canvas p-page">
-          <View className="mb-5 flex-row items-center justify-between">
-            <View>
-              <ThemeText
-                variant="subheading"
-                className="font-bold tracking-tight text-ink"
-              >
-                Quick actions
-              </ThemeText>
-              <ThemeText className="mt-1 text-steel">
-                Stay on top of your work.
-              </ThemeText>
+        <View className="rounded-t-[36px] bg-canvas px-3 py-8 gap-section">
+          <View className="gap-subsection">
+            <View className="flex-row items-center justify-between">
+              <View className="">
+                <ThemeText variant="sectionTitle">Quick actions</ThemeText>
+                <ThemeText variant="sectionSubtitle">
+                  Stay on top of your work.
+                </ThemeText>
+              </View>
+              <View className="h-11 w-11 items-center justify-center rounded-full bg-mist">
+                <ThemeText className="text-lg text-charcoal">✦</ThemeText>
+              </View>
             </View>
-            <View className="h-11 w-11 items-center justify-center rounded-full bg-mist">
-              <ThemeText className="text-lg text-charcoal">✦</ThemeText>
+
+            <View className="flex-row">
+              {quickActions?.map(({ label, icon, onPress }) => (
+                <Pressable
+                  key={label}
+                  onPress={onPress}
+                  accessibilityLabel={label}
+                  className="w-1/4 items-center gap-2 active:opacity-70"
+                >
+                  <Image
+                    source={icon}
+                    style={{
+                      width: 55,
+                      height: 55,
+                      shadowColor: themeColors?.ash,
+                    }}
+                    contentFit="contain"
+                  />
+                  <ThemeText
+                    className="text-center font-bold text-ink"
+                    numberOfLines={1}
+                  >
+                    {label}
+                  </ThemeText>
+                </Pressable>
+              ))}
             </View>
           </View>
 
-          <View className="flex-row">
-            {quickActions?.map(({ label, icon, onPress }) => (
-              <Pressable
-                key={label}
-                // onPress={onPress}
-                accessibilityLabel={label}
-                className="w-1/4 items-center gap-2 active:opacity-70"
-              >
-                <Image
-                  source={icon}
-                  style={{
-                    width: 55,
-                    height: 55,
-                    shadowColor: themeColors?.ash,
-                  }}
-                  contentFit="contain"
-                />
-                <ThemeText
-                  className="text-center font-bold text-ink"
-                  numberOfLines={1}
-                >
-                  {label}
-                </ThemeText>
-              </Pressable>
-            ))}
+          <View className="gap-subsection">
+            <ProgressOverview stats={tasksData?.progress_stats} />
           </View>
 
           <View className="mt-8">
@@ -352,7 +412,7 @@ const Home = () => {
                 >
                   Tasks Summary
                 </ThemeText>
-                <ThemeText className="mt-1 text-xs text-steel">
+                <ThemeText className="text-xs text-steel">
                   {analytics.subtitle}
                 </ThemeText>
               </View>

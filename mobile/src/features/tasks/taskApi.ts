@@ -7,8 +7,11 @@ import { TasksGetResponse } from "./types";
 
 const taskApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getTasks: builder.query<TasksGetResponse, void>({
-      query: () => "/tasks",
+    getTasks: builder.query({
+      query: (params) => ({
+        url: "/tasks",
+        params,
+      }),
     }),
     createTask: builder.mutation({
       queryFn: async (fields: {

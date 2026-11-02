@@ -3,7 +3,7 @@ import { ExpoConfig } from "expo/config";
 const config: ExpoConfig = {
   name: "TaskMesh AI",
   slug: "taskmesh-ai",
-  version: "1.0.9",
+  version: "1.0.10",
   orientation: "portrait",
   icon: "./assets/images/taskmesh-logo.png",
   scheme: "taskmesh",
@@ -61,6 +61,16 @@ const config: ExpoConfig = {
     "expo-image",
     "expo-status-bar",
     "react-native-edge-to-edge",
+    [
+      "expo-build-properties",
+      {
+        android: {
+          compileSdkVersion: 36,
+          targetSdkVersion: 36,
+          minSdkVersion: 30,
+        },
+      },
+    ],
   ],
   experiments: {
     reactCompiler: true,
