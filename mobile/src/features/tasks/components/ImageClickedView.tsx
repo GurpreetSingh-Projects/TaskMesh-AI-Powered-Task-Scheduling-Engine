@@ -44,6 +44,7 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
   const boxTop = shrunk ? 50 : 0;
   const boxPaddingHorizontal = shrunk ? 25 : 0;
 
+  const createTaskSheetRef = useRef<PagerView>(null);
   const {
     control,
     handleSubmit,
@@ -57,6 +58,11 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
       priority: "NORMAL",
     },
   });
+
+  const nextPageHandler = () => {
+    console.log("Running from next page handler");
+    createTaskSheetRef?.current?.setPage(1);
+  };
 
   return (
     <View className="flex-1" onLayout={() => setShrunk(true)}>
@@ -75,7 +81,7 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
         onCSSTransitionEnd={(event: any) => {
           if (event.propertyName === "height") {
             setIsAnimationCompleted(true);
-            sheetRef?.current?.snapToIndex(2);
+            sheetRef?.current?.snapToIndex(1);
           }
         }}
       >
@@ -86,24 +92,28 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
       {isAnimationCompleted && (
         <ThemeSheet
           ref={sheetRef}
-          snapPoints={["25%", "50%", "75%", "90%"]}
+          snapPoints={["50%"]}
           backgroundStyle={{ backgroundColor: themeColors?.charcoal }}
           closable={false}
         >
           <PagerView
+            ref={createTaskSheetRef}
             initialPage={0}
             scrollEnabled
             pageMargin={themeSpacing?.page}
-            style={{ height: "100%" }}
+            style={{ height: height * 0.5 }}
           >
-            <View key={"1"} className="gap-5 px-5">
-              <View className="">
+            <View key={"1"} className="gap-5 px-5 mt-default-half">
+              <View className="gap-2">
+                <ThemeText variant="title" className="text-xs! text-mist">
+                  What's the name of this task?
+                </ThemeText>
                 <Controller
                   control={control}
                   name="title"
                   render={({ field: { value, onChange, onBlur } }) => (
                     <ThemeTextInput
-                      placeholder="What's the name of this task?"
+                      placeholder=""
                       value={value}
                       onChangeText={onChange}
                       onBlur={onBlur}
@@ -111,14 +121,17 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
                     />
                   )}
                 />
-                {errors && errors?.title?.message && (
-                  <ThemeText className="mt-1 text-xs text-red-500">
-                    {errors?.title?.message}
+                {errors?.title?.message && (
+                  <ThemeText className="text-xs text-red-500">
+                    {errors.title.message}
                   </ThemeText>
                 )}
               </View>
 
-              <View className="">
+              <View className="gap-2">
+                <ThemeText variant="title" className="text-xs! text-mist">
+                  What's the purpose of this task?
+                </ThemeText>
                 <Controller
                   control={control}
                   name="description"
@@ -130,49 +143,43 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
                       onBlur={onBlur}
                       keyboardType="default"
                       numberOfLines={3}
-                      textAlignVertical={"top"}
+                      textAlignVertical="top"
                     />
                   )}
                 />
               </View>
 
-              <View className="">
-                <Controller
-                  control={control}
-                  name="status"
-                  render={({ field: { value, onChange } }) => (
-                    <>
-                      <ThemeTabGroup
-                        value={value}
-                        onChange={onChange}
-                        options={TASK_STATUS_OPTIONS}
-                      />
-                    </>
-                  )}
-                />
-              </View>
-
-              <View className="">
+              <View className="gap-2">
+                <ThemeText variant="title" className="text-xs! text-mist">
+                  Priority
+                </ThemeText>
                 <Controller
                   control={control}
                   name="priority"
                   render={({ field: { value, onChange } }) => (
-                    <>
-                      <ThemeTabGroup
-                        value={value}
-                        onChange={onChange}
-                        options={TASK_PRIORITY_OPTIONS}
-                      />
-                    </>
+                    <ThemeTabGroup
+                      value={value}
+                      onChange={onChange}
+                      options={TASK_PRIORITY_OPTIONS}
+                    />
                   )}
                 />
               </View>
+
+              <ThemeButton
+                className="border-0.25 border-white mt-default"
+                text="Next"
+                onPress={nextPageHandler}
+              />
             </View>
-            <View key={"2"} className="gap-5 px-5"></View>
+            <View key={"2"} className="gap-5 px-5">
+              <ThemeButton
+                className="border-0.25 border-white mt-default"
+                text="Submit"
+                onPress={nextPageHandler}
+              />
+            </View>
           </PagerView>
-          <View className="px-page pb-5 pt-3">
-            <ThemeButton className="border-0.5 border-white" text="Next" />
-          </View>
         </ThemeSheet>
       )}
     </View>
