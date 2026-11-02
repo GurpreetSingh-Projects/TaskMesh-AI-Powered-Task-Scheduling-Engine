@@ -28,7 +28,7 @@ const ThemeSheet = (props: ThemeSheetProps & BottomSheetProps) => {
   );
   return (
     <BottomSheet
-      ref={props.ref}
+      ref={props?.ref}
       snapPoints={props?.snapPoints ?? ["25%", "50%", "75%", "95%"]}
       enablePanDownToClose={props?.closable}
       handleComponent={ThemeDrawerPill}
