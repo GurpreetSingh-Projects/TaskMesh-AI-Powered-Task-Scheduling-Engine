@@ -18,6 +18,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import ThemeText from "@/components/ThemeText";
 import ThemeTabGroup from "@/components/ThemeTabGroup";
 import PagerView from "react-native-pager-view";
+import DatePicker from "react-native-date-picker";
+import BackButton from "@/components/BackButton";
 
 interface ImageClickedViewProps {
   uri: string;
@@ -34,11 +36,13 @@ const taskCreateSchema = z.object({
 
 type TaskCreateType = z.infer<typeof taskCreateSchema>;
 
-const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
+const ImageClickedView = ({ uri }: ImageClickedViewProps) => {
   const { height, width } = useWindowDimensions();
   const sheetRef = useRef(null);
   const [shrunk, setShrunk] = useState(false);
   const [isAnimationCompleted, setIsAnimationCompleted] = useState(false);
+  const [page, setPage] = useState<number>(0);
+  const [date, setDate] = useState(new Date());
 
   const boxHeight = shrunk ? height * 0.65 : height;
   const boxTop = shrunk ? 50 : 0;
@@ -60,9 +64,18 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
   });
 
   const nextPageHandler = () => {
-    console.log("Running from next page handler");
-    createTaskSheetRef?.current?.setPage(1);
+    createTaskSheetRef?.current?.setPage(page + 1);
   };
+
+  const prevPageHandler = () => {
+    console.log("prev");
+
+    createTaskSheetRef?.current?.setPage(page - 1);
+  };
+
+  const submitHandler = () => {};
+
+  console.log(page);
 
   return (
     <View className="flex-1" onLayout={() => setShrunk(true)}>
@@ -101,9 +114,10 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
             initialPage={0}
             scrollEnabled
             pageMargin={themeSpacing?.page}
-            style={{ height: height * 0.5 }}
+            onPageSelected={(e) => setPage(e.nativeEvent.position)}
+            style={{ height: height * 0.35 }}
           >
-            <View key={"1"} className="gap-5 px-5 mt-default-half">
+            <View key={"1"} className="fle x-1 gap-5 px-5 mt-default-half">
               <View className="gap-2">
                 <ThemeText variant="title" className="text-xs! text-mist">
                   What's the name of this task?
@@ -165,21 +179,39 @@ const ImageClickedView = ({ uri, onConfirm }: ImageClickedViewProps) => {
                   )}
                 />
               </View>
-
-              <ThemeButton
-                className="border-0.25 border-white mt-default"
-                text="Next"
-                onPress={nextPageHandler}
-              />
             </View>
-            <View key={"2"} className="gap-5 px-5">
-              <ThemeButton
-                className="border-0.25 border-white mt-default"
-                text="Submit"
-                onPress={nextPageHandler}
+            <View key={"2"} className="fle x-1 gap-5 px-5 mt-default-half">
+              <BackButton variant="light" onPress={prevPageHandler} />
+
+              <ThemeText variant="title" className="text-xs! text-mist">
+                Expected Completion Time
+              </ThemeText>
+              <Controller
+                control={control}
+                name="priority"
+                render={({ field: { value, onChange } }) => (
+                  <View className="items-center justify-center">
+                    <DatePicker
+                      mode="datetime"
+                      locale="en"
+                      minuteInterval={5}
+                      date={date}
+                      onDateChange={setDate}
+                      hitSlop={25}
+                      style={{ opacity: 0.75 }}
+                    />
+                  </View>
+                )}
               />
             </View>
           </PagerView>
+          <View className="px-page">
+            <ThemeButton
+              className="border-0.25 border-steel mt-default"
+              text={page == 0 ? "Next" : "Submit"}
+              onPress={page == 0 ? nextPageHandler : submitHandler}
+            />
+          </View>
         </ThemeSheet>
       )}
     </View>
