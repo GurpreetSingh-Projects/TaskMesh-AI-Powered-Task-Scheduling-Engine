@@ -3,13 +3,18 @@ import React, { memo, useState } from "react";
 import { TextInput } from "react-native-gesture-handler";
 import { themeColors } from "@/theme";
 import { Eye, EyeOff } from "lucide-react-native";
+import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
 
 type ThemeTextInputProps = TextInputProps & {
   icon?: React.ReactNode;
   secure?: boolean;
+  mode?: "default" | "bottom-sheet";
 };
 
 const ThemeTextInput = memo((props: ThemeTextInputProps) => {
+  const Container =
+    props?.mode === "bottom-sheet" ? BottomSheetTextInput : TextInput;
+
   const [isFocussed, setIsFocussed] = useState<boolean>(false);
   const [isSecure, setIsSecure] = useState<boolean>(false);
 
@@ -27,7 +32,7 @@ const ThemeTextInput = memo((props: ThemeTextInputProps) => {
     >
       {props?.icon && props.icon}
 
-      <TextInput
+      <Container
         {...rest}
         keyboardType={props?.keyboardType ? props?.keyboardType : "default"}
         onChangeText={changeHandler}
@@ -44,8 +49,8 @@ const ThemeTextInput = memo((props: ThemeTextInputProps) => {
           height: "100%",
           color: themeColors?.ash,
         }}
-        placeholderTextColor={themeColors?.steel}
-        cursorColor={themeColors?.obsidian}
+        placeholderTextColor={props?.placeholderTextColor ?? themeColors?.steel}
+        cursorColor={props?.cursorColor ?? themeColors?.obsidian}
         secureTextEntry={isSecure}
         textAlignVertical={props?.textAlignVertical}
       />
