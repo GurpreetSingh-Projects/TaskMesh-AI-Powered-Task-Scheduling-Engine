@@ -13,11 +13,15 @@ import {
   useCameraPermission,
   usePhotoOutput,
 } from "react-native-vision-camera";
-import { useMediaPicker } from "@/hooks/useMediaPicker";
+import { formatImgTypes, useMediaPicker } from "@/hooks/useMediaPicker";
 import ImageClickedView from "../components/ImageClickedView";
+import { FileType } from "@/features/auth/types";
+import ReactNativeBlobUtil from "react-native-blob-util";
 
 const CreateTask = () => {
-  const [media, setMedia] = useState<string | null>(null);
+  const { processImage } = useMediaPicker();
+
+  const [media, setMedia] = useState<FileType | null>(null);
   const camera = useRef<CameraRef>(null);
   const { hasPermission, requestPermission } = useCameraPermission();
   const [cameraPosition, setCameraPosition] = useState<"back" | "front">(
@@ -39,7 +43,17 @@ const CreateTask = () => {
     try {
       const { filePath } = await photoOutput.capturePhotoToFile({}, {});
       if (filePath) {
-        setMedia(filePath);
+        let processedImage = await processImage({
+          uri: `file://${filePath}`,
+          name: "image",
+          type: "image/jpeg",
+        });
+
+        ReactNativeBlobUtil.fs
+          .unlink(filePath)
+          .catch((err) => console.log("unlink failed:", err));
+
+        setMedia(processedImage);
       }
     } catch (error) {
       console.log("Capture error:", error);
@@ -69,7 +83,7 @@ const CreateTask = () => {
       isScrollable={false}
       backgroundColor={themeColors?.ink}
     >
-      <View className="flex-1 relative">
+      <View className="flex-1 relative" collapsable={true}>
         {!media ? (
           <>
             <Camera
@@ -132,7 +146,7 @@ const CreateTask = () => {
             </View>
           </>
         ) : (
-          <ImageClickedView uri={media} />
+          <ImageClickedView media={media} />
         )}
       </View>
     </ThemePage>
