@@ -19,15 +19,31 @@ type ThemeButtonProps = PressableProps & {
 
 const variantClasses: Record<
   ThemeButtonVariant,
-  { button: string; text: string }
+  {
+    button: string;
+    text: string;
+    disabledButton: string;
+    disabledText: string;
+  }
 > = {
-  primary: { button: "bg-ink border border-ink", text: "text-canvas" },
-  secondary: { button: "bg-canvas border border-mist", text: "text-ink" },
+  primary: {
+    button: "bg-ink border border-ink",
+    text: "text-canvas",
+    disabledButton: "bg-steel border border-steel",
+    disabledText: "text-mist",
+  },
+  secondary: {
+    button: "bg-canvas border border-mist",
+    text: "text-ink",
+    disabledButton: "bg-canvas border border-mist",
+    disabledText: "text-steel",
+  },
 };
 
 const ThemeButton = (props: ThemeButtonProps) => {
   const status = props?.status ?? "default";
   const variant = variantClasses[props?.variant ?? "primary"];
+  const disabled = props?.disabled || status === "loading";
 
   const statusAnimation =
     status === "loading"
@@ -41,14 +57,16 @@ const ThemeButton = (props: ThemeButtonProps) => {
   return (
     <Pressable
       onPress={props?.onPress}
-      className={`p-default gap-default items-center justify-center rounded-full max-h-[50px] ${variant.button} ${props?.className}`}
+      disabled={disabled}
+      accessibilityState={{ disabled: disabled }}
+      className={`p-default gap-default items-center justify-center rounded-full max-h-[50px] ${disabled ? variant.disabledButton : variant.button} ${props.className ?? ""}`}
       style={{ elevation: 8 }}
     >
       {props.children ? (
         props.children
       ) : status === "default" ? (
         <ThemeText
-          className={`font-extrabold text-center text-base mx-default! rounded-full ${variant.text} ${props?.textClassName}`}
+          className={`font-extrabold text-center text-base mx-default! rounded-full ${disabled ? variant.disabledText : variant.text} ${props.textClassName ?? ""}`}
         >
           {props?.text}
         </ThemeText>
