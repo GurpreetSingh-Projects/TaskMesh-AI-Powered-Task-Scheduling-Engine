@@ -34,6 +34,8 @@ const ThemeSheet = (props: ThemeSheetProps & BottomSheetProps) => {
       handleComponent={ThemeDrawerPill}
       style={props?.style}
       backgroundStyle={props?.backgroundStyle}
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
       {...props}
     >
       <BottomSheetView className={`h-full w-full relative`}>
