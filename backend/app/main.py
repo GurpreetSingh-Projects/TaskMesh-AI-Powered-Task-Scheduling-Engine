@@ -9,6 +9,7 @@ from app.features.labels.routers import router as label_router
 from app.features.storage.routers import router as storage_router
 from app.database import Base
 from app.core.logging import setup_logging
+from app.core.redis import redis
 from app import features
 from loguru import logger
 
@@ -19,6 +20,8 @@ async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
+
+    await redis.aclose()
 
 app = FastAPI(title='TaskMesh Api v2', version='2.0.0', lifespan=lifespan)
 
