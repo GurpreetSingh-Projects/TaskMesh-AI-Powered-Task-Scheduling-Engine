@@ -24,6 +24,8 @@ import { DrawerMode, FileType } from "@/features/auth/types";
 import { useCreateTaskMutation } from "../taskApi";
 import LottieView from "lottie-react-native";
 import { animations, images } from "@/assets";
+import { useNavigation } from "@react-navigation/native";
+import { BottomTabsNavigationProp } from "@/navigation/routes";
 
 type ImageClickedViewProps = {
   media: FileType;
@@ -54,7 +56,9 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
   const boxPaddingHorizontal = shrunk ? 25 : 0;
 
   const createTaskSheetRef = useRef<PagerView>(null);
-  const [createTask, { isLoading, reset }] = useCreateTaskMutation();
+  const navigation = useNavigation<BottomTabsNavigationProp>();
+  const [createTask, { isLoading, isSuccess, isError, reset }] =
+    useCreateTaskMutation();
 
   const {
     control,
@@ -73,13 +77,11 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
 
   const nextPageHandler = async () => {
     const isValid = await trigger(["title"]);
-
     if (isValid) createTaskSheetRef?.current?.setPage(page + 1);
   };
 
   const prevPageHandler = () => {
     console.log("prev");
-
     createTaskSheetRef?.current?.setPage(page - 1);
   };
 
@@ -94,7 +96,7 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
         task_img: props?.media,
       }).unwrap();
 
-      console.log(response);
+      console.log("Success:", response);
 
       setDrawerMsg({
         title: "Task Created!!",
@@ -102,29 +104,30 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
       });
 
       setDrawerMode("success");
-      // registerDrawerRef?.current?.present();
+      createTaskSheetRef?.current?.setPage(page + 1);
 
-      // setTimeout(() => {
-      //   registerDrawerRef?.current?.dismiss();
-      //   reset();
-      // }, 2500);
-    } catch (error) {
-      console.log(error);
+      setTimeout(() => {
+        navigation.reset({
+          index: 1,
+          routes: [{ name: "Home" }, { name: "Tasks" }],
+        });
+      }, 2500);
+    } catch (err) {
+      console.log("Error:", err);
 
       setDrawerMsg({
         title: "Task Creation Failed",
         description: "Unable to create task. Please try again.",
       });
       setDrawerMode("fail");
-      // registerDrawerRef?.current?.present();
 
-      // setTimeout(() => {
-      //   registerDrawerRef?.current?.dismiss();
-      // }, 2500);
+      createTaskSheetRef?.current?.setPage(page + 1);
+
+      setTimeout(() => {
+        prevPageHandler();
+      }, 2500);
     }
   };
-
-  console.log(page);
 
   return (
     <View className="flex-1" onLayout={() => setShrunk(true)}>
@@ -154,7 +157,11 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
       {isAnimationCompleted && (
         <ThemeSheet
           ref={sheetRef}
-          snapPoints={["50%"]}
+          snapPoints={
+            drawerMode === "success" || drawerMode === "fail"
+              ? ["30%"]
+              : ["50%"]
+          }
           backgroundStyle={{ backgroundColor: themeColors?.charcoal }}
           closable={false}
         >
@@ -164,7 +171,12 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
             pageMargin={themeSpacing?.page}
             onPageSelected={(e) => setPage(e.nativeEvent.position)}
             // scrollEnabled={false}
-            style={{ height: height * 0.5 }}
+            style={{
+              height:
+                drawerMode === "success" || drawerMode === "fail"
+                  ? height * 0.3
+                  : height * 0.5,
+            }}
           >
             <View key={"1"} className="gap-5 px-page mt-default-half">
               <View className="gap-2">
@@ -177,12 +189,12 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
                   render={({ field: { value, onChange, onBlur } }) => (
                     <ThemeTextInput
                       mode="bottom-sheet"
-                      placeholder="Title"
+                      variant="secondary"
+                      placeholder="What's the name of this task?"
                       value={value}
                       onChangeText={onChange}
                       onBlur={onBlur}
                       keyboardType="default"
-                      cursorColor={themeColors?.steel}
                     />
                   )}
                 />
@@ -202,8 +214,9 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
                   name="description"
                   render={({ field: { value, onChange, onBlur } }) => (
                     <ThemeTextInput
-                      placeholder="What's the purpose of this task?"
                       mode="bottom-sheet"
+                      variant="secondary"
+                      placeholder="What's the purpose of this task?"
                       value={value}
                       onChangeText={onChange}
                       onBlur={onBlur}
@@ -264,6 +277,7 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
               <ThemeButton
                 className="mt-default border-0.25 border-steel absolute w-full left-page right page bottom-20"
                 text="Submit"
+                status={isLoading ? "loading" : "default"}
                 onPress={() => {
                   Keyboard.dismiss();
                   handleSubmit(submitHandler)();
@@ -271,7 +285,10 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
               />
             </View>
             <View key="3">
-              <View className="h-full w-full flex-1 items-center justify-center gap-3 z-10">
+              <View
+                className="items-center justify-center gap-3 z-10"
+                style={{ height: height * 0.25 }}
+              >
                 <LottieView
                   source={
                     drawerMode === "success"
@@ -283,28 +300,17 @@ const ImageClickedView = (props: ImageClickedViewProps) => {
                   style={{ width: 75, height: 75 }}
                 />
                 <View className="gap-3 py-3">
-                  <ThemeText variant="subheading" className="text-center">
+                  <ThemeText
+                    variant="subheading"
+                    className="text-center text-canvas"
+                  >
                     {drawerMsg.title}
                   </ThemeText>
-                  <ThemeText className="text-graphite! text-center">
+                  <ThemeText className="text-cloud! text-center">
                     {drawerMsg.description}
                   </ThemeText>
                 </View>
               </View>
-
-              {drawerMode === "success" && (
-                <Image
-                  source={images?.illustrations?.illustration2}
-                  contentFit="cover"
-                  style={{
-                    width,
-                    height: 150,
-                    position: "absolute",
-                    bottom: 0,
-                    opacity: 0.25,
-                  }}
-                />
-              )}
             </View>
           </PagerView>
         </ThemeSheet>
