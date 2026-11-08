@@ -23,12 +23,12 @@ const variants = {
     icon: themeColors?.obsidian,
   },
   secondary: {
-    box: "bg-canvas",
-    focused: "border-ink",
-    idle: "border-mist",
-    text: themeColors?.ink,
+    box: "",
+    focused: "border-mist",
+    idle: "border-steel",
+    text: themeColors?.canvas,
     placeholder: themeColors?.steel,
-    cursor: themeColors?.ink,
+    cursor: themeColors?.steel,
     icon: themeColors?.ink,
   },
 };
