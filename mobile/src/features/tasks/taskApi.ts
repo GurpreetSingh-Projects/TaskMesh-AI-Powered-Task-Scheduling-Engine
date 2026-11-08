@@ -71,7 +71,7 @@ const taskApi = baseApi.injectEndpoints({
           const status_code = response.info().status;
           const data = response.json();
 
-          return status_code == 200
+          return status_code == 200 || status_code == 201
             ? { data }
             : {
                 error: {
