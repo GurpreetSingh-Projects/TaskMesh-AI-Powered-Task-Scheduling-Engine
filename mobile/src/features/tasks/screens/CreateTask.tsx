@@ -63,8 +63,9 @@ const CreateTask = () => {
   const handlePicker = async () => {
     try {
       const file = await pickFromGallery();
+
       if (file) {
-        setMedia(file.uri);
+        setMedia(file);
       }
     } catch (error) {
       console.log("Media picker error:", error);
