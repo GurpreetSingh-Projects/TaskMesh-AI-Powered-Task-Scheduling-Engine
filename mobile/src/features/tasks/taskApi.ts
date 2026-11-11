@@ -3,9 +3,13 @@ import ReactNativeBlobUtil from "react-native-blob-util";
 import * as SecureStore from "expo-secure-store";
 import { FileType } from "../auth/types";
 import { TASK_PRIORITY, TASK_STATUS } from "./utils";
+import { TasksGetResponse } from "./types";
 
 const taskApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getTasks: builder.query<TasksGetResponse, void>({
+      query: () => "/tasks",
+    }),
     createTask: builder.mutation({
       queryFn: async (fields: {
         title: string;
@@ -88,4 +92,4 @@ const taskApi = baseApi.injectEndpoints({
   overrideExisting: true,
 });
 
-export const { useCreateTaskMutation } = taskApi;
+export const { useCreateTaskMutation, useGetTasksQuery } = taskApi;
