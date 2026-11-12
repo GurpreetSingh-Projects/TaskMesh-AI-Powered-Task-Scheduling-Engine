@@ -12,7 +12,8 @@ import { images } from "@/assets";
 import { useGetTasksQuery } from "@/features/tasks/taskApi";
 import { Carousel, CarouselRef } from "react-native-reanimated-carousel";
 import Animated from "react-native-reanimated";
-import { SlideItem } from "@/components/SlideItem";
+import { HomeSlideItem } from "../components/HomeSlideItem";
+import { TaskItem } from "@/features/tasks/types";
 
 const ranges = ["Daily", "Weekly", "Monthly"] as const;
 
@@ -71,8 +72,8 @@ const Home = () => {
 
   const {
     data: tasksData,
-    isLoading: isTasksLoading,
-    isError: isTasksError,
+    isLoading: areTasksLoading,
+    isError: areTasksError,
     error: tasksError,
   } = useGetTasksQuery();
   console.log("Tasks:", tasksData);
@@ -180,27 +181,22 @@ const Home = () => {
               </ThemeText>
             </View>
 
-            <View>
+            <View className="flex-1 items-center justify-center">
               <Carousel
+                loop
                 ref={carouselRef}
-                settings
+                data={tasksData?.items}
                 style={{
-                  width: PAGE_WIDTH,
-                  height: 258,
+                  height: height * 0.65,
+                  aspectRatio: 0.5625,
                 }}
                 layout={{
                   type: "parallax",
-                  scale: 0.9,
-                  offset: 50,
+                  scale: 0.75,
+                  offset: 150,
                 }}
-                renderItem={({ index }) => {
-                  return (
-                    <CustomItem
-                      index={index}
-                      key={index}
-                      pressAnim={pressAnim}
-                    />
-                  );
+                renderItem={({ item, index }) => {
+                  return <CustomItem key={index} task={item} />;
                 }}
               />
             </View>
@@ -377,75 +373,23 @@ const Home = () => {
 
 export default Home;
 
-const CustomItem = ({
-  pressAnim,
-  index,
-  animStyle,
-  carouselImages,
-  isActive,
-}) => {
+type ItemProps = {
+  task: TaskItem;
+};
+
+const CustomItem: React.FC<ItemProps> = ({ task }) => {
   return (
     <Animated.View
-      className="w-[280px] h-[480px] items-center"
-      style={[animStyle]}
+      style={[
+        {
+          flex: 1,
+          overflow: "hidden",
+        },
+      ]}
     >
-      {/* Main Card */}
-      <View className="flex-1 w-full rounded-[36px] overflow-hidden border-[1.5px] border-white bg-black shadow-xl">
-        <SlideItem source={carouselImages[index]} index={index} />
-
-        {/* Dark gradient overlay covering bottom 45% */}
-        <View className="absolute inset-x-0 bottom-0 top-[55%] bg-black/40 backdrop-blur-md" />
-
-        {/* Content Container */}
-        <View className="absolute bottom-6 left-5 right-5 items-start">
-          {/* Title */}
-          <ThemeText
-            variant="heading"
-            className="text-white mb-2"
-            numberOfLines={1}
-          >
-            Submit quarterly report
-          </ThemeText>
-
-          {/* Description */}
-          <ThemeText
-            variant="body"
-            className="text-[#A0A0A5] mb-4"
-            numberOfLines={2}
-          >
-            Finalize the numbers and send the report to the finance team for
-            review.
-          </ThemeText>
-
-          {/* Glass Chips Row */}
-          <View className="flex-row gap-2 mb-5">
-            <View className="flex-row items-center bg-white/15 px-3 py-1.5 rounded-full border border-white/20">
-              <ThemeText variant="body" className="text-white text-xs">
-                ⏳ Pending
-              </ThemeText>
-            </View>
-            <View className="flex-row items-center bg-white/15 px-3 py-1.5 rounded-full border border-white/20">
-              <ThemeText variant="body" className="text-white text-xs">
-                🚩 Normal
-              </ThemeText>
-            </View>
-          </View>
-
-          {/* Full-width White Pill Button */}
-          <View className="w-full bg-white py-3.5 rounded-full items-center justify-center">
-            <ThemeText variant="button" className="text-[#1C1C1E]">
-              Mark as done
-            </ThemeText>
-          </View>
-        </View>
-      </View>
-
-      {/* Overdue text displayed directly below the main card */}
-      {isActive && (
-        <ThemeText variant="body" className="mt-3 text-[#FF3B30] text-center">
-          Overdue by 5 hours
-        </ThemeText>
-      )}
+      <HomeSlideItem task={task} />
     </Animated.View>
   );
 };
+
+//
