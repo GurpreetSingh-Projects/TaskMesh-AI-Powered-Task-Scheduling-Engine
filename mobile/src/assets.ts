@@ -26,6 +26,10 @@ export const images = {
     illustration1: require("@/assets/images/illustrations/illustration-1.webp"),
     illustration2: require("@/assets/images/illustrations/illustration-2.webp"),
   },
+
+  backgrounds: {
+    homeBg: require("@/assets/images/backgrounds/home-bg.webp"),
+  },
 };
 
 export const animations = {
