@@ -13,7 +13,6 @@ router = APIRouter(prefix="/tasks", tags=["Tasks & Subtasks"], dependencies=[Dep
 # Tasks
 @router.post("", response_model=TaskReadResponseItemSchema, status_code=201, summary="Create a new task")
 async def create_task(
-    # task_data: TaskCreateRequestSchema,
     title: str = Form(...),
     description: str | None = Form(None),
     status: TaskStatus = Form(None),
@@ -35,10 +34,35 @@ async def create_task(
     response = await task_service.create_task(user=user, task_img=task_img, task_data=task_data)
     return response
 
-@router.get("", response_model= TaskReadResponseSchema, summary="List your tasks")
-async def get_tasks(limit: int = Query(15, ge=0, le= 500), offset:int= Query(0, ge= 0), user= Depends(get_current_user), task_service: TaskService = Depends(get_tasks_service)):
-    response= await task_service.get_tasks(user= user, limit= limit, offset= offset)
-    return response
+@router.get("", response_model=TaskReadResponseSchema, summary="List your tasks")
+async def get_tasks(
+    start_date: datetime= Query(default= datetime.now()),
+    end_date: datetime | None = Query(default= datetime.now()),
+    status: TaskStatus | None = None,
+    limit: int = Query(15, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    user=Depends(get_current_user),
+    task_service: TaskService = Depends(get_tasks_service),
+):
+    return await task_service.get_tasks(
+        status=status, start_date=start_date, end_date=end_date,
+        user=user, limit=limit, offset=offset,
+    )
+
+@router.get("/summary", response_model=TaskReadResponseSchema, summary="List your tasks")
+async def get_tasks(
+    start_date: datetime= Query(default= datetime.now()),
+    end_date: datetime | None = Query(default= datetime.now()),
+    status: TaskStatus | None = None,
+    limit: int = Query(15, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    user=Depends(get_current_user),
+    task_service: TaskService = Depends(get_tasks_service),
+):
+    return await task_service.get_tasks(
+        status=status, start_date=start_date, end_date=end_date,
+        user=user, limit=limit, offset=offset,
+    )
 
 @router.patch("/{task_id}", response_model=TaskReadResponseItemSchema, summary="Update a task",
 )
