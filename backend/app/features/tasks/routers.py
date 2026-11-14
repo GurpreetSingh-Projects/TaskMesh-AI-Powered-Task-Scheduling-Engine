@@ -34,22 +34,17 @@ async def create_task(
     response = await task_service.create_task(user=user, task_img=task_img, task_data=task_data)
     return response
 
-@router.get("", response_model=TaskReadResponseSchema, summary="List your tasks")
+@router.get("/summary", summary="List your tasks")
 async def get_tasks(
-    start_date: datetime= Query(default= datetime.now()),
-    end_date: datetime | None = Query(default= datetime.now()),
-    status: TaskStatus | None = None,
-    limit: int = Query(15, ge=1, le=500),
-    offset: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1, le=500),
     user=Depends(get_current_user),
     task_service: TaskService = Depends(get_tasks_service),
 ):
-    return await task_service.get_tasks(
-        status=status, start_date=start_date, end_date=end_date,
-        user=user, limit=limit, offset=offset,
+    return await task_service.get_tasks_summary(
+        user=user, limit=limit,
     )
 
-@router.get("/summary", response_model=TaskReadResponseSchema, summary="List your tasks")
+@router.get("", response_model=TaskReadResponseSchema, summary="List your tasks")
 async def get_tasks(
     start_date: datetime= Query(default= datetime.now()),
     end_date: datetime | None = Query(default= datetime.now()),
