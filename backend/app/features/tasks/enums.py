@@ -6,6 +6,16 @@ class TaskStatus(str, Enum):
     COMPLETED = "COMPLETED"
     OVERDUE = "OVERDUE"
 
+RankStatus = {
+    TaskStatus.OVERDUE.value: 0,
+    TaskStatus.IN_PROGRESS.value: 1,
+    TaskStatus.PENDING.value: 2,
+    TaskStatus.COMPLETED.value: 3,
+}
+
+if set(RankStatus) != {s.value for s in TaskStatus}:
+    raise RuntimeError("STATUS_RANK is out of sync with TaskStatus")
+
 class TaskPriority(str, Enum):
     OPTIONAL = "OPTIONAL"
     NORMAL = "NORMAL"
