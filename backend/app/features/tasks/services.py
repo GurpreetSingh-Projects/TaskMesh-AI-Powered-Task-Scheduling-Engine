@@ -12,7 +12,7 @@ from app.features.tasks.schemas import TaskCreateRequestSchema, TaskUpdateReques
 from app.features.storage.models import FileStorage
 from app.features.storage.enums import FileStorageEntity
 from app.features.storage.services import StorageService
-from app.features.tasks.enums import TaskPriority, TaskStatus, RankPriority
+from app.features.tasks.enums import TaskPriority, TaskStatus, RankStatus, RankPriority
 
 
 class TaskService:
@@ -66,6 +66,42 @@ class TaskService:
         await self.db.commit()
         return response
 
+    async def get_tasks_summary(self, user: Users, limit: int= 5):
+        status_priority= case(RankStatus, value= cast(Tasks.status, String), else_=0)
+        rank_priority= case(RankPriority, value= cast(Tasks.priority, String), else_=0)
+        
+        query= (
+            select(Tasks)
+            .where(
+                Tasks.user_id == user.user_id,
+                Tasks.is_deleted.is_(False),
+            )
+            .order_by(
+                status_priority.asc(),
+                rank_priority.desc(),
+                Tasks.created_at.desc()
+            )
+            .limit(limit)
+        )
+
+        tasks = (await self.db.execute(query)).scalars().all()
+
+        for task in tasks:
+            if task.file_storage_id:
+                file_details= await self.storage_service.get_file_details(file_storage_id=task.file_storage_id, entity_type=FileStorageEntity.TASK)
+                task.image_url= await self.storage_service.get_signed_asset_url(storage_key= file_details.storage_key)
+            else:
+                task.image_url= None
+
+            self.db.expunge(task)
+
+        return {
+            "top_tasks": tasks,
+            "today_progress": [],
+            "recently_completed": [],
+        }
+
+
     async def get_tasks(self, status: TaskStatus, start_date: datetime, end_date: datetime | None,  user: Users, limit: int= 1, offset: int= 0):
         if end_date is None:
             end_date= datetime.now(timezone.utc)
@@ -75,7 +111,7 @@ class TaskService:
 
         if status is None:
             status= TaskStatus.PENDING
-            
+
         rank_priority= case(RankPriority, value= cast(Tasks.priority, String), else_=0)
         
         query= (
