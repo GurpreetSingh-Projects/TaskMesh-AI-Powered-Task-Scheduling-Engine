@@ -1,7 +1,7 @@
 from fastapi import HTTPException, UploadFile, File
 from uuid import UUID
 from types import SimpleNamespace
-from sqlalchemy import select, update, and_
+from sqlalchemy import select, update, and_, or_
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
@@ -206,3 +206,32 @@ class UserService:
 
         await self.db.commit()
         return user_settings
+
+    async def get_user_settings(self, user: Users):
+        query = (
+            select(UserSettings)
+            .where(
+                UserSettings.is_deleted.is_(False),
+                or_(
+                    UserSettings.user_id == user.user_id,
+                    UserSettings.user_id.is_(None),
+                ),
+            )
+            .order_by(
+                UserSettings.user_id.is_(None)
+            )
+        )
+
+        try:
+            user_settings = (await self.db.execute(query)).scalars().first()
+
+            if user_settings is None:
+                raise HTTPException(status_code=404, detail="User settings not found")
+
+            return user_settings
+
+        except HTTPException:
+            raise
+        except Exception:
+            logger.exception("Error while getting user settings")
+            raise HTTPException(status_code=500, detail="An error occurred while getting user settings")
