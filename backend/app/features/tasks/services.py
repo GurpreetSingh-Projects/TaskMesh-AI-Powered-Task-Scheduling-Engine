@@ -623,3 +623,40 @@ class TaskService:
         await self.db.commit()
         logger.info("Subtask Deactivated | task_id={}, user_id={}", response.subtask_id, user.user_id)
         return
+
+    async def autoupdate_task_status(self):
+        current_time= datetime.now(timezone.utc)
+        updated_values = {
+            "status": TaskStatus.OVERDUE,
+            
+        }
+        query= (
+            update(Tasks)
+            .where(
+                Tasks.status.in_([TaskStatus.PENDING, TaskStatus.IN_PROGRESS]),
+                Tasks.due_at <= current_time,
+                Tasks.is_deleted.is_(False),
+            )
+            .values(
+                **updated_values
+            )
+            .returning(Tasks)
+        )
+
+        try:
+            tasks = (await self.db.execute(query)).scalars().all()
+            if not tasks:
+                raise HTTPException(status_code= 404, detail= "No tasks found to update status")
+        except HTTPException:
+            await self.db.rollback()    
+            raise
+        except Exception:
+            await self.db.rollback()
+            logger.exception("Auto-updated task failed")
+            raise HTTPException(
+                status_code=500,
+                detail="An error occurred while auto-updating task",
+            )
+                
+        await self.db.commit()
+        return tasks

@@ -21,3 +21,10 @@ dependencies = [
     "redis>=8.1.0",
     "apscheduler>=3.11.3",
 ]
+
+
+[tool.ruff.lint]
+select = ["I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
