@@ -51,7 +51,6 @@ class UserSettingsCreateRequestSchema(BaseModel):
 
 class UserSettingsReadResponseSchema(BaseModel):
     user_settings_id: UUID
-    user_id: UUID
     needs_reminders: bool | None
     timezone: str | None
     notification_enabled: bool | None

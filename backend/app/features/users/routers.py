@@ -7,13 +7,11 @@ from app.features.users.schemas import UserEditRequestSchema, UserReadResponseSc
 from app.features.users.services import UserService
 from app.core.dependencies import get_current_user
 
-
 user_router = APIRouter(
     prefix="/users",
     tags=["Users"],
     dependencies=[Depends(get_current_user)],
 )
-
 
 user_settings_router = APIRouter(
     prefix="/users/settings",
@@ -37,7 +35,6 @@ async def get_user(
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
-
 
 @user_router.patch(
     "/edit",
@@ -80,7 +77,6 @@ async def create_user_settings(
         settings_data=settings_data,
     )
 
-
 @user_settings_router.get(
     "",
     response_model=UserSettingsReadResponseSchema,
@@ -91,7 +87,6 @@ async def get_user_settings(
     user_services: UserService = Depends(get_user_service),
 ):
     return await user_services.get_user_settings(user=user)
-
 
 @user_settings_router.patch(
     "",
@@ -107,7 +102,6 @@ async def update_user_settings(
         user=user,
         settings_data=settings_data,
     )
-
 
 @user_settings_router.patch(
     "/deactivate",
