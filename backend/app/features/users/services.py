@@ -7,8 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from pydantic import EmailStr
 from datetime import datetime, timezone
-from app.features.users.schemas import UserEditRequestSchema
-from app.features.users.models import Users
+from loguru import logger
+from app.features.users.schemas import UserEditRequestSchema, UserSettingsCreateRequestSchema
+from app.features.users.models import Users, UserSettings
 from app.core.utils import hash_password
 from app.features.storage.models import FileStorage
 from app.features.storage.enums import FileStorageEntity
@@ -163,3 +164,45 @@ class UserService:
 
         await self.db.commit()
         return
+
+    async def create_user_settings(
+        self,
+        user: Users,
+        settings_data: UserSettingsCreateRequestSchema,
+    ):
+        settings_data = settings_data.model_dump(exclude_unset=True)
+
+        if not settings_data:
+            raise HTTPException(status_code= 400, detail= "Invalid settings details provided")
+        
+        insert_query = insert(UserSettings).values(
+            user_id=user.user_id,
+            created_by=user.user_id,
+            updated_by=user.user_id,
+            **settings_data,
+        )
+
+        insert_query = insert_query.on_conflict_do_nothing(
+            index_elements=[UserSettings.user_id],
+        ).returning(UserSettings)
+
+        try:
+            user_settings = (await self.db.execute(insert_query)).scalar_one_or_none()
+
+            if user_settings is None:
+                raise HTTPException(status_code=409, detail="User settings already exist")
+
+        except HTTPException:
+            await self.db.rollback()
+            raise
+        except IntegrityError:
+            await self.db.rollback()
+            logger.exception("Integrity error while creating user settings")
+            raise HTTPException(status_code=409, detail="An error occurred while creating user settings")
+        except Exception:
+            await self.db.rollback()
+            logger.exception("Error while creating user settings")
+            raise HTTPException(status_code=500, detail="An error occurred while creating user settings")
+
+        await self.db.commit()
+        return user_settings
