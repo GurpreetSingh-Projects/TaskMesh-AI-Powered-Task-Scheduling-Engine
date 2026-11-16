@@ -70,11 +70,14 @@ class UserService:
                 raise HTTPException(status_code=404, detail="User not found")
             return None
 
+        user_settings = await self.get_user_settings(user)
+
         user = SimpleNamespace(**user)
 
         if user.storage_key:
             user.profile_img = await self.storage_service.get_signed_asset_url(user.storage_key)
 
+        user.settings = user_settings
         return user
 
     async def edit_user(self, user: Users, user_data: UserEditRequestSchema | None = None, profile_img: UploadFile | None = None):
