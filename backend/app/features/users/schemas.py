@@ -8,6 +8,26 @@ class UserLoginRequestSchema(BaseModel):
     email: EmailStr
     password: str
 
+class UserSettingsReadResponseSchema(BaseModel):
+    user_settings_id: UUID
+    needs_reminders: bool | None
+    timezone: str | None
+    notification_enabled: bool | None
+    preferred_lang: list[str] | None
+    available_lang: list[str] | None
+    theme: str | None
+    supported_media_types: list[str] | None
+    max_media_size: int | None
+    max_image_width: int | None
+    image_conversion_format: str | None
+    image_quality: float | None
+    created_by: UUID | None
+    updated_by: UUID | None
+    created_at: datetime | None
+    updated_at: datetime | None
+
+    model_config = ConfigDict(from_attributes=True)
+
 class UserReadResponseSchema(BaseModel):
     user_id: UUID
     full_name: str | None = None
@@ -20,6 +40,7 @@ class UserReadResponseSchema(BaseModel):
     updated_by: UUID | None = None
     created_at: datetime
     updated_at: datetime
+    settings: UserSettingsReadResponseSchema
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -48,23 +69,3 @@ class UserSettingsCreateRequestSchema(BaseModel):
     notification_enabled: bool | None = None
     preferred_lang: list[str] | None = None
     theme: str | None = None
-
-class UserSettingsReadResponseSchema(BaseModel):
-    user_settings_id: UUID
-    needs_reminders: bool | None
-    timezone: str | None
-    notification_enabled: bool | None
-    preferred_lang: list[str] | None
-    available_lang: list[str] | None
-    theme: str | None
-    supported_media_types: list[str] | None
-    max_media_size: int | None
-    max_image_width: int | None
-    image_conversion_format: str | None
-    image_quality: float | None
-    created_by: UUID | None
-    updated_by: UUID | None
-    created_at: datetime | None
-    updated_at: datetime | None
-
-    model_config = ConfigDict(from_attributes=True)
