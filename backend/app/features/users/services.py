@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from pydantic import EmailStr
 from datetime import datetime, timezone
 from loguru import logger
-from app.features.users.schemas import UserEditRequestSchema, UserSettingsCreateRequestSchema
+from app.features.users.schemas import UserEditRequestSchema, UserSettingsCreateRequestSchema, UserSettingsEditRequestSchema
 from app.features.users.models import Users, UserSettings
 from app.core.utils import hash_password
 from app.features.storage.models import FileStorage
@@ -238,3 +238,51 @@ class UserService:
         except Exception:
             logger.exception("Error while getting user settings")
             raise HTTPException(status_code=500, detail="An error occurred while getting user settings")
+
+    async def update_user_settings(
+        self,
+        user: Users,
+        settings_data: UserSettingsEditRequestSchema,
+    ):
+        settings = settings_data.model_dump(exclude_unset=True)
+
+        if not settings:
+            raise HTTPException(status_code=400, detail="Invalid settings details provided")
+
+        update_query = (
+            update(UserSettings)
+            .where(
+                UserSettings.user_id == user.user_id,
+                UserSettings.is_deleted.is_(False),
+            )
+            .values(
+                **settings,
+                updated_by=user.user_id,
+            )
+            .returning(UserSettings)
+        )
+
+        try:
+            user_settings = (await self.db.execute(update_query)).scalar_one_or_none()
+
+            if user_settings is None:
+                logger.info("Creating new user settings for user: {}", user.user_id)
+                return await self.create_user_settings(
+                    user=user,
+                    settings_data=settings_data,
+                )
+
+            await self.db.commit()
+            return user_settings
+
+        except HTTPException:
+            await self.db.rollback()
+            raise
+        except IntegrityError:
+            await self.db.rollback()
+            logger.exception("Integrity error while updating user settings")
+            raise HTTPException(status_code=409, detail="An error occurred while updating user settings")
+        except Exception:
+            await self.db.rollback()
+            logger.exception("Error while updating user settings")
+            raise HTTPException(status_code=500, detail="An error occurred while updating user settings")
