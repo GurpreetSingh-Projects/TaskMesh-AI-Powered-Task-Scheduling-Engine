@@ -79,6 +79,7 @@ async def create_user_settings(
 
 @user_settings_router.get(
     "",
+    status_code=201,
     response_model=UserSettingsReadResponseSchema,
     summary="Get user settings",
 )
