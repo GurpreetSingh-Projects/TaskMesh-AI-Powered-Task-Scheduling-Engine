@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, Form, 
 from pydantic import EmailStr
 
 from app.features.users.dependencies import get_user_service
-from app.features.users.schemas import UserEditRequestSchema, UserReadResponseSchema, UserSettingsCreateRequestSchema, UserSettingsReadResponseSchema
+from app.features.users.schemas import UserEditRequestSchema, UserReadResponseSchema, UserSettingsCreateRequestSchema, UserSettingsReadResponseSchema, UserSettingsEditRequestSchema
 from app.features.users.services import UserService
 from app.core.dependencies import get_current_user
 
@@ -94,7 +94,7 @@ async def get_user_settings(
     summary="Update user settings",
 )
 async def update_user_settings(
-    settings_data: UserSettingsCreateRequestSchema,
+    settings_data: UserSettingsEditRequestSchema,
     user=Depends(get_current_user),
     user_services: UserService = Depends(get_user_service),
 ):

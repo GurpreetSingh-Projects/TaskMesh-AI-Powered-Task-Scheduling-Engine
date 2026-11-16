@@ -69,3 +69,6 @@ class UserSettingsCreateRequestSchema(BaseModel):
     notification_enabled: bool | None = None
     preferred_lang: list[str] | None = None
     theme: str | None = None
+
+class UserSettingsEditRequestSchema(UserSettingsCreateRequestSchema):
+    pass
