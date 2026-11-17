@@ -286,3 +286,49 @@ class UserService:
             await self.db.rollback()
             logger.exception("Error while updating user settings")
             raise HTTPException(status_code=500, detail="An error occurred while updating user settings")
+
+    async def deactivate_user_settings(self, user: Users):
+        deleted_at = datetime.now(timezone.utc)
+
+        deactivate_query = (
+            update(UserSettings)
+            .where(
+                UserSettings.user_id == user.user_id,
+                UserSettings.is_deleted.is_(False),
+            )
+            .values(
+                is_deleted=True,
+                deleted_at=deleted_at,
+                updated_by=user.user_id,
+            )
+            .returning(UserSettings)
+        )
+
+        try:
+            user_settings = (await self.db.execute(deactivate_query)).scalar_one_or_none()
+
+            if user_settings is None:
+                raise HTTPException(status_code=404, detail="User settings not found")
+
+            await self.db.commit()
+            logger.info("Deactivating user settings for user: {}", user.user_id)
+
+        except HTTPException:
+            await self.db.rollback()
+            raise
+        except IntegrityError:
+            await self.db.rollback()
+            logger.exception("Integrity error while deactivating user settings")
+            raise HTTPException(
+                status_code=409,
+                detail="An error occurred while deactivating user settings",
+            )
+        except Exception:
+            await self.db.rollback()
+            logger.exception("Error while deactivating user settings")
+            raise HTTPException(
+                status_code=500,
+                detail="An error occurred while deactivating user settings",
+            )
+
+        return
