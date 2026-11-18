@@ -5,15 +5,13 @@ from uuid import UUID
 from fastapi import HTTPException, UploadFile
 from loguru import logger
 from pydantic import EmailStr
-from pydantic_core import from_json, to_json
-from redis.exceptions import RedisError
 from sqlalchemy import and_, or_, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.core.redis import redis_client
+from app.core.redis import delete_cache, get_cache, set_cache
 from app.core.utils import hash_password
 from app.features.activity.enums import ActivityEntityType, UserActivityType
 from app.features.activity.schemas import UserActivityCreateRequestSchema
@@ -56,11 +54,10 @@ class UserService:
             if email:
                 conditions.append(Users.email == email)
 
-            cached_details = await redis_client.get(cache_key)
+            cached_details = await get_cache(cache_key)
 
             if user_id is not None and cached_details:
-                logger.debug("Redis Cache HIT: Returning user details from Redis")
-                return SimpleNamespace(**from_json(cached_details))
+                return SimpleNamespace(**cached_details)
 
             query = (
                 select(
@@ -115,14 +112,9 @@ class UserService:
                 user_settings
             ).model_dump()
 
-            user_data = to_json(vars(user))
+            user_data = vars(user)
 
-            try:
-                await redis_client.set(
-                    name=cache_key, value=user_data, ex=settings.CACHE_TTL
-                )
-            except RedisError:
-                logger.exception("User details cache write failed")
+            await set_cache(cache_key=cache_key, data=user_data)
 
             return user
         except HTTPException:
@@ -202,15 +194,21 @@ class UserService:
             raise
         except IntegrityError as e:
             await self.db.rollback()
+            logger.exception(
+                "Edit user failed user_id={} err={}", user.user_id, type(e).__name__
+            )
             raise HTTPException(
                 status_code=409,
-                detail=f"An error occurred while updating user: {str(e)}",
+                detail="User details conflict with existing records",
             )
         except Exception as e:
             await self.db.rollback()
+            logger.exception(
+                "Edit user failed user_id={} err={}", user.user_id, type(e).__name__
+            )
             raise HTTPException(
                 status_code=500,
-                detail=f"An error occurred while updating user: {str(e)}",
+                detail="An error occurred while updating user!!",
             )
 
         self.db.expunge(updated_user)
@@ -226,30 +224,19 @@ class UserService:
         else:
             updated_user.profile_img = ""
 
-        # try:
-        #     await redis_client.set(
-        #         name=cache_key, value=user_data, ex=settings.CACHE_TTL
-        #     )
-        # except RedisError:
-        #     logger.exception(
-        #         "Redis cache write failed for edit user: user_id=%s ttl=%s",
-        #         "edit_user",
-        #         cache_key,
-        #         user.user_id,
-        #         settings.CACHE_TTL,
-        #     )
+        await set_cache(cache_key=cache_key, data=user_data)
 
         await self.db.commit()
         return updated_user
 
-    async def deactivate_user(self, user_id: UUID):
+    async def deactivate_user(self, user: Users):
         deactivate_query = (
             update(Users)
-            .where(Users.user_id == user_id)
+            .where(Users.user_id == user.user_id)
             .values(
                 is_deleted=True,
                 deleted_at=datetime.now(timezone.utc),
-                updated_by=user_id,
+                updated_by=user.user_id,
             )
             .returning(Users)
         )
@@ -269,6 +256,9 @@ class UserService:
                 detail=f"An error occurred while updating task: {str(e)}",
             )
 
+        cache_key = f"users:{user.user_id}:get"
+        await delete_cache(cache_key)
+
         await self.db.commit()
         return
 
@@ -283,6 +273,8 @@ class UserService:
             raise HTTPException(
                 status_code=400, detail="Invalid settings details provided"
             )
+
+        cache_key = f"users:settings:{user.user_id}:get"
 
         insert_query = (
             insert(UserSettings)
@@ -316,7 +308,10 @@ class UserService:
                 user=user, settings_data=settings_data
             )
 
-            logger.info("Integrity error while creating user settings {}")
+            logger.info(
+                "Integrity error while creating settings, updating existing user settings {}"
+            )
+            await set_cache(cache_key=cache_key, data=user_settings)
             await self.db.commit()
 
             return updated_settings
@@ -328,21 +323,27 @@ class UserService:
                 status_code=500, detail="An error occurred while creating user settings"
             )
 
+        await set_cache(cache_key=cache_key, data=user_settings)
         await self.db.commit()
         return user_settings
 
     async def get_user_settings(self, user_id: UUID):
+        # cache_key = f"users:settings:{user_id}:get"
+        # cached_data = await get_cache(cache_key=cache_key)
+
+        # if cached_data:
+        #     return cached_data
 
         query = (
-            select(UserSettings)
-            .where(
+            select(UserSettings).where(
                 UserSettings.is_deleted.is_(False),
                 or_(
                     UserSettings.user_id == user_id,
                     UserSettings.user_id.is_(None),
                 ),
             )
-            .order_by(UserSettings.user_id.is_(None))
+            # .order_by(UserSettings.user_id.is_(None))
+            # .limit(1)
         )
 
         try:
@@ -351,8 +352,6 @@ class UserService:
             if user_settings is None:
                 raise HTTPException(status_code=404, detail="User settings not found")
 
-            return user_settings
-
         except HTTPException:
             raise
         except Exception:
@@ -360,6 +359,8 @@ class UserService:
             raise HTTPException(
                 status_code=500, detail="An error occurred while getting user settings"
             )
+
+        return user_settings
 
     async def update_user_settings(
         self,
@@ -376,6 +377,8 @@ class UserService:
             raise HTTPException(
                 status_code=400, detail="Invalid settings details provided"
             )
+
+        cache_key = f"users:settings:{user.user_id}:get"
 
         update_query = (
             update(UserSettings)
@@ -420,9 +423,6 @@ class UserService:
                 user=user,
             )
 
-            await self.db.commit()
-            return user_settings
-
         except HTTPException:
             await self.db.rollback()
             raise
@@ -439,8 +439,13 @@ class UserService:
                 status_code=500, detail="An error occurred while updating user settings"
             )
 
+        await set_cache(cache_key=cache_key, data=user_settings)
+        await self.db.commit()
+        return user_settings
+
     async def deactivate_user_settings(self, user: Users):
         deleted_at = datetime.now(timezone.utc)
+        cache_key = f"users:settings:{user.user_id}:get"
 
         deactivate_query = (
             update(UserSettings)
@@ -464,9 +469,6 @@ class UserService:
             if user_settings is None:
                 raise HTTPException(status_code=404, detail="User settings not found")
 
-            await self.db.commit()
-            logger.info("Deactivating user settings for user: {}", user.user_id)
-
         except HTTPException:
             await self.db.rollback()
             raise
@@ -485,4 +487,7 @@ class UserService:
                 detail="An error occurred while deactivating user settings",
             )
 
+        delete_cache(cache_key)
+        await self.db.commit()
+        logger.info("Deactivated user settings for user: {}", user.user_id)
         return

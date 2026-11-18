@@ -17,6 +17,7 @@ async def set_cache(cache_key: str, data: Any, ttl: int | None = None) -> None:
         ttl = ttl or settings.CACHE_TTL + random.randint(0, 90)
         to_cache_data = to_json(data)
 
+        logger.debug("Redis Cache HIT: Returning cached data")
         await redis_client.set(name=cache_key, value=to_cache_data, ex=ttl)
     except Exception as e:
         logger.opt(exception=True, depth=1).error(
