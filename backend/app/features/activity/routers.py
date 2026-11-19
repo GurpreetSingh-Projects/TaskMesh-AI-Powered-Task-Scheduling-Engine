@@ -1,0 +1,31 @@
+from fastapi import APIRouter, Depends, UploadFile, Form, File
+from uuid import UUID
+from app.core.dependencies import get_current_user
+from app.features.activity.dependencies import get_activity_service
+from app.features.activity.services import ActivityService
+from app.features.activity.schemas import UserActivityCreateRequestSchema, UserActivityReadResponseSchema
+
+router= APIRouter(prefix="/activity", tags=["Activity"], dependencies=[Depends(get_current_user)])
+
+@router.post("", response_model=UserActivityReadResponseSchema)
+async def create_activity(
+    activity_data: UserActivityCreateRequestSchema,
+    user=Depends(get_current_user),
+    activity_service: ActivityService = Depends(get_activity_service),
+):
+    return await activity_service.create_activity(user, activity_data)
+
+@router.get("", response_model=list[UserActivityReadResponseSchema])
+async def get_activities(
+    user=Depends(get_current_user),
+    activity_service: ActivityService = Depends(get_activity_service),
+):
+    return await activity_service.get_activities(user)
+
+@router.get("/{activity_id}", response_model=UserActivityReadResponseSchema)
+async def get_activity(
+    activity_id: UUID,
+    user=Depends(get_current_user),
+    activity_service: ActivityService = Depends(get_activity_service),
+):
+    return await activity_service.get_activity(user, activity_id)
