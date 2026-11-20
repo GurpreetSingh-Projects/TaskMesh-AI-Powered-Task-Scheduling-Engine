@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, UploadFile, Form, File
+from fastapi import APIRouter, Depends, UploadFile, Form, File, Query
 from uuid import UUID
 from app.core.dependencies import get_current_user
 from app.features.activity.dependencies import get_activity_service
@@ -29,7 +29,7 @@ async def create_activity(
 @router.get("", response_model=list[UserActivityReadResponseSchema])
 async def get_activities(
     user=Depends(get_current_user),
-    limit: int = 10,
+    limit: int = Query(default= 10, gt=0, le= 100),
     activity_service: ActivityService = Depends(get_activity_service),
 ):
     return await activity_service.get_activities(user)
