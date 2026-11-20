@@ -32,7 +32,7 @@ async def get_activities(
     limit: int = Query(default= 10, gt=0, le= 100),
     activity_service: ActivityService = Depends(get_activity_service),
 ):
-    return await activity_service.get_activities(user)
+    return await activity_service.get_activities(limit, user)
 
 @router.get("/{activity_id}", response_model=UserActivityReadResponseSchema)
 async def get_activity(
