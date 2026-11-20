@@ -6,6 +6,7 @@ from app.features.users.routers import user_router, user_settings_router
 from app.features.onboarding.routers import router as onboarding_router
 from app.features.tasks.routers import router as task_router
 from app.features.labels.routers import router as label_router
+from app.features.activity.routers import router as actiivty_router
 from app.features.storage.routers import router as storage_router
 from app.database import Base
 from app.core.logging import setup_logging
@@ -41,4 +42,5 @@ app.include_router(user_settings_router)
 app.include_router(onboarding_router)
 app.include_router(label_router)
 app.include_router(task_router)
+app.include_router(actiivty_router)
 app.include_router(storage_router)
