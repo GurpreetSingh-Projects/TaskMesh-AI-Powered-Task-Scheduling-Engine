@@ -14,6 +14,7 @@ class ActivityService:
         self.db = db
 
     async def record_activity(self, user: Users, activity_data: UserActivityCreateRequestSchema):
+        activity_data= activity_data.model_dump(exclude_unset= True, exclude_none= True)
         activity_query = (
             insert(UserActivity)
             .values(
@@ -42,14 +43,37 @@ class ActivityService:
         activity_data: UserActivityCreateRequestSchema,
     ):
         response= await self.record_activity(user, activity_data)
+        await self.db.commit()
         return response
 
-    async def get_activities(self, user: Users):
-        pass
+    async def get_activities(self, limit: int, user: Users):
+        query = (
+            select(UserActivity)
+            .where(
+                Users.user_id == user.user_id,
+            )
+            .order_by(
+                Users.created_at
+            )
+            .limit(limit)
+        )
+
+        activities = (await self.db.execute(query)).scalars().all()
+        return activities
 
     async def get_activity(
         self,
         user: Users,
         activity_id: UUID,
     ):
-        pass
+        query = (
+            select(UserActivity)
+            .where(
+                Users.user_id == user.user_id,
+                UserActivity.user_activity_id == activity_id
+            )
+            .limit(1)
+        )
+
+        activity = (await self.db.execute(query)).scalar_one_or_none()
+        return activity
