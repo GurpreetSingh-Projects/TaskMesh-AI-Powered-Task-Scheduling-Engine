@@ -51,7 +51,7 @@ class UserLoginResponseSchema(BaseModel):
     refresh_token_expires_at: datetime
     token_type: str
     user: UserReadResponseSchema
-    user_settings: str
+    user_settings: str | None
 
     model_config = ConfigDict(from_attributes=True)
 

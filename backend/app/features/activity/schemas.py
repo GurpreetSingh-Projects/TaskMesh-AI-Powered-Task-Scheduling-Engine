@@ -3,7 +3,6 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 from app.features.activity.enums import UserActivityType
 
-
 class UserActivityCreateRequestSchema(BaseModel):
     activity_type: UserActivityType
     user_device_id: str | None = None
