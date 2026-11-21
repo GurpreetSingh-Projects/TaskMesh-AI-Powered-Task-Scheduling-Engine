@@ -66,7 +66,9 @@ const Home = () => {
   const [isHomeRangeMenuOpen, setIsHomeRangeMenuOpen] = useState(false);
 
   const displayName =
-    user.full_name.trim().length > 0 ? user.full_name.trim() : "Taskmesh User";
+    user.full_name.trim().length > 0
+      ? user?.full_name?.trim()
+      : "Taskmesh User";
 
   const analytics = analyticsData[homeRange];
 
