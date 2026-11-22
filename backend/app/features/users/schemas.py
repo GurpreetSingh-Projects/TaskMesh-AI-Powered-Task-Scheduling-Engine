@@ -40,7 +40,7 @@ class UserReadResponseSchema(BaseModel):
     updated_by: UUID | None = None
     created_at: datetime
     updated_at: datetime
-    settings: UserSettingsReadResponseSchema
+    user_settings: UserSettingsReadResponseSchema
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -51,7 +51,6 @@ class UserLoginResponseSchema(BaseModel):
     refresh_token_expires_at: datetime
     token_type: str
     user: UserReadResponseSchema
-    user_settings: str | None
 
     model_config = ConfigDict(from_attributes=True)
 
