@@ -21,64 +21,73 @@ class UserService:
         self.storage_service= StorageService(db)
 
     async def get_user_details(self, email: EmailStr | None = None, user_id: UUID | None = None, silent_mode: bool= False):
-        if not email and not user_id:
-            raise HTTPException(status_code=400, detail="Either email or user_id must be provided")
+        try: 
+            if not email and not user_id:
+                raise HTTPException(status_code=400, detail="Either email or user_id must be provided")
 
-        conditions = []
-        if user_id:
-            conditions.append(Users.user_id == user_id)
-        if email:
-            conditions.append(Users.email == email)
+            conditions = []
+            if user_id:
+                conditions.append(Users.user_id == user_id)
+            if email:
+                conditions.append(Users.email == email)
 
-        query = (
-            select(
-                Users.user_id,
-                Users.full_name,
-                Users.email,
-                Users.profile_img,
-                Users.hashed_pswd,
-                Users.role,
-                Users.is_profile_completed,
-                Users.is_onboarding_completed,
-                Users.is_deleted,
-                Users.deleted_at,
-                Users.created_by,
-                Users.updated_by,
-                Users.created_at,
-                Users.updated_at,
-                Users.version_number,
-                FileStorage.storage_key
-            )
-            .outerjoin(
-                FileStorage,
-                and_(
-                    Users.profile_img == FileStorage.file_storage_id,
-                    Users.user_id == FileStorage.entity_id,
-                    FileStorage.entity_type == FileStorageEntity.PROFILE_IMG,
+            query = (
+                select(
+                    Users.user_id,
+                    Users.full_name,
+                    Users.email,
+                    Users.profile_img,
+                    Users.hashed_pswd,
+                    Users.role,
+                    Users.is_profile_completed,
+                    Users.is_onboarding_completed,
+                    Users.is_deleted,
+                    Users.deleted_at,
+                    Users.created_by,
+                    Users.updated_by,
+                    Users.created_at,
+                    Users.updated_at,
+                    Users.version_number,
+                    FileStorage.storage_key
                 )
+                .outerjoin(
+                    FileStorage,
+                    and_(
+                        Users.profile_img == FileStorage.file_storage_id,
+                        Users.user_id == FileStorage.entity_id,
+                        FileStorage.entity_type == FileStorageEntity.PROFILE_IMG,
+                    )
+                )
+                .where(
+                    *conditions
+                )
+                .limit(1)
             )
-            .where(
-                *conditions
-            )
-            .limit(1)
-        )
 
-        user = (await self.db.execute(query)).mappings().one_or_none()
+            user = (await self.db.execute(query)).mappings().one_or_none()
 
-        if not user:
-            if not silent_mode:
-                raise HTTPException(status_code=404, detail="User not found")
-            return None
+            if not user:
+                if not silent_mode:
+                    raise HTTPException(status_code=404, detail="User not found")
+                return None
 
-        user_settings = await self.get_user_settings(user)
+            user_settings= await self.get_user_settings(user_id= user.user_id)
 
-        user = SimpleNamespace(**user)
+            user= SimpleNamespace(**user)
+            
+            if user.storage_key:
+                user.profile_img = await self.storage_service.get_signed_asset_url(
+                    user.storage_key
+                )
 
-        if user.storage_key:
-            user.profile_img = await self.storage_service.get_signed_asset_url(user.storage_key)
+            user.user_settings = user_settings
 
-        user.settings = user_settings
-        return user
+            return user
+        except HTTPException:
+            raise
+        except Exception:
+            logger.exception(f"Failed to retrieve user details:")
+            raise
 
     async def edit_user(self, user: Users, user_data: UserEditRequestSchema | None = None, profile_img: UploadFile | None = None):
         file_record= None
@@ -210,13 +219,13 @@ class UserService:
         await self.db.commit()
         return user_settings
 
-    async def get_user_settings(self, user: Users):
+    async def get_user_settings(self, user_id: UUID):
         query = (
             select(UserSettings)
             .where(
                 UserSettings.is_deleted.is_(False),
                 or_(
-                    UserSettings.user_id == user.user_id,
+                    UserSettings.user_id == user_id,
                     UserSettings.user_id.is_(None),
                 ),
             )
