@@ -87,7 +87,7 @@ async def get_user_settings(
     user=Depends(get_current_user),
     user_services: UserService = Depends(get_user_service),
 ):
-    return await user_services.get_user_settings(user=user)
+    return await user_services.get_user_settings(user_id=user.user_id)
 
 @user_settings_router.patch(
     "",
