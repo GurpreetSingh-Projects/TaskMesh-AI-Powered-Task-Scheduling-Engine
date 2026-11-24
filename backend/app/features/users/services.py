@@ -14,11 +14,15 @@ from app.core.utils import hash_password
 from app.features.storage.models import FileStorage
 from app.features.storage.enums import FileStorageEntity
 from app.features.storage.services import StorageService
+from app.features.activity.enums import UserActivityType, ActivityEntityType
+from app.features.activity.services import ActivityService
+from app.features.activity.schemas import UserActivityCreateRequestSchema
 
 class UserService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.storage_service= StorageService(db)
+        self.activity_service= ActivityService(db)
 
     async def get_user_details(self, email: EmailStr | None = None, user_id: UUID | None = None, silent_mode: bool= False):
         try: 
@@ -130,6 +134,17 @@ class UserService:
             updated_user = (await self.db.execute(update_query)).scalar_one_or_none()
             if updated_user is None:
                 raise HTTPException(status_code= 400, detail= "No user found with the given id")
+
+            updated_user.user_settings= await self.get_user_settings(user_id= user.user_id)
+
+            await self.activity_service.record_activity(
+                activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.PROFILE_UPDATED,
+                    entity_type= ActivityEntityType.USERS,
+                    entity_id= user.user_id,
+                ),
+                user= user
+            )
         except HTTPException:
             await self.db.rollback()
             raise
@@ -202,18 +217,38 @@ class UserService:
             user_settings = (await self.db.execute(insert_query)).scalar_one_or_none()
 
             if user_settings is None:
-                raise HTTPException(status_code=409, detail="User settings already exist")
+                updated_settings = await self.update_user_settings(user, settings_data)
+            
+                await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                        activity_type= UserActivityType.SETTINGS_UPDATED,
+                        entity_type= ActivityEntityType.USERS,
+                        entity_id= user.user_id,
+                    ),
+                    user= user
+                )
+            
+                return updated_settings
+
+            await self.activity_service.record_activity(
+                activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.SETTINGS_CREATED,
+                    entity_type= ActivityEntityType.USERS,
+                    entity_id= user.user_id,
+                ),
+                user= user
+            )
 
         except HTTPException:
             await self.db.rollback()
             raise
         except IntegrityError:
             await self.db.rollback()
-            logger.exception("Integrity error while creating user settings")
+            logger.exception("Integrity error while creating user settings {}")
             raise HTTPException(status_code=409, detail="An error occurred while creating user settings")
         except Exception:
             await self.db.rollback()
-            logger.exception("Error while creating user settings")
+            logger.exception("Error while creating user settings {}")
             raise HTTPException(status_code=500, detail="An error occurred while creating user settings")
 
         await self.db.commit()
@@ -274,12 +309,33 @@ class UserService:
         try:
             user_settings = (await self.db.execute(update_query)).scalar_one_or_none()
 
+
             if user_settings is None:
                 logger.info("Creating new user settings for user: {}", user.user_id)
-                return await self.create_user_settings(
+                settings = await self.create_user_settings(
                     user=user,
                     settings_data=settings_data,
                 )
+
+                await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                        activity_type= UserActivityType.SETTINGS_CREATED,
+                        entity_type= ActivityEntityType.USERS,
+                        entity_id= user.user_id,
+                    ),
+                    user= user
+                )
+
+                return settings
+
+            await self.activity_service.record_activity(
+                activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.SETTINGS_UPDATED,
+                    entity_type= ActivityEntityType.USERS,
+                    entity_id= user.user_id,
+                ),
+                user= user
+            )
 
             await self.db.commit()
             return user_settings
@@ -289,11 +345,11 @@ class UserService:
             raise
         except IntegrityError:
             await self.db.rollback()
-            logger.exception("Integrity error while updating user settings")
+            logger.exception("Integrity error while updating user settings: {}")
             raise HTTPException(status_code=409, detail="An error occurred while updating user settings")
         except Exception:
             await self.db.rollback()
-            logger.exception("Error while updating user settings")
+            logger.exception("Error while updating user settings: {}")
             raise HTTPException(status_code=500, detail="An error occurred while updating user settings")
 
     async def deactivate_user_settings(self, user: Users):
