@@ -202,33 +202,19 @@ class UserService:
         if not settings_data:
             raise HTTPException(status_code= 400, detail= "Invalid settings details provided")
         
-        insert_query = insert(UserSettings).values(
-            user_id=user.user_id,
-            created_by=user.user_id,
-            updated_by=user.user_id,
-            **settings_data,
+        insert_query = (
+            insert(UserSettings)
+            .values(
+                user_id=user.user_id,
+                created_by=user.user_id,
+                updated_by=user.user_id,
+                **settings_data,
+            )
+            .returning(UserSettings)
         )
-
-        insert_query = insert_query.on_conflict_do_nothing(
-            index_elements=[UserSettings.user_id],
-        ).returning(UserSettings)
 
         try:
             user_settings = (await self.db.execute(insert_query)).scalar_one_or_none()
-
-            if user_settings is None:
-                updated_settings = await self.update_user_settings(user, settings_data)
-            
-                await self.activity_service.record_activity(
-                    activity_data= UserActivityCreateRequestSchema(
-                        activity_type= UserActivityType.SETTINGS_UPDATED,
-                        entity_type= ActivityEntityType.USERS,
-                        entity_id= user.user_id,
-                    ),
-                    user= user
-                )
-            
-                return updated_settings
 
             await self.activity_service.record_activity(
                 activity_data= UserActivityCreateRequestSchema(
@@ -244,8 +230,13 @@ class UserService:
             raise
         except IntegrityError:
             await self.db.rollback()
-            logger.exception("Integrity error while creating user settings {}")
-            raise HTTPException(status_code=409, detail="An error occurred while creating user settings")
+            updated_settings = await self.update_user_settings(user= user, settings_data= settings_data)
+        
+            logger.info("Integrity error while creating user settings {}")
+            await self.db.commit()
+
+            return updated_settings
+            
         except Exception:
             await self.db.rollback()
             logger.exception("Error while creating user settings {}")
@@ -288,7 +279,7 @@ class UserService:
         user: Users,
         settings_data: UserSettingsEditRequestSchema,
     ):
-        settings = settings_data.model_dump(exclude_unset=True)
+        settings = settings_data if isinstance(settings_data, dict) else settings_data.model_dump(exclude_unset=True, exclude_none= True)
 
         if not settings:
             raise HTTPException(status_code=400, detail="Invalid settings details provided")
@@ -308,7 +299,6 @@ class UserService:
 
         try:
             user_settings = (await self.db.execute(update_query)).scalar_one_or_none()
-
 
             if user_settings is None:
                 logger.info("Creating new user settings for user: {}", user.user_id)
