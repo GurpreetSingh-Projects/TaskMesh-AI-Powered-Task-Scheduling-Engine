@@ -4,6 +4,7 @@ on:
     branches: [dev]
     paths:
       - "mobile/**"
+      - ".github/workflows/test.yml"
   pull_request:
     branches: [stage]
     paths:
