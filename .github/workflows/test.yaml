@@ -16,9 +16,9 @@ jobs:
     permissions:
       contents: write
 
-    defaults:
-      run:
-        working-directory: mobile
+    # defaults:
+    #   run:
+    #     working-directory: mobile
 
     steps:
       - uses: actions/checkout@v7
@@ -37,7 +37,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-          cache: gradle
+          # cache: gradle
 
       - run: pnpm install --frozen-lockfile
 
@@ -52,7 +52,7 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Publish GitHub Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/stage'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
 
         run: |
           gh release create "stage-${{ github.run_number }}" \
