@@ -1,4 +1,4 @@
-name: Stage Mobile Debug APK flow
+name: Stage Mobile Debug APK flow test
 on:
   push:
     branches: [dev]
