@@ -9,6 +9,7 @@ on:
     branches: [stage]
     paths:
       - "mobile/**"
+      - ".github/workflows/test.yml"
 
 jobs:
   build:
@@ -53,7 +54,7 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Publish GitHub Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/stage'
 
         run: |
           gh release create "stage-${{ github.run_number }}" \
