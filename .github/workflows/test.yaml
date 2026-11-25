@@ -45,10 +45,13 @@ jobs:
       - name: Write .env
         run: echo "${{secrets.ENV_FILE}}" > .env
 
-      - run: pnpm install eas-cli
+      # - run: pnpm install eas-cli
 
       - name: Build on EAS
-        run: eas build --profile debug --platform android --local --non-interactive --output mobile/taskmesh-debug.apk
+        # run: eas build --profile debug --platform android --local --non-interactive --output mobile/taskmesh-debug.apk
+
+        run: npx eas-cli@latest build --profile debug --platform android --local --non-interactive --output taskmesh-debug.apk
+
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
