@@ -1,4 +1,4 @@
-name: Stage Mobile Debug APK flow test
+name: Stage Mobile debug APK flow test
 on:
   push:
     branches: [dev]
@@ -9,10 +9,11 @@ on:
     branches: [stage]
     paths:
       - "mobile/**"
+      - ".github/workflows/test.yaml"
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
 
     permissions:
       contents: write
@@ -24,32 +25,27 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: mobile/pnpm-lock.yaml
+
       - uses: pnpm/action-setup@v4
         with:
           version: latest
 
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 20
-          cache: pnpm
-          cache-dependency-path: mobile/pnpm-lock.yaml
-
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
-          java-version: "17"
-          # cache: gradle
+          java-version: "21"
 
       - run: pnpm install --frozen-lockfile
 
       - name: Write .env
         run: echo "${{secrets.ENV_FILE}}" > .env
 
-      # - run: pnpm install eas-cli
-
       - name: Build on EAS
-        # run: eas build --profile debug --platform android --local --non-interactive --output mobile/taskmesh-debug.apk
-
         run: npx eas-cli@latest build --profile debug --platform android --local --non-interactive --output taskmesh-debug.apk
 
         env:
