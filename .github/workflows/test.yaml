@@ -17,9 +17,9 @@ jobs:
     permissions:
       contents: write
 
-    # defaults:
-    #   run:
-    #     working-directory: mobile
+    defaults:
+      run:
+        working-directory: mobile
 
     steps:
       - uses: actions/checkout@v7
