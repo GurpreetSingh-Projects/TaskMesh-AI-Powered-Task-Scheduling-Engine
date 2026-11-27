@@ -6,6 +6,7 @@ on:
       - "mobile/**"
       - ".github/workflows/test.yaml"
   pull_request:
+    types: [closed]
     branches: [stage]
     paths:
       - "mobile/**"
