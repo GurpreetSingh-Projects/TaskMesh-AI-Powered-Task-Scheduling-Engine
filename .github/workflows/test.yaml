@@ -9,7 +9,7 @@ on:
     branches: [stage]
     paths:
       - "mobile/**"
-      - ".github/workflows/test.yaml"
+      # - ".github/workflows/test.yaml" Only for debugging yaml file on stage
 
 jobs:
   build:
@@ -54,7 +54,7 @@ jobs:
       - name: Write .env
         run: echo "${{secrets.ENV_FILE}}" > .env
 
-      - name: Build on EAS
+      - name: Initiate Build with EAS CLI locally
         run: npx eas-cli@latest build --profile debug --platform android --local --non-interactive --output taskmesh-debug.apk
 
         env:
