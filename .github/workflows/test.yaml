@@ -1,19 +1,15 @@
 name: Stage Mobile debug APK flow test
 on:
-  push:
-    branches: [dev]
-    paths:
-      - "mobile/**"
-      - ".github/workflows/test.yaml"
   pull_request:
-    types: [closed]
     branches: [stage]
+    types: [closed]
     paths:
       - "mobile/**"
       # - ".github/workflows/test.yaml" Only for debugging yaml file on stage
 
 jobs:
   build:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     permissions:
