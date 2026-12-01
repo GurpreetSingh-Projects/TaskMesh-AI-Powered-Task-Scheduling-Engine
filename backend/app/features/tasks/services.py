@@ -1,7 +1,7 @@
 from fastapi import HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from uuid import UUID
+from uuid import uuid4, UUID
 from sqlalchemy import select, insert, func, update, and_, case, String, cast
 import math
 from datetime import datetime, timezone
@@ -13,15 +13,19 @@ from app.features.storage.models import FileStorage
 from app.features.storage.enums import FileStorageEntity
 from app.features.storage.services import StorageService
 from app.features.tasks.enums import TaskPriority, TaskStatus, RankStatus, RankPriority
-
+from app.features.activity.enums import UserActivityType, ActivityEntityType
+from app.features.activity.services import ActivityService
+from app.features.activity.schemas import UserActivityCreateRequestSchema
 
 class TaskService:
     def __init__(self, db:AsyncSession):
         self.db = db
         self.storage_service= StorageService(db)
+        self.activity_service= ActivityService(db)
 
     async def create_task(self, user: Users, task_data: TaskCreateRequestSchema, task_img: UploadFile | None):
         file_record= None
+        task_id: UUID= uuid4()
         
         if task_data is not None: 
             task_data= task_data.model_dump(exclude_unset= True, exclude_none= True)
@@ -40,21 +44,32 @@ class TaskService:
         insert_query= (
             insert(Tasks)
             .values(
+                task_id= task_id,
                 **task_data
             )
             .returning(Tasks)
         )
 
         try:
-            response = (await self.db.execute(insert_query)).scalar_one_or_none()
+            response = (await self.db.execute(insert_query)).scalar_one()
+            await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.TASK_CREATED,
+                    entity_type= ActivityEntityType.TASKS,
+                    entity_id= task_id,
+                ),
+                user= user
+            )
         except HTTPException:
             await self.db.rollback()
             raise
         except IntegrityError as e:
             await self.db.rollback()
+            logger.warning("Integrity error on task create | task_id={}, user_id={}, error={}", task_id, user.user_id, e.orig)
             raise HTTPException(status_code = 409, detail=f"Duplicate task detected, addition cancelled!")
         except Exception as e:
             await self.db.rollback()
+            logger.exception("Task create failed | user_id={}", user.user_id)
             raise HTTPException(status_code=500, detail=f"An error occurred while adding task: {str(e)}")
         self.db.expunge(response)
         if response.file_storage_id:
@@ -64,6 +79,7 @@ class TaskService:
             response.image_url= None
 
         await self.db.commit()
+        logger.info("Task created | task_id={} user_id={}", response.task_id, user.user_id)
         return response
 
     async def get_tasks_summary(self, user: Users, limit: int= 5):
@@ -100,7 +116,6 @@ class TaskService:
             "today_progress": [],
             "recently_completed": [],
         }
-
 
     async def get_tasks(self, status: TaskStatus, start_date: datetime, end_date: datetime | None,  user: Users, limit: int= 1, offset: int= 0):
         if end_date is None:
@@ -200,30 +215,43 @@ class TaskService:
         )
 
         try:
-            response = (await self.db.execute(update_query)).scalar_one_or_none()
+            response = (await self.db.execute(update_query)).scalar_one()
+            
             if response is None:
                 raise HTTPException(status_code= 404, detail= "No task found with the given id")
+
+            await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.TASK_UPDATED,
+                    entity_type= ActivityEntityType.TASKS,
+                    entity_id= task_id,
+                ),
+                user= user
+            )
         except HTTPException:
             await self.db.rollback()
             raise
         except IntegrityError as e:
             await self.db.rollback()
-            raise HTTPException(status_code = 409, detail=f"An error occurred while updating user: {str(e)}")
+            logger.warning("Integrity error on task update | task_id={}, user_id={}, error={}", task_id, user.user_id, e.orig)
+            raise HTTPException(status_code = 409, detail="An error occurred while updating user")
         except Exception as e:
+            await self.db.rollback()
             raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
 
         await self.db.commit()
 
         self.db.expunge(response)
+
         if response.file_storage_id:
             file_details= await self.storage_service.get_file_details(file_storage_id=response.file_storage_id, entity_type=FileStorageEntity.TASK)
             response.image_url= await self.storage_service.get_signed_asset_url(storage_key= file_details.storage_key)
         else:
             response.image_url= None
-
+        logger.info("Task updated | task_id={} user_id={}", response.task_id, user.user_id)
         return response
 
-    async def deactivate_task(self, user: UUID, task_id: UUID):
+    async def deactivate_task(self, user: Users, task_id: UUID):
         deactivate_query= (
             update(Tasks)
             .where(
@@ -240,7 +268,15 @@ class TaskService:
         )   
 
         try:
-            response = (await self.db.execute(deactivate_query)).scalar_one_or_none()
+            response = (await self.db.execute(deactivate_query)).scalar_one()
+            await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.TASK_DELETED,
+                    entity_type= ActivityEntityType.TASKS,
+                    entity_id= task_id,
+                ),
+                user= user
+            )
             if response is None:
                 raise HTTPException(status_code= 400, detail= "No task found with the given id")
         except HTTPException:
@@ -250,6 +286,7 @@ class TaskService:
             raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
         
         await self.db.commit()
+        logger.info("Task Deactivated | task_id={} user_id={}", response.task_id, user.user_id)
         return
 
     async def create_subtask(self, user: Users, subtask_data: SubtaskCreateRequestSchema, subtask_img: UploadFile | None):
