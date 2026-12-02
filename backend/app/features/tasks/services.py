@@ -31,6 +31,8 @@ class TaskService:
             task_data= task_data.model_dump(exclude_unset= True, exclude_none= True)
 
         task_data["user_id"]= user.user_id
+        task_data["created_by"]= user.user_id
+        task_data["updated_by"]= user.user_id
 
         if task_img is not None:
             file_record = await self.storage_service.upload_file(
@@ -40,7 +42,7 @@ class TaskService:
                 entity_id=str(user.user_id),
             )
             task_data["file_storage_id"]=str(file_record["item"].file_storage_id)
-
+        
         insert_query= (
             insert(Tasks)
             .values(
@@ -306,6 +308,9 @@ class TaskService:
             )
             subtask_data["file_storage_id"]=str(file_record["item"].file_storage_id)
 
+        subtask_data["created_by"]= user.user_id
+        subtask_data["updated_by"]= user.user_id
+        
         insert_query= (
              insert(SubTasks)
              .values(
@@ -414,6 +419,7 @@ class TaskService:
     async def update_subtask(
         self,
         user: Users,
+        task_id: UUID,
         subtask_id: UUID,
         subtask_img: UploadFile,
         subtask_data: SubtaskUpdateRequestSchema,
@@ -439,6 +445,7 @@ class TaskService:
             update(SubTasks)
             .where(
                 SubTasks.subtask_id == subtask_id,
+                SubTasks.task_id == task_id,
                 SubTasks.is_deleted.is_(False),
             )
             .values(**subtask_data)
