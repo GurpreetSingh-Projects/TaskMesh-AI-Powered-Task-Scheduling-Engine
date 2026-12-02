@@ -237,7 +237,8 @@ class TaskService:
             raise HTTPException(status_code = 409, detail="An error occurred while updating user")
         except Exception as e:
             await self.db.rollback()
-            raise HTTPException(status_code=500, detail=f"An error occurred while updating task: {str(e)}")
+            logger.warning("Exception on task update | task_id={}, user_id={}, error={}", task_id, user.user_id, e.orig)
+            raise HTTPException(status_code=500, detail="An error occurred while updating task")
 
         await self.db.commit()
 
@@ -445,20 +446,31 @@ class TaskService:
         )
 
         try:
-            response = (await self.db.execute(update_query)).scalar_one_or_none()
+            response = (await self.db.execute(update_query)).scalar_one()
+
             if response is None:
                 raise HTTPException(status_code= 404, detail= "No subtask found with the given id")
+
+            await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.SUBTASK_UPDATED,
+                    entity_type= ActivityEntityType.SUBTASKS,
+                    entity_id= subtask_id,
+                ),
+                user= user
+            )
         except HTTPException:
             await self.db.rollback()
             raise
         except IntegrityError as e:
             await self.db.rollback()
-            raise HTTPException(status_code = 409, detail=f"An error occurred while updating user: {str(e)}")
+            logger.warning("Integrity error on subtask update | task_id={}, user_id={}, error={}", subtask_id, user.user_id, e.orig)
+            raise HTTPException(status_code = 409, detail="An error occurred while updating subtask")
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"An error occurred while updating subtask: {str(e)}")
+            raise HTTPException(status_code=500, detail="An error occurred while updating subtask")
 
         await self.db.commit()
-
+    
         self.db.expunge(response)
         if response.file_storage_id:
             file_details= await self.storage_service.get_file_details(file_storage_id=response.file_storage_id, entity_type=FileStorageEntity.SUBTASK)
@@ -466,6 +478,7 @@ class TaskService:
         else:
             response.image_url= None
 
+        logger.info("Subtask updated | subtask_id={}, user_id={}", response.subtask_id, user.user_id)
         return response
 
     async def deactivate_subtask(self, user: UUID, subtask_id: UUID):
