@@ -70,7 +70,7 @@ class TaskService:
         except Exception as e:
             await self.db.rollback()
             logger.exception("Task create failed | user_id={}", user.user_id)
-            raise HTTPException(status_code=500, detail=f"An error occurred while adding task: {str(e)}")
+            raise HTTPException(status_code=500, detail="An error occurred while adding task")
         self.db.expunge(response)
         if response.file_storage_id:
             file_details= await self.storage_service.get_file_details(file_storage_id=response.file_storage_id, entity_type=FileStorageEntity.TASK)
@@ -291,6 +291,7 @@ class TaskService:
 
     async def create_subtask(self, user: Users, subtask_data: SubtaskCreateRequestSchema, subtask_img: UploadFile | None):
         file_record= None
+        subtask_id: UUID= uuid4()
         
         if subtask_data is not None: 
             subtask_data= subtask_data.model_dump(exclude_unset= True, exclude_none= True)
@@ -307,22 +308,34 @@ class TaskService:
         insert_query= (
              insert(SubTasks)
              .values(
+                 subtask_id= subtask_id,
                  **subtask_data
              )
              .returning(SubTasks)
          )
         
         try:
-            response = (await self.db.execute(insert_query)).scalar_one_or_none()
+            response = (await self.db.execute(insert_query)).scalar_one()
+            await self.activity_service.record_activity(
+                    activity_data= UserActivityCreateRequestSchema(
+                    activity_type= UserActivityType.SUBTASK_CREATED,
+                    entity_type= ActivityEntityType.SUBTASKS,
+                    entity_id= subtask_id,
+                ),
+                user= user
+            )
         except HTTPException:
             await self.db.rollback()
             raise
         except IntegrityError as e:
             await self.db.rollback()
+            logger.warning("Integrity error on subtask create | subtask_id={}, user_id={}, error={}", subtask_id, user.user_id, e.orig)
             raise HTTPException(status_code = 409, detail=f"Duplicate subtask detected, addition cancelled!")
         except Exception as e:
             await self.db.rollback()
-            raise HTTPException(status_code=500, detail=f"An error occurred while adding subtask: {str(e)}")
+            logger.exception("Subtask create failed | user_id={}", user.user_id)
+            raise HTTPException(status_code=500, detail="An error occurred while adding subtask")
+
         self.db.expunge(response)
         if response.file_storage_id:
             file_details= await self.storage_service.get_file_details(file_storage_id=response.file_storage_id, entity_type=FileStorageEntity.TASK)
@@ -331,6 +344,7 @@ class TaskService:
             response.image_url= None
 
         await self.db.commit()
+        logger.info("Subtask created | subtask_id={} user_id={}", response.task_id, user.user_id)
         return response
  
     async def get_subtasks(self, user: Users, task_id: UUID, limit: int= 1, offset: int= 0):
